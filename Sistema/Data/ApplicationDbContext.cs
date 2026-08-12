@@ -4,21 +4,20 @@ using Sistema.Models;
 
 namespace Sistema.Data
 {
-    public class ApplicationDbContext : DbContext
-    {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
+ 
+        public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext(options)
         {
-        }
+        public DbSet<Funcao> Funcao { get; set; }
 
-        public DbSet<Funcao> Funcoes { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(builder); 
-            builder.Entity<Funcao>().ToTable("Funcoes");
+            base.OnModelCreating(builder);
+            builder.Entity<Funcao>().ToTable("Funcao");
             // Configurações adicionais do modelo podem ser feitas aqui
         }
-
     }
-}
+
+        
+ }
