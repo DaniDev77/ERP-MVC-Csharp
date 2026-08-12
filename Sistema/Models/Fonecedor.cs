@@ -1,4 +1,4 @@
-﻿namespace cc.Models
+﻿namespace Sistema.Models
 {
     public class Fonecedor
     {
