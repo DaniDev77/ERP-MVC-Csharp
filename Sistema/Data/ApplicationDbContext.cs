@@ -4,9 +4,12 @@ using Sistema.Models;
 
 namespace Sistema.Data
 {
- 
-        public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext(options)
+    public class ApplicationDbContext : IdentityDbContext
+    {
+        public  ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
+        }
+
         public DbSet<Funcao> Funcao { get; set; }
         public DbSet<Fonecedor> Fonecedor { get; set; }
 
@@ -19,6 +22,4 @@ namespace Sistema.Data
             // Configurações adicionais do modelo podem ser feitas aqui
         }
     }
-
-        
- }
+}
