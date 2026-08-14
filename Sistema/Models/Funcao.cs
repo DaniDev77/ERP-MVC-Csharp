@@ -2,8 +2,9 @@
 {
     public class Funcao
     {
-        public Guid FuncaoId { get; set; }
+        public int FuncaoId { get; set; }
         public string Name { get; set; }
+        public string Descricao { get; set; } 
 
     }
 }
