@@ -2,7 +2,7 @@
 {
     public class Fonecedor
     {
-      public Guid FonecedorId { get; set; }
+      public int FonecedorId { get; set; }
       public string FonecedorNome { get; set; }
       public string FonecedorDescricao { get; set; }
       public string CNPJ { get; set; }
