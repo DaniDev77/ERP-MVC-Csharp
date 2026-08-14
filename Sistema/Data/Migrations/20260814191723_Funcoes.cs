@@ -5,7 +5,7 @@
 namespace Sistema.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class Funcao : Migration
+    public partial class Funcoes : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

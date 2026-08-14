@@ -12,8 +12,8 @@ using Sistema.Data;
 namespace Sistema.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260814184957_Funcao")]
-    partial class Funcao
+    [Migration("20260814191723_Funcoes")]
+    partial class Funcoes
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -225,6 +225,37 @@ namespace Sistema.Data.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("Sistema.Models.Fonecedor", b =>
+                {
+                    b.Property<Guid>("FonecedorId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CNPJ")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FonecedorDescricao")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FonecedorEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FonecedorNome")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FonecedorTelefone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("FonecedorId");
+
+                    b.ToTable("Fonecedor", (string)null);
                 });
 
             modelBuilder.Entity("Sistema.Models.Funcao", b =>

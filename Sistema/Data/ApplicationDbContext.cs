@@ -7,7 +7,7 @@ namespace Sistema.Data
  
         public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext(options)
         {
-        public DbSet<Funcao> Funcao { get; set; }
+        public DbSet<Funcao> Funcoes { get; set; }
         public DbSet<Fonecedor> Fonecedores { get; set; }
 
 
