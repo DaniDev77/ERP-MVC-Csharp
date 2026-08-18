@@ -23,23 +23,23 @@ namespace Sistema.Areas.Identity.Pages.Account;
 
 public class RegisterModel : PageModel
 {
-    private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IUserStore<ApplicationUser> _userStore;
-    private readonly IUserEmailStore<ApplicationUser> _emailStore;
+    private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly UserManager<IdentityUser> _userManager;
+    private readonly IUserStore<IdentityUser> _userStore;
+    private readonly IUserEmailStore<IdentityUser> _emailStore;
     private readonly ILogger<RegisterModel> _logger;
     private readonly IEmailSender _emailSender;
 
     public RegisterModel(
-        UserManager<ApplicationUser> userManager,
-        IUserStore<ApplicationUser> userStore,
-        SignInManager<ApplicationUser> signInManager,
+        UserManager<IdentityUser> userManager,
+        IUserStore<IdentityUser> userStore,
+        SignInManager<IdentityUser> signInManager,
         ILogger<RegisterModel> logger,
         IEmailSender emailSender)
     {
         _userManager = userManager;
         _userStore = userStore;
-        _emailStore = GetEmailStore();
+        _emailStore = (IUserEmailStore<IdentityUser>?)GetEmailStore();
         _signInManager = signInManager;
         _logger = logger;
         _emailSender = emailSender;
@@ -74,8 +74,8 @@ public class RegisterModel : PageModel
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "O E-mail é Obrigatório.")]
+        [EmailAddress(ErrorMessage = "Formato do E-mail Incorreto.")]
         [Display(Name = "Email")]
         public string Email { get; set; } = default!;
 
@@ -83,9 +83,9 @@ public class RegisterModel : PageModel
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-        [DataType(DataType.Password)]
+        [Required(ErrorMessage = "O Senha é Obrigatório.")]
+        [StringLength(100, ErrorMessage = "A Senha Deve Conter de 6 até 100 Caracteres.", MinimumLength = 6)]
+        [DataType(DataType.Password, ErrorMessage = "Formato da Senha Incorreta.")]
         [Display(Name = "Password")]
         public string Password { get; set; } = default!;
 
@@ -94,8 +94,8 @@ public class RegisterModel : PageModel
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        [Display(Name = "Confirme a Senha")]
+        [Compare("Password", ErrorMessage = "A Senha e a Confirmação da Senha Não São Identicos.")]
         public string? ConfirmPassword { get; set; }
     }
 
@@ -108,7 +108,7 @@ public class RegisterModel : PageModel
 
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
-        returnUrl ??= Url.Content("~/");
+        returnUrl ??= Url.Content("~/Usuarios/Create");
         ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         if (ModelState.IsValid)
         {
@@ -154,26 +154,26 @@ public class RegisterModel : PageModel
         return Page();
     }
 
-    private ApplicationUser CreateUser()
+    private IdentityUser CreateUser()
     {
         try
         {
-            return Activator.CreateInstance<ApplicationUser>();
+            return Activator.CreateInstance<IdentityUser>();
         }
         catch
         {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(IdentityUser)}'. " +
+                $"Ensure that '{nameof(IdentityUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
                 $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
         }
     }
 
-    private IUserEmailStore<ApplicationUser> GetEmailStore()
+    private IUserEmailStore<IdentityUser> GetEmailStore()
     {
         if (!_userManager.SupportsUserEmail)
         {
             throw new NotSupportedException("The default UI requires a user store with email support.");
         }
-        return (IUserEmailStore<ApplicationUser>)_userStore;
+        return (IUserEmailStore<IdentityUser>)_userStore;
     }
 }
