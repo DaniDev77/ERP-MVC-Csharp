@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using Sistema.Data;
+//using Sistema.Data;
 
 namespace Sistema.Areas.Identity.Pages.Account;
 
@@ -39,7 +39,7 @@ public class RegisterModel : PageModel
     {
         _userManager = userManager;
         _userStore = userStore;
-        _emailStore = (IUserEmailStore<IdentityUser>?)GetEmailStore();
+        _emailStore = GetEmailStore();
         _signInManager = signInManager;
         _logger = logger;
         _emailSender = emailSender;

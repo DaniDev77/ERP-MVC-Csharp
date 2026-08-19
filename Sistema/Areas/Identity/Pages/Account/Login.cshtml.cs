@@ -20,13 +20,15 @@ namespace Sistema.Areas.Identity.Pages.Account;
 
 public class LoginModel : PageModel
 {
-    private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly SignInManager<IdentityUser> _signInManager;
     private readonly ILogger<LoginModel> _logger;
+    private readonly ApplicationDbContext _context; // Injeção do Contexto do Banco de Dados
 
-    public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
+    public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger, ApplicationDbContext context)
     {
         _signInManager = signInManager;
         _logger = logger;
+        _context = context;
     }
 
     /// <summary>
@@ -65,23 +67,25 @@ public class LoginModel : PageModel
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "O E-mail é Obrigatório.")]
+        [EmailAddress(ErrorMessage = "Formato do E-mail está Incorreto.")]
+        [Display(Name = "E-mail")]
         public string Email { get; set; } = default!;
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        [Required]
-        [DataType(DataType.Password)]
+        [Required(ErrorMessage = "A Senha é Obrigatória.")]
+        [DataType(DataType.Password, ErrorMessage = "Formato da Senha está Incorreta.")]
+        [Display(Name = "Senha")]
         public string Password { get; set; } = default!;
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        [Display(Name = "Remember me?")]
+        [Display(Name = "Lembrar Usuário?")]
         public bool RememberMe { get; set; }
     }
 
@@ -102,7 +106,7 @@ public class LoginModel : PageModel
         ReturnUrl = returnUrl;
     }
 
-    public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
+    public async Task<IActionResult> OnPostAsync(string returnUrl = null)
     {
         returnUrl ??= Url.Content("~/");
 
@@ -115,6 +119,24 @@ public class LoginModel : PageModel
             var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
             if (result.Succeeded)
             {
+                // Obter o Usuario que esta logado
+                var user = await _signInManager.UserManager.FindByEmailAsync(Input.Email);
+                if (user == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Usuário Não Cadastrado");
+                    return Page();
+                }
+                // Obter o Id do Usuario
+                var userId = await _signInManager.UserManager.GetUserIdAsync(user);
+                // Verificar se o usuario completou o cadastro
+                var usuario = _context.Usuarios.FirstOrDefault(u => u.AppUserId == Guid.Parse(userId));
+
+                // Se o usuario nao completou o cadastro, redireciona para a pagina de cadastro Usuarios/Create
+                if (usuario == null)
+                {
+                    return LocalRedirect("~/Usuarios/Create");
+                }
+
                 _logger.LogInformation("User logged in.");
                 return LocalRedirect(returnUrl);
             }
@@ -124,12 +146,12 @@ public class LoginModel : PageModel
             }
             if (result.IsLockedOut)
             {
-                _logger.LogWarning("User account locked out.");
+                _logger.LogWarning("Usuário Bolqueado.");
                 return RedirectToPage("./Lockout");
             }
             else
             {
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                ModelState.AddModelError(string.Empty, "Falha ao Fazer Login.");
                 return Page();
             }
         }
