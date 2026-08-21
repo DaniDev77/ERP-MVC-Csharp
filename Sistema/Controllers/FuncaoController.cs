@@ -20,15 +20,15 @@ public class FuncaoController : Controller
     }
 
     // GET: FUNCAOS/Details/5
-    public async Task<IActionResult> Details(int? funcaoid)
+    public async Task<IActionResult> Details(int? id)
     {
-        if (funcaoid == null)
+        if (id == null)
         {
             return NotFound();
         }
 
         var funcao = await _context.Funcoes
-            .FirstOrDefaultAsync(m => m.FuncaoId == funcaoid);
+            .FirstOrDefaultAsync(m => m.FuncaoId == id);
         if (funcao == null)
         {
             return NotFound();
@@ -60,14 +60,14 @@ public class FuncaoController : Controller
     }
 
     // GET: FUNCAOS/Edit/5
-    public async Task<IActionResult> Edit(int? funcaoid)
+    public async Task<IActionResult> Edit(int? id)
     {
-        if (funcaoid == null)
+        if (id == null)
         {
             return NotFound();
         }
 
-        var funcao = await _context.Funcoes.FindAsync(funcaoid);
+        var funcao = await _context.Funcoes.FindAsync(id);
         if (funcao == null)
         {
             return NotFound();
@@ -80,9 +80,9 @@ public class FuncaoController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? funcaoid, [Bind("FuncaoId,Name,Descricao")] Funcao funcao)
+    public async Task<IActionResult> Edit(int? id, [Bind("FuncaoId,Name,Descricao")] Funcao funcao)
     {
-        if (funcaoid != funcao.FuncaoId)
+        if (id != funcao.FuncaoId)
         {
             return NotFound();
         }
@@ -111,15 +111,15 @@ public class FuncaoController : Controller
     }
 
     // GET: FUNCAOS/Delete/5
-    public async Task<IActionResult> Delete(int? funcaoid)
+    public async Task<IActionResult> Delete(int? id)
     {
-        if (funcaoid == null)
+        if (id == null)
         {
             return NotFound();
         }
 
         var funcao = await _context.Funcoes
-            .FirstOrDefaultAsync(m => m.FuncaoId == funcaoid);
+            .FirstOrDefaultAsync(m => m.FuncaoId == id);
         if (funcao == null)
         {
             return NotFound();
@@ -131,9 +131,9 @@ public class FuncaoController : Controller
     // POST: FUNCAOS/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int? funcaoid)
+    public async Task<IActionResult> DeleteConfirmed(int? id)
     {
-        var funcao = await _context.Funcoes.FindAsync(funcaoid);
+        var funcao = await _context.Funcoes.FindAsync(id);
         if (funcao != null)
         {
             _context.Funcoes.Remove(funcao);
@@ -143,8 +143,8 @@ public class FuncaoController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private bool FuncaoExists(int? funcaoid)
+    private bool FuncaoExists(int? id)
     {
-        return _context.Funcoes.Any(e => e.FuncaoId == funcaoid);
+        return _context.Funcoes.Any(e => e.FuncaoId == id);
     }
 }
