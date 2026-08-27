@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Sistema.Models;
 using Sistema.Data;
 
-public class TipoProdutosController : Controller
+public class TipoProdutoController : Controller
 {
     private readonly ApplicationDbContext _context;
 
-    public TipoProdutosController(ApplicationDbContext context)
+    public TipoProdutoController(ApplicationDbContext context)
     {
         _context = context;
     }
@@ -20,15 +20,15 @@ public class TipoProdutosController : Controller
     }
 
     // GET: TIPOPRODUTOS/Details/5
-    public async Task<IActionResult> Details(int? tipoprodutoid)
+    public async Task<IActionResult> Details(int? id)
     {
-        if (tipoprodutoid == null)
+        if (id == null)
         {
             return NotFound();
         }
 
         var tipoproduto = await _context.TiposProdutos
-            .FirstOrDefaultAsync(m => m.TipoProdutoId == tipoprodutoid);
+            .FirstOrDefaultAsync(m => m.TipoProdutoId == id);
         if (tipoproduto == null)
         {
             return NotFound();
@@ -60,14 +60,14 @@ public class TipoProdutosController : Controller
     }
 
     // GET: TIPOPRODUTOS/Edit/5
-    public async Task<IActionResult> Edit(int? tipoprodutoid)
+    public async Task<IActionResult> Edit(int? id)
     {
-        if (tipoprodutoid == null)
+        if (id == null)
         {
             return NotFound();
         }
 
-        var tipoproduto = await _context.TiposProdutos.FindAsync(tipoprodutoid);
+        var tipoproduto = await _context.TiposProdutos.FindAsync(id);
         if (tipoproduto == null)
         {
             return NotFound();
@@ -80,9 +80,9 @@ public class TipoProdutosController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? tipoprodutoid, [Bind("TipoProdutoId,TipoNome,TipoDescricao")] TipoProduto tipoproduto)
+    public async Task<IActionResult> Edit(int? id, [Bind("TipoProdutoId,TipoNome,TipoDescricao")] TipoProduto tipoproduto)
     {
-        if (tipoprodutoid != tipoproduto.TipoProdutoId)
+        if (id != tipoproduto.TipoProdutoId)
         {
             return NotFound();
         }
@@ -111,15 +111,15 @@ public class TipoProdutosController : Controller
     }
 
     // GET: TIPOPRODUTOS/Delete/5
-    public async Task<IActionResult> Delete(int? tipoprodutoid)
+    public async Task<IActionResult> Delete(int? id)
     {
-        if (tipoprodutoid == null)
+        if (id == null)
         {
             return NotFound();
         }
 
         var tipoproduto = await _context.TiposProdutos
-            .FirstOrDefaultAsync(m => m.TipoProdutoId == tipoprodutoid);
+            .FirstOrDefaultAsync(m => m.TipoProdutoId == id);
         if (tipoproduto == null)
         {
             return NotFound();
@@ -131,9 +131,9 @@ public class TipoProdutosController : Controller
     // POST: TIPOPRODUTOS/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int? tipoprodutoid)
+    public async Task<IActionResult> DeleteConfirmed(int? id)
     {
-        var tipoproduto = await _context.TiposProdutos.FindAsync(tipoprodutoid);
+        var tipoproduto = await _context.TiposProdutos.FindAsync(id);
         if (tipoproduto != null)
         {
             _context.TiposProdutos.Remove(tipoproduto);
@@ -143,8 +143,8 @@ public class TipoProdutosController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private bool TipoProdutoExists(int? tipoprodutoid)
+    private bool TipoProdutoExists(int? id)
     {
-        return _context.TiposProdutos.Any(e => e.TipoProdutoId == tipoprodutoid);
+        return _context.TiposProdutos.Any(e => e.TipoProdutoId == id);
     }
 }
