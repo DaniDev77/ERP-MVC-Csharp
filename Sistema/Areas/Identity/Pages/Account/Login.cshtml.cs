@@ -134,7 +134,7 @@ public class LoginModel : PageModel
                 // Se o usuario nao completou o cadastro, redireciona para a pagina de cadastro Usuarios/Create
                 if (usuario == null)
                 {
-                    return LocalRedirect("~/Usuarios/Create");
+                    return LocalRedirect("~/Usuario/Create");
                 }
 
                 _logger.LogInformation("User logged in.");
