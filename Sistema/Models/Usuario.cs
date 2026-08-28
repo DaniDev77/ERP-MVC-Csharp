@@ -9,8 +9,10 @@ namespace Sistema.Models
         public string Email { get; set; }
         public string Phone { get; set; }
         public string CPF { get; set; } 
-        public string FuncaoNome { get; set; }
+
+        public int FuncaoId { get; set; }
         public Funcao? Funcao { get; set; }
+
         public string? Password { get; set; } = string.Empty;
         
         // Relacionamento com o IdentityUser
