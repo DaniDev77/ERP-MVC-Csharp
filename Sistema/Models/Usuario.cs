@@ -4,7 +4,7 @@ namespace Sistema.Models
 {
     public class Usuario
     {
-        public Guid UsuarioId { get; set; }
+        public int UsuarioId { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
         public string Phone { get; set; }
