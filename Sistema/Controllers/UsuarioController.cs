@@ -1,22 +1,52 @@
 
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Sistema.Models;
 using Sistema.Data;
+using Sistema.Models;
+using System.Security.Claims;
 
 public class UsuarioController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<IdentityUser> _userManager;
 
-    public UsuarioController(ApplicationDbContext context)
+    public UsuarioController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     // GET: USUARIOS
-    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Index()
     {
-        return View(await _context.Usuarios.ToListAsync());
+        var usuarios = await _context.Usuarios.ToListAsync();
+        var rolesPorUsuario = new Dictionary<int, string>();
+
+        foreach (var usuario in usuarios)
+        {
+            if (usuario.AppUserId.HasValue)
+            {
+                var identityUser = await _userManager.FindByIdAsync(usuario.AppUserId.ToString());
+                if (identityUser != null)
+                {
+                    var roles = await _userManager.GetRolesAsync(identityUser);
+                    rolesPorUsuario[usuario.UsuarioId] = roles.FirstOrDefault() ?? "Nenhuma";
+                }
+                else
+                {
+                    rolesPorUsuario[usuario.UsuarioId] = "Nenhuma";
+                }
+            }
+            else
+            {
+                rolesPorUsuario[usuario.UsuarioId] = "Nenhuma";
+            }
+        }
+
+        ViewBag.RolesPorUsuario = rolesPorUsuario;
+        return View(usuarios);
     }
 
     // GET: USUARIOS/Details/5
@@ -40,6 +70,13 @@ public class UsuarioController : Controller
     // GET: USUARIOS/Create
     public IActionResult Create()
     {
+        ViewData["FuncaoId"] = new SelectList(_context.Funcoes, "FuncaoId", "Name");
+        ViewData["AppUserId"] = new SelectList(
+          _context.Users,
+          "Id",
+          "UserName"
+      );
+
         return View();
     }
 
@@ -51,10 +88,39 @@ public class UsuarioController : Controller
     public async Task<IActionResult> Create([Bind("UsuarioId,Name,Email,Phone,CPF,FuncaoId,Funcao,Password,AppUserId,IdentityUser")] Usuario usuario)
     {
         if (ModelState.IsValid)
-        {
+        { 
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return NotFound();
+
+            var existingUser = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.AppUserId == Guid.Parse(userId));
+            if (existingUser != null)
+            {
+                ModelState.AddModelError("AppUserId", "E-mail já cadastrado.");
+                return View(usuario);
+            }
+
+            usuario.AppUserId = Guid.Parse(userId);
+
+            var identityUser = await _context.Users.FindAsync(userId);
+
+            if (identityUser != null)
+            {
+                usuario.IdentityUser = identityUser;
+            }
+            else
+            {
+                ModelState.AddModelError("AppUserId", "Usuário não encontrado.");
+                return View(usuario);
+            }
             _context.Add(usuario);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            // Adiciona o usuário à role "Aluno"
+           // await _userManager.AddToRoleAsync(identityUser, "Aluno");
+
+            return RedirectToAction("Index", "Home");
         }
         return View(usuario);
     }

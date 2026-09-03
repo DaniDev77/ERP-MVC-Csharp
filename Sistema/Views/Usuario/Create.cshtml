@@ -39,14 +39,12 @@
 
             <div class="form-group">
                 <label asp-for="FuncaoId" class="control-label"></label>
-                <input asp-for="FuncaoId" class="form-control" />
+                <select asp-for="FuncaoId"
+                        class="form-control"
+                        asp-items="ViewBag.FuncaoId">
+                    <option value="">-- Selecione uma Função --</option>
+                </select>
                 <span asp-validation-for="FuncaoId" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Funcao" class="control-label"></label>
-                <input asp-for="Funcao" class="form-control" />
-                <span asp-validation-for="Funcao" class="text-danger"></span>
             </div>
 
             <div class="form-group">
@@ -57,15 +55,17 @@
 
             <div class="form-group">
                 <label asp-for="AppUserId" class="control-label"></label>
-                <input asp-for="AppUserId" class="form-control" />
+                <select asp-for="AppUserId"
+                        class="form-control"
+                        asp-items="ViewBag.AppUserId">
+
+                    <option value="">-- Selecione um usuário --</option>
+
+                </select>
                 <span asp-validation-for="AppUserId" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="IdentityUser" class="control-label"></label>
-                <input asp-for="IdentityUser" class="form-control" />
-                <span asp-validation-for="IdentityUser" class="text-danger"></span>
-            </div>
+          
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
