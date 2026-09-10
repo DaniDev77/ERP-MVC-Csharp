@@ -8,7 +8,7 @@ namespace Sistema.Data
         public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext(options)
         {
         public DbSet<Funcao> Funcoes { get; set; }
-        public DbSet<Fonecedor> Fonecedores { get; set; }
+        public DbSet<Fonecedor> Fornecedores { get; set; }
         public DbSet<TipoProduto> TiposProdutos { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
 
@@ -16,7 +16,7 @@ namespace Sistema.Data
         {
             base.OnModelCreating(builder);
             builder.Entity<Funcao>().ToTable("Funcao");
-            builder.Entity<Fonecedor>().ToTable("Fonecedor");
+            builder.Entity<Fonecedor>().ToTable("Fornecedor");
             builder.Entity<TipoProduto>().ToTable("TipoProduto");    
             builder.Entity<Usuario>().ToTable("Usuario");
             // Configurações adicionais do modelo podem ser feitas aqui
