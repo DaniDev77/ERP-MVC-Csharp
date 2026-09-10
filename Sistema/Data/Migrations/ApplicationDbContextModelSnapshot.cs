@@ -224,123 +224,13 @@ namespace Sistema.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Sistema.Models.Fonecedor", b =>
-                {
-                    b.Property<Guid>("FonecedorId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+            
 
-                    b.Property<string>("CNPJ")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+            
 
-                    b.Property<string>("FonecedorDescricao")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+           
 
-                    b.Property<string>("FonecedorEmail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FonecedorNome")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FonecedorTelefone")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("FonecedorId");
-
-                    b.ToTable("Fonecedor", (string)null);
-                });
-
-            modelBuilder.Entity("Sistema.Models.Funcao", b =>
-                {
-                    b.Property<int>("FuncaoId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FuncaoId"));
-
-                    b.Property<string>("Descricao")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("FuncaoId");
-
-                    b.ToTable("Funcao", (string)null);
-                });
-
-            modelBuilder.Entity("Sistema.Models.TipoProduto", b =>
-                {
-                    b.Property<int>("TipoProdutoId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TipoProdutoId"));
-
-                    b.Property<string>("TipoDescricao")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TipoNome")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("TipoProdutoId");
-
-                    b.ToTable("TipoProduto", (string)null);
-                });
-
-            modelBuilder.Entity("Sistema.Models.Usuario", b =>
-                {
-                    b.Property<int>("UsuarioId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UsuarioId"));
-
-                    b.Property<Guid?>("AppUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CPF")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("FuncaoId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("IdentityUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Password")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("UsuarioId");
-
-                    b.HasIndex("FuncaoId");
-
-                    b.HasIndex("IdentityUserId");
-
-                    b.ToTable("Usuario", (string)null);
-                });
+           
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
@@ -393,22 +283,7 @@ namespace Sistema.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Sistema.Models.Usuario", b =>
-                {
-                    b.HasOne("Sistema.Models.Funcao", "Funcao")
-                        .WithMany()
-                        .HasForeignKey("FuncaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "IdentityUser")
-                        .WithMany()
-                        .HasForeignKey("IdentityUserId");
-
-                    b.Navigation("Funcao");
-
-                    b.Navigation("IdentityUser");
-                });
+          
 #pragma warning restore 612, 618
         }
     }
