@@ -2,6 +2,11 @@
 {
     public class Produto
     {
-      public Guid ProdutoId { get; set; }
+      public int ProdutoId { get; set; }
+      public string Name { get; set; } = string.Empty;
+
+
+
+
     }
 }
