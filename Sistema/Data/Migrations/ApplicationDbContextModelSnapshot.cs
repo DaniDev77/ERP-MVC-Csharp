@@ -316,6 +316,9 @@ namespace Sistema.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("EmailUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("FuncaoId")
                         .HasColumnType("int");
 
@@ -335,6 +338,8 @@ namespace Sistema.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UsuarioId");
+
+                    b.HasIndex("EmailUserId");
 
                     b.HasIndex("FuncaoId");
 
@@ -396,6 +401,10 @@ namespace Sistema.Data.Migrations
 
             modelBuilder.Entity("Sistema.Models.Usuario", b =>
                 {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "EmailUser")
+                        .WithMany()
+                        .HasForeignKey("EmailUserId");
+
                     b.HasOne("Sistema.Models.Funcao", "Funcao")
                         .WithMany()
                         .HasForeignKey("FuncaoId")
@@ -405,6 +414,8 @@ namespace Sistema.Data.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "IdentityUser")
                         .WithMany()
                         .HasForeignKey("IdentityUserId");
+
+                    b.Navigation("EmailUser");
 
                     b.Navigation("Funcao");
 

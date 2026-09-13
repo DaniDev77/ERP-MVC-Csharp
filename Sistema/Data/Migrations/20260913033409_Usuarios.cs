@@ -19,6 +19,7 @@ namespace Sistema.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EmailUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CPF = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FuncaoId = table.Column<int>(type: "int", nullable: false),
@@ -29,6 +30,11 @@ namespace Sistema.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Usuario", x => x.UsuarioId);
+                    table.ForeignKey(
+                        name: "FK_Usuario_AspNetUsers_EmailUserId",
+                        column: x => x.EmailUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Usuario_AspNetUsers_IdentityUserId",
                         column: x => x.IdentityUserId,
@@ -41,6 +47,11 @@ namespace Sistema.Data.Migrations
                         principalColumn: "FuncaoId",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Usuario_EmailUserId",
+                table: "Usuario",
+                column: "EmailUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Usuario_FuncaoId",

@@ -15,6 +15,7 @@ namespace Sistema.Models
         [Display(Name = "Email")]
         [Required(ErrorMessage = "O Email é obrigatório.")]
         public string Email { get; set; }
+        public IdentityUser? EmailUser { get; set; }
 
         [Display(Name = "Telefone")]
         [Required(ErrorMessage = "O Telefone é obrigatório.")]
