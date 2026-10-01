@@ -1,34 +1,63 @@
 
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Sistema.Models;
 using Sistema.Data;
+using Sistema.Models;
 
 public class UsuarioController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<IdentityUser> _userManager;
 
-    public UsuarioController(ApplicationDbContext context)
+
+    public UsuarioController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     // GET: USUARIOS
     public async Task<IActionResult> Index()    
     {
-        return View(await _context.Usuarios.ToListAsync());
+        var usuarios = await _context.Usuarios.ToListAsync();
+        var rolesPorUsuario = new Dictionary<int, string>();
+
+        foreach (var usuario in usuarios)
+        {
+            if (usuario.AppUserId.HasValue)
+            {
+                var identityUser = await _userManager.FindByIdAsync(usuario.AppUserId.ToString());
+                if (identityUser != null)
+                {
+                    var roles = await _userManager.GetRolesAsync(identityUser);
+                    rolesPorUsuario[usuario.UsuarioId] = roles.FirstOrDefault() ?? "Nenhuma";
+                }
+                else
+                {
+                    rolesPorUsuario[usuario.UsuarioId] = "Nenhuma";
+                }
+            }
+            else
+            {
+                rolesPorUsuario[usuario.UsuarioId] = "Nenhuma";
+            }
+        }
+
+        ViewBag.RolesPorUsuario = rolesPorUsuario;
+        return View(usuarios);
     }
 
     // GET: USUARIOS/Details/5
-    public async Task<IActionResult> Details(int? usuarioid)
+    public async Task<IActionResult> Details(int? id)
     {
-        if (usuarioid == null)
+        if (id == null)
         {
             return NotFound();
         }
 
         var usuario = await _context.Usuarios
-            .FirstOrDefaultAsync(m => m.UsuarioId == usuarioid);
+            .FirstOrDefaultAsync(m => m.UsuarioId == id);
         if (usuario == null)
         {
             return NotFound();
@@ -60,14 +89,14 @@ public class UsuarioController : Controller
     }
 
     // GET: USUARIOS/Edit/5
-    public async Task<IActionResult> Edit(int? usuarioid)
+    public async Task<IActionResult> Edit(int? id)
     {
-        if (usuarioid == null)
+        if (id == null)
         {
             return NotFound();
         }
 
-        var usuario = await _context.Usuarios.FindAsync(usuarioid);
+        var usuario = await _context.Usuarios.FindAsync(id);
         if (usuario == null)
         {
             return NotFound();
@@ -80,9 +109,9 @@ public class UsuarioController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? usuarioid, [Bind("UsuarioId,Name,Email,EmailUser,Phone,CPF,FuncaoId,Funcao,Password,AppUserId,IdentityUser")] Usuario usuario)
+    public async Task<IActionResult> Edit(int? id, [Bind("UsuarioId,Name,Email,EmailUser,Phone,CPF,FuncaoId,Funcao,Password,AppUserId,IdentityUser")] Usuario usuario)
     {
-        if (usuarioid != usuario.UsuarioId)
+        if (id != usuario.UsuarioId)
         {
             return NotFound();
         }
@@ -111,15 +140,15 @@ public class UsuarioController : Controller
     }
 
     // GET: USUARIOS/Delete/5
-    public async Task<IActionResult> Delete(int? usuarioid)
+    public async Task<IActionResult> Delete(int? id)
     {
-        if (usuarioid == null)
+        if (id == null)
         {
             return NotFound();
         }
 
         var usuario = await _context.Usuarios
-            .FirstOrDefaultAsync(m => m.UsuarioId == usuarioid);
+            .FirstOrDefaultAsync(m => m.UsuarioId == id);
         if (usuario == null)
         {
             return NotFound();
@@ -131,9 +160,9 @@ public class UsuarioController : Controller
     // POST: USUARIOS/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int? usuarioid)
+    public async Task<IActionResult> DeleteConfirmed(int? id)
     {
-        var usuario = await _context.Usuarios.FindAsync(usuarioid);
+        var usuario = await _context.Usuarios.FindAsync(id);
         if (usuario != null)
         {
             _context.Usuarios.Remove(usuario);
@@ -143,8 +172,8 @@ public class UsuarioController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private bool UsuarioExists(int? usuarioid)
+    private bool UsuarioExists(int? id)
     {
-        return _context.Usuarios.Any(e => e.UsuarioId == usuarioid);
+        return _context.Usuarios.Any(e => e.UsuarioId == id);
     }
 }
