@@ -1,9 +1,11 @@
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 using Sistema.Models;
+using System.Security.Claims;
 
 public class UsuarioController : Controller
 {
@@ -69,6 +71,14 @@ public class UsuarioController : Controller
     // GET: USUARIOS/Create
     public IActionResult Create()
     {
+        ViewData["FuncaoId"] = new SelectList(_context.Funcoes, "FuncaoId", "Name");
+        ViewData["AppUserId"] = new SelectList(
+          _context.Users,
+          "Id",
+          "UserName",
+          "Email"
+
+        );
         return View();
     }
 
@@ -81,9 +91,38 @@ public class UsuarioController : Controller
     {
         if (ModelState.IsValid)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return NotFound();
+
+            var existingUser = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.AppUserId == Guid.Parse(userId));
+            if (existingUser != null)
+            {
+                ModelState.AddModelError("AppUserId", "E-mail já cadastrado.");
+                return View(usuario);
+            }
+
+            usuario.AppUserId = Guid.Parse(userId);
+
+            var identityUser = await _context.Users.FindAsync(userId);
+
+            if (identityUser != null)
+            {
+                usuario.IdentityUser = identityUser;
+            }
+            else
+            {
+                ModelState.AddModelError("AppUserId", "Usuário não encontrado.");
+                return View(usuario);
+            }
             _context.Add(usuario);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            // Adiciona o usuário à role "Aluno"
+            await _userManager.AddToRoleAsync(identityUser, "Aluno");
+
+            return RedirectToAction("Index", "Home");
         }
         return View(usuario);
     }
@@ -91,16 +130,10 @@ public class UsuarioController : Controller
     // GET: USUARIOS/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {
-        if (id == null)
-        {
-            return NotFound();
-        }
-
-        var usuario = await _context.Usuarios.FindAsync(id);
+        var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.UsuarioId == id);
         if (usuario == null)
-        {
             return NotFound();
-        }
+
         return View(usuario);
     }
 
@@ -120,8 +153,9 @@ public class UsuarioController : Controller
         {
             try
             {
-                _context.Update(usuario);
-                await _context.SaveChangesAsync();
+                var usuarioExistente = await _context.Usuarios.AsNoTracking().FirstOrDefaultAsync(u => u.UsuarioId == id);
+                if (usuarioExistente == null)
+                    return NotFound();
             }
             catch (DbUpdateConcurrencyException)
             {
