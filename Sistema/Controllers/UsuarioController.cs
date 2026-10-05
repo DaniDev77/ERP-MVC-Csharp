@@ -72,7 +72,8 @@ public class UsuarioController : Controller
     public IActionResult Create()
     {
         ViewData["FuncaoId"] = new SelectList(_context.Funcoes, "FuncaoId", "Name");
-       /// ViewData["HorarioId"] = new SelectList(_context.Horarios, "HorarioId", "Turno");
+        ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "UserName");
+        /// ViewData["HorarioId"] = new SelectList(_context.Horarios, "HorarioId", "Turno");
         return View();
     }
 
