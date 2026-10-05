@@ -1,6 +1,7 @@
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 using Sistema.Models;
@@ -70,6 +71,8 @@ public class UsuarioController : Controller
     // GET: USUARIOS/Create
     public IActionResult Create()
     {
+        ViewData["FuncaoId"] = new SelectList(_context.Funcoes, "FuncaoId", "Name");
+       /// ViewData["HorarioId"] = new SelectList(_context.Horarios, "HorarioId", "Turno");
         return View();
     }
 
