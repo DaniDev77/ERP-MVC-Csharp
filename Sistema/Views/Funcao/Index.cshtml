@@ -1,41 +1,71 @@
 @model IEnumerable<Sistema.Models.Funcao>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Funções";
 }
 
-<h1>Index</h1>
+<div class="py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-2">Gerenciar Funções</h1>
+            <hr class="bg-accent" style="border-color: var(--color-accent); height: 2px;">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <a asp-action="Create" class="btn btn-primary btn-lg w-100">
+                <i class="bi bi-plus-lg"></i> Nova Função
+            </a>
+        </div>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Descricao)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Descricao)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.FuncaoId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.FuncaoId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.FuncaoId">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0">
+                    <thead>
+                        <tr class="border-bottom">
+                            <th class="px-4 py-3">Nome</th>
+                            <th class="px-4 py-3">Descrição</th>
+                            <th class="px-4 py-3 text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr class="border-bottom align-middle">
+                                    <td class="px-4 py-3">
+                                        <strong>@Html.DisplayFor(model => item.Name)</strong>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="text-muted">@Html.DisplayFor(model => item.Descricao)</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-end">
+                                        <a asp-action="Edit" asp-route-id="@item.FuncaoId" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-action="Details" asp-route-id="@item.FuncaoId" class="btn btn-sm btn-outline-info" title="Detalhes">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.FuncaoId" class="btn btn-sm btn-outline-danger" title="Deletar">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="3" class="px-4 py-4 text-center text-muted">
+                                    <p class="mb-0">Nenhuma função cadastrada ainda.</p>
+                                    <a asp-action="Create" class="btn btn-primary btn-sm mt-2">Criar primeira função</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

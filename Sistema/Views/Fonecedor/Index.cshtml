@@ -1,59 +1,89 @@
 @model IEnumerable<Sistema.Models.Fonecedor>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Fornecedores";
 }
 
-<h1>Index</h1>
+<div class="py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-2">Gerenciar Fornecedores</h1>
+            <hr class="bg-accent" style="border-color: var(--color-accent); height: 2px;">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <a asp-action="Create" class="btn btn-primary btn-lg w-100">
+                <i class="bi bi-plus-lg"></i> Novo Fornecedor
+            </a>
+        </div>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.FonecedorNome)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FonecedorDescricao)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CNPJ)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FonecedorTelefone)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FonecedorEmail)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.FonecedorNome)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.FonecedorDescricao)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.CNPJ)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.FonecedorTelefone)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.FonecedorEmail)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.FonecedorId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.FonecedorId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.FonecedorId">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0">
+                    <thead>
+                        <tr class="border-bottom">
+                            <th class="px-4 py-3">Nome</th>
+                            <th class="px-4 py-3">CNPJ</th>
+                            <th class="px-4 py-3">Telefone</th>
+                            <th class="px-4 py-3">E-mail</th>
+                            <th class="px-4 py-3">Descrição</th>
+                            <th class="px-4 py-3 text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr class="border-bottom align-middle">
+                                    <td class="px-4 py-3">
+                                        <strong>@Html.DisplayFor(model => item.FonecedorNome)</strong>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        @Html.DisplayFor(model => item.CNPJ)
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <a href="tel:@item.FonecedorTelefone">
+                                            @Html.DisplayFor(model => item.FonecedorTelefone)
+                                        </a>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <a href="mailto:@item.FonecedorEmail" class="text-muted">
+                                            @Html.DisplayFor(model => item.FonecedorEmail)
+                                        </a>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="text-muted" title="@item.FonecedorDescricao">
+                                            @(item.FonecedorDescricao?.Length > 30 ? item.FonecedorDescricao.Substring(0, 30) + "..." : item.FonecedorDescricao)
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-end">
+                                        <a asp-action="Edit" asp-route-id="@item.FonecedorId" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-action="Details" asp-route-id="@item.FonecedorId" class="btn btn-sm btn-outline-info" title="Detalhes">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.FonecedorId" class="btn btn-sm btn-outline-danger" title="Deletar">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="px-4 py-4 text-center text-muted">
+                                    <p class="mb-0">Nenhum fornecedor cadastrado ainda.</p>
+                                    <a asp-action="Create" class="btn btn-primary btn-sm mt-2">Criar primeiro fornecedor</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
