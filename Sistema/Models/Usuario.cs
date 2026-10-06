@@ -34,8 +34,6 @@ namespace Sistema.Models
         public string? Password { get; set; } = string.Empty;
 
         // Relacionamento com o IdentityUser
-        [Display(Name = "Id de Usuário")]
-        [Required(ErrorMessage = "O Id de Usuário é obrigatório.")]
         public Guid? AppUserId { get; set; }
         public IdentityUser? IdentityUser { get; set; }
     }
