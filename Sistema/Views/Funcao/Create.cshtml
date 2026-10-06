@@ -1,58 +1,36 @@
 @model Sistema.Models.Funcao
 
 @{
-    ViewData["Title"] = "Criar Nova Função";
+    ViewData["Title"] = "Create";
 }
 
-<div class="py-4">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb mb-4">
-            <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-            <li class="breadcrumb-item"><a asp-action="Index">Funções</a></li>
-            <li class="breadcrumb-item active">Criar</li>
-        </ol>
-    </nav>
+<h1>Create</h1>
 
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="mb-2">Criar Nova Função</h1>
-            <hr class="bg-accent" style="border-color: var(--color-accent); height: 2px;">
-        </div>
-    </div>
+<h4>Funcao</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Informações da Função</h5>
-                </div>
-                <div class="card-body">
-                    <form asp-action="Create" method="post">
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-
-                        <div class="mb-3">
-                            <label asp-for="Name" class="form-label">Nome da Função</label>
-                            <input asp-for="Name" class="form-control form-control-lg" placeholder="Digite o nome da função" />
-                            <span asp-validation-for="Name" class="invalid-feedback"></span>
-                        </div>
-
-                        <div class="mb-4">
-                            <label asp-for="Descricao" class="form-label">Descrição</label>
-                            <textarea asp-for="Descricao" class="form-control form-control-lg" rows="4" placeholder="Digite uma descrição detalhada da função"></textarea>
-                            <span asp-validation-for="Descricao" class="invalid-feedback"></span>
-                        </div>
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end pt-3 border-top" style="border-color: var(--color-border) !important;">
-                            <a asp-action="Index" class="btn btn-secondary btn-lg">
-                                <i class="bi bi-arrow-left"></i> Cancelar
-                            </a>
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-check-lg"></i> Criar Função
-                            </button>
-                        </div>
-                    </form>
-                </div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
             </div>
-        </div>
+
+            <div class="form-group">
+                <label asp-for="Descricao" class="control-label"></label>
+                <input asp-for="Descricao" class="form-control" />
+                <span asp-validation-for="Descricao" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
     </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
 </div>
