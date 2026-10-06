@@ -12,7 +12,7 @@ using Sistema.Data;
 namespace Sistema.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261003202602_Usuarios")]
+    [Migration("20261006181419_Usuarios")]
     partial class Usuarios
     {
         /// <inheritdoc />
@@ -308,7 +308,7 @@ namespace Sistema.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UsuarioId"));
 
-                    b.Property<Guid>("AppUserId")
+                    b.Property<Guid?>("AppUserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CPF")
