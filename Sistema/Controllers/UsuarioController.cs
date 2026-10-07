@@ -1,7 +1,6 @@
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 using Sistema.Models;
@@ -11,7 +10,7 @@ public class UsuarioController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<IdentityUser> _userManager;
-        
+
 
     public UsuarioController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
     {
@@ -71,8 +70,6 @@ public class UsuarioController : Controller
     // GET: USUARIOS/Create
     public IActionResult Create()
     {
-        ViewData["FuncaoId"] = new SelectList(_context.Funcoes, "FuncaoId", "Name");
-       /// ViewData["HorarioId"] = new SelectList(_context.Horarios, "HorarioId", "Turno");
         return View();
     }
 
@@ -81,7 +78,7 @@ public class UsuarioController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("UsuarioId,Name,Email,Phone,CPF,FuncaoId,Funcao,Password,AppUserId,IdentityUser")] Usuario usuario)
+    public async Task<IActionResult> Create([Bind("UsuarioId,Name,Email,Phone,CPF,FuncaoId,Funcao,Password,AppUserId")] Usuario usuario)
     {
         if (ModelState.IsValid)
         {
@@ -114,7 +111,7 @@ public class UsuarioController : Controller
             await _context.SaveChangesAsync();
 
             // Adiciona o usuário à role "Aluno"
-           // await _userManager.AddToRoleAsync(identityUser, "Aluno");
+            await _userManager.AddToRoleAsync(identityUser, "Aluno");
 
             return RedirectToAction("Index", "Home");
         }
@@ -124,6 +121,10 @@ public class UsuarioController : Controller
     // GET: USUARIOS/Edit/5
     public async Task<IActionResult> Edit(int? usuarioid)
     {
+        if (usuarioid == null)
+        {
+            return NotFound();
+        }
 
         var usuario = await _context.Usuarios.FindAsync(usuarioid);
         if (usuario == null)
@@ -138,21 +139,17 @@ public class UsuarioController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? usuarioid, [Bind("UsuarioId,Name,Email,Phone,CPF,FuncaoId,Funcao,Password,AppUserId,IdentityUser")] Usuario usuario)
+    public async Task<IActionResult> Edit(int? usuarioid, [Bind("UsuarioId,Name,Email,Phone,CPF,FuncaoId,Funcao,Password,AppUserId")] Usuario usuario)
     {
         if (usuarioid != usuario.UsuarioId)
         {
             return NotFound();
         }
+
         if (ModelState.IsValid)
         {
             try
             {
-                var usuarioExistente = await _context.Usuarios.AsNoTracking().FirstOrDefaultAsync(u => u.UsuarioId == usuarioid);
-                if (usuarioExistente == null)
-                    return NotFound();
-
-
                 _context.Update(usuario);
                 await _context.SaveChangesAsync();
             }
