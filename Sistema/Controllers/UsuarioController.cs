@@ -70,6 +70,8 @@ public class UsuarioController : Controller
     // GET: USUARIOS/Create
     public IActionResult Create()
     {
+        ViewData["FuncaoId"] = new SelectList(_context.Funcoes, "FuncaoId", "Name");
+       /// ViewData["HorarioId"] = new SelectList(_context.Horarios, "HorarioId", "Turno");
         return View();
     }
 
