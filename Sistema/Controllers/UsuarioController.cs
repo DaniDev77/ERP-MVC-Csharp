@@ -1,6 +1,7 @@
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 using Sistema.Models;
@@ -68,11 +69,21 @@ public class UsuarioController : Controller
     }
 
     // GET: USUARIOS/Create
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
+            return RedirectToAction("Index", "Home");
+
+        var identityUser = await _userManager.FindByIdAsync(userId);
+
+        var usuario = new Usuario
+        {
+            Email = identityUser?.Email ?? ""
+        };
+        // Carrega as funções do banco para o dropdown
         ViewData["FuncaoId"] = new SelectList(_context.Funcoes, "FuncaoId", "Name");
-       /// ViewData["HorarioId"] = new SelectList(_context.Horarios, "HorarioId", "Turno");
-        return View();
+        return View(usuario);
     }
 
     // POST: USUARIOS/Create
@@ -80,9 +91,8 @@ public class UsuarioController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("UsuarioId,Name,Email,Phone,CPF,FuncaoId,Funcao,Password,AppUserId")] Usuario usuario)
-    {
-        if (ModelState.IsValid)
+    public async Task<IActionResult> Create([Bind("UsuarioId,Name,Email,Phone,CPF,FuncaoId,Funcao,Password")] Usuario usuario)
+    {        if (ModelState.IsValid)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
@@ -112,11 +122,11 @@ public class UsuarioController : Controller
             _context.Add(usuario);
             await _context.SaveChangesAsync();
 
-            // Adiciona o usuário à role "Aluno"
-            await _userManager.AddToRoleAsync(identityUser, "Aluno");
+          
 
             return RedirectToAction("Index", "Home");
         }
+        ViewData["FuncaoId"] = new SelectList(_context.Funcoes, "FuncaoId", "Name");
         return View(usuario);
     }
 
