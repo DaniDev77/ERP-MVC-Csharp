@@ -8,6 +8,7 @@ public class FuncaoController : Controller
 {
     private readonly ApplicationDbContext _context;
 
+
     public FuncaoController(ApplicationDbContext context)
     {
         _context = context;
