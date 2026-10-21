@@ -1,9 +1,15 @@
 
+// Necessário para usar o atributo [Authorize]
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Models;
 using Sistema.Data;
+// Política de ADM (Politicas.Admin / FuncaoAdminId) definida em Authorization/AdminRequirement.cs
+using Sistema.Authorization;
 
+// Controller inteiro restrito a ADM (usuários com FuncaoId = 1)
+[Authorize(Policy = Politicas.Admin)]
 public class FuncaoController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -134,6 +140,12 @@ public class FuncaoController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int? funcaoid)
     {
+        // A função ADM não pode ser excluída: apagaria em cascata todos os administradores
+        if (funcaoid == Politicas.FuncaoAdminId)
+        {
+            return BadRequest("A função de administrador não pode ser excluída.");
+        }
+
         var funcao = await _context.Funcoes.FindAsync(funcaoid);
         if (funcao != null)
         {

@@ -1,4 +1,8 @@
+// Necessário para registrar a política de autorização de ADM
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+// AdminRequirement, AdminHandler e Politicas (Authorization/AdminRequirement.cs)
+using Sistema.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 
@@ -14,7 +18,17 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
     .AddRoles<IdentityRole>()
     //AddSignInManager()
     .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();builder.Services.AddControllersWithViews();
+    .AddDefaultTokenProviders();
+// Separado em outra linha (antes estava colado no AddDefaultTokenProviders)
+builder.Services.AddControllersWithViews();
+
+// Política de ADM: apenas usuários com FuncaoId = 1
+builder.Services.AddScoped<IAuthorizationHandler, AdminHandler>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(Politicas.Admin, policy =>
+        policy.RequireAuthenticatedUser().AddRequirements(new AdminRequirement()));
+});
 
 
 

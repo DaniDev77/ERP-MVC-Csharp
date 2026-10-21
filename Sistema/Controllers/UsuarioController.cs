@@ -1,25 +1,55 @@
 
+// Necessário para usar o atributo [Authorize]
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+// Política de ADM (Politicas.Admin / FuncaoAdminId) definida em Authorization/AdminRequirement.cs
+using Sistema.Authorization;
 using Sistema.Data;
 using Sistema.Models;
 using System.Security.Claims;
 
+// Todas as ações exigem login; as de gerenciamento exigem ADM.
+// Create fica liberado para qualquer usuário logado criar o próprio cadastro.
+[Authorize]
 public class UsuarioController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<IdentityUser> _userManager;
+    // Usado para verificar se o usuário logado é ADM
+    private readonly IAuthorizationService _authorizationService;
 
 
-    public UsuarioController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+    // Recebe o IAuthorizationService por injeção de dependência
+    public UsuarioController(ApplicationDbContext context, UserManager<IdentityUser> userManager, IAuthorizationService authorizationService)
     {
         _context = context;
         _userManager = userManager;
+        _authorizationService = authorizationService;
+    }
+
+    // Só ADM pode dar a função ADM; enquanto não existir nenhum ADM, o primeiro cadastro pode
+    private async Task<bool> PodeAtribuirAdmin()
+    {
+        var ehAdmin = (await _authorizationService.AuthorizeAsync(User, Politicas.Admin)).Succeeded;
+        return ehAdmin || !await _context.Usuarios.AnyAsync(u => u.FuncaoId == Politicas.FuncaoAdminId);
+    }
+
+    // Monta o dropdown de funções; esconde a função ADM de quem não pode atribuí-la
+    private async Task CarregarFuncoes()
+    {
+        var funcoes = _context.Funcoes.AsQueryable();
+        if (!await PodeAtribuirAdmin())
+            funcoes = funcoes.Where(f => f.FuncaoId != Politicas.FuncaoAdminId);
+
+        ViewData["FuncaoId"] = new SelectList(await funcoes.ToListAsync(), "FuncaoId", "Name");
     }
 
     // GET: USUARIOS
+    // Somente ADM pode acessar esta ação
+    [Authorize(Policy = Politicas.Admin)]
     public async Task<IActionResult> Index()
     {
         var usuarios = await _context.Usuarios.ToListAsync();
@@ -51,6 +81,8 @@ public class UsuarioController : Controller
     }
 
     // GET: USUARIOS/Details/5
+    // Somente ADM pode acessar esta ação
+    [Authorize(Policy = Politicas.Admin)]
     public async Task<IActionResult> Details(int? usuarioid)
     {
         if (usuarioid == null)
@@ -82,7 +114,8 @@ public class UsuarioController : Controller
             Email = identityUser?.Email ?? ""
         };
         // Carrega as funções do banco para o dropdown
-        ViewData["FuncaoId"] = new SelectList(_context.Funcoes, "FuncaoId", "Name");
+        // Recarrega o dropdown de funções (sem a função ADM para quem não pode atribuí-la)
+        await CarregarFuncoes();
         return View(usuario);
     }
 
@@ -92,7 +125,14 @@ public class UsuarioController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("UsuarioId,Name,Email,Phone,CPF,FuncaoId,Funcao,Password")] Usuario usuario)
-    {        if (ModelState.IsValid)
+    {
+        // Impede que um usuário comum se cadastre como ADM
+        if (usuario.FuncaoId == Politicas.FuncaoAdminId && !await PodeAtribuirAdmin())
+        {
+            ModelState.AddModelError("FuncaoId", "Apenas um administrador pode atribuir a função de administrador.");
+        }
+
+        if (ModelState.IsValid)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
@@ -103,6 +143,8 @@ public class UsuarioController : Controller
             if (existingUser != null)
             {
                 ModelState.AddModelError("AppUserId", "E-mail já cadastrado.");
+                // Recarrega o dropdown para a tela não voltar com a lista vazia
+                await CarregarFuncoes();
                 return View(usuario);
             }
 
@@ -117,6 +159,8 @@ public class UsuarioController : Controller
             else
             {
                 ModelState.AddModelError("AppUserId", "Usuário não encontrado.");
+                // Recarrega o dropdown para a tela não voltar com a lista vazia
+                await CarregarFuncoes();
                 return View(usuario);
             }
             _context.Add(usuario);
@@ -126,11 +170,14 @@ public class UsuarioController : Controller
 
             return RedirectToAction("Index", "Home");
         }
-        ViewData["FuncaoId"] = new SelectList(_context.Funcoes, "FuncaoId", "Name");
+        // Recarrega o dropdown de funções (sem a função ADM para quem não pode atribuí-la)
+        await CarregarFuncoes();
         return View(usuario);
     }
 
     // GET: USUARIOS/Edit/5
+    // Somente ADM pode acessar esta ação
+    [Authorize(Policy = Politicas.Admin)]
     public async Task<IActionResult> Edit(int? usuarioid)
     {
         if (usuarioid == null)
@@ -151,6 +198,8 @@ public class UsuarioController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Somente ADM pode acessar esta ação
+    [Authorize(Policy = Politicas.Admin)]
     public async Task<IActionResult> Edit(int? usuarioid, [Bind("UsuarioId,Name,Email,Phone,CPF,FuncaoId,Funcao,Password,AppUserId")] Usuario usuario)
     {
         if (usuarioid != usuario.UsuarioId)
@@ -182,6 +231,8 @@ public class UsuarioController : Controller
     }
 
     // GET: USUARIOS/Delete/5
+    // Somente ADM pode acessar esta ação
+    [Authorize(Policy = Politicas.Admin)]
     public async Task<IActionResult> Delete(int? usuarioid)
     {
         if (usuarioid == null)
@@ -202,6 +253,8 @@ public class UsuarioController : Controller
     // POST: USUARIOS/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    // Somente ADM pode acessar esta ação
+    [Authorize(Policy = Politicas.Admin)]
     public async Task<IActionResult> DeleteConfirmed(int? usuarioid)
     {
         var usuario = await _context.Usuarios.FindAsync(usuarioid);

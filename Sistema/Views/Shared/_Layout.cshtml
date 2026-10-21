@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+@* Serviço de autorização usado para mostrar o menu de ADM só para administradores *@
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -23,24 +26,34 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-area=""
-                               asp-controller="Funcao"
-                               asp-action="Index">Função</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-area=""
-                               asp-controller="Fonecedor"
-                               asp-action="Index">Fornecedor</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-area=""
-                               asp-controller="TipoProduto"
-                               asp-action="Index">Tipo Produto</a>
-                        </li>
+                        @* Links de cadastro só aparecem para ADM (FuncaoId = 1); Usuário foi adicionado ao menu *@
+                        @if ((await AuthorizationService.AuthorizeAsync(User, Sistema.Authorization.Politicas.Admin)).Succeeded)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark"
+                                   asp-area=""
+                                   asp-controller="Usuario"
+                                   asp-action="Index">Usuário</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark"
+                                   asp-area=""
+                                   asp-controller="Funcao"
+                                   asp-action="Index">Função</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark"
+                                   asp-area=""
+                                   asp-controller="Fonecedor"
+                                   asp-action="Index">Fornecedor</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark"
+                                   asp-area=""
+                                   asp-controller="TipoProduto"
+                                   asp-action="Index">Tipo Produto</a>
+                            </li>
+                        }
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

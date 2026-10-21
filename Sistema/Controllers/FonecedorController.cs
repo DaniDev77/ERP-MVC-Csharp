@@ -1,9 +1,15 @@
 
+// Necessário para usar o atributo [Authorize]
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Models;
 using Sistema.Data;
+// Política de ADM (Politicas.Admin / FuncaoAdminId) definida em Authorization/AdminRequirement.cs
+using Sistema.Authorization;
 
+// Controller inteiro restrito a ADM (usuários com FuncaoId = 1)
+[Authorize(Policy = Politicas.Admin)]
 public class FonecedorController : Controller
 {
     private readonly ApplicationDbContext _context;
