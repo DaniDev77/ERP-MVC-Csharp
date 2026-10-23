@@ -18,15 +18,30 @@ public class ProdutoController : Controller
         _context = context;
     }
 
-    // GET: PRODUTO
-    // Inclui fornecedor e tipo para mostrar os nomes na lista
-    public async Task<IActionResult> Index()
+    // GET: PRODUTO?filtro=baixo|zerado
+    // Inclui fornecedor e tipo para mostrar os nomes na lista.
+    // Os cartões de contagem da tela usam o filtro: "baixo" = entre 1 e o mínimo, "zerado" = sem estoque
+    public async Task<IActionResult> Index(string? filtro)
     {
-        var produtos = await _context.Produtos
+        // Contagens para os cartões, sempre do banco inteiro (não só do filtro aplicado)
+        ViewBag.Total = await _context.Produtos.CountAsync();
+        ViewBag.Zerados = await _context.Produtos.CountAsync(p => p.Estoque == 0);
+        ViewBag.Baixos = await _context.Produtos.CountAsync(p => p.Estoque > 0 && p.Estoque <= Produto.EstoqueMinimo);
+        ViewBag.Filtro = filtro;
+
+        var consulta = _context.Produtos
             .Include(p => p.Fornecedor)
             .Include(p => p.TipoProduto)
-            .OrderBy(p => p.Name)
-            .ToListAsync();
+            .AsQueryable();
+
+        consulta = filtro switch
+        {
+            "baixo" => consulta.Where(p => p.Estoque > 0 && p.Estoque <= Produto.EstoqueMinimo),
+            "zerado" => consulta.Where(p => p.Estoque == 0),
+            _ => consulta
+        };
+
+        var produtos = await consulta.OrderBy(p => p.Name).ToListAsync();
         return View(produtos);
     }
 

@@ -1,109 +1,98 @@
-@* Serviço de autorização usado para mostrar o menu de ADM só para administradores *@
+@* Casca do sistema: barra lateral com a navegação de cada função e o conteúdo à direita *@
 @using Microsoft.AspNetCore.Authorization
+@using Sistema.Authorization
 @inject IAuthorizationService AuthorizationService
+@{
+    // Políticas que decidem o que cada função enxerga no menu (ADM passa em todas as de venda e compra)
+    var podeAdmin = (await AuthorizationService.AuthorizeAsync(User, Politicas.Admin)).Succeeded;
+    var podeVender = (await AuthorizationService.AuthorizeAsync(User, Politicas.Vendedor)).Succeeded;
+    var podeComprar = (await AuthorizationService.AuthorizeAsync(User, Politicas.Padrao)).Succeeded;
+    var veMeuDesempenho = (await AuthorizationService.AuthorizeAsync(User, Politicas.SomenteVendedor)).Succeeded;
+    var logado = User.Identity?.IsAuthenticated == true;
+
+    // Marca o item do menu da página atual (pelo nome do controller)
+    string Ativo(string controller) =>
+        string.Equals((string?)ViewContext.RouteData.Values["controller"], controller, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Sistema</title>
-    <script type="importmap"></script>
+    @* Fonte Geist (Google Fonts), a face escolhida para o sistema *@
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Sistema.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Sistema</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        @* Links de cadastro só aparecem para ADM (FuncaoId = 1); Usuário foi adicionado ao menu *@
-                        @if ((await AuthorizationService.AuthorizeAsync(User, Sistema.Authorization.Politicas.Admin)).Succeeded)
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" asp-controller="Home" asp-action="Index">
+                <span class="brand-mark" aria-hidden="true">S</span>
+                <span>Sistema</span>
+            </a>
+
+            <nav aria-label="Menu principal" class="d-flex flex-column gap-4">
+                @if (logado)
+                {
+                    <div class="nav-group">
+                        <a class="nav-app-link @Ativo("Home")" asp-controller="Home" asp-action="Index">Início</a>
+                    </div>
+                }
+
+                @* Operação: quem vende, quem compra e o desempenho do vendedor *@
+                @if (logado && (podeVender || podeComprar || veMeuDesempenho))
+                {
+                    <div class="nav-group">
+                        <div class="nav-group-title">Operação</div>
+                        @if (podeVender)
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark"
-                                   asp-area=""
-                                   asp-controller="Usuario"
-                                   asp-action="Index">Usuário</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark"
-                                   asp-area=""
-                                   asp-controller="Funcao"
-                                   asp-action="Index">Função</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark"
-                                   asp-area=""
-                                   asp-controller="Fonecedor"
-                                   asp-action="Index">Fornecedor</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark"
-                                   asp-area=""
-                                   asp-controller="TipoProduto"
-                                   asp-action="Index">Tipo Produto</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark"
-                                   asp-area=""
-                                   asp-controller="Produto"
-                                   asp-action="Index">Produto</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark"
-                                   asp-area=""
-                                   asp-controller="Desempenho"
-                                   asp-action="Index">Desempenho</a>
-                            </li>
+                            <a class="nav-app-link @Ativo("Venda")" asp-controller="Venda" asp-action="Create">Venda</a>
                         }
-                        @* Venda: vendedor (e ADM). Compra: usuário padrão (e ADM). Desempenho do vendedor: só vendedor *@
-                        @if ((await AuthorizationService.AuthorizeAsync(User, Sistema.Authorization.Politicas.Vendedor)).Succeeded)
+                        @if (podeComprar)
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Venda" asp-action="Create">Venda</a>
-                            </li>
+                            <a class="nav-app-link @Ativo("Compra")" asp-controller="Compra" asp-action="Create">Compra</a>
                         }
-                        @if ((await AuthorizationService.AuthorizeAsync(User, Sistema.Authorization.Politicas.Padrao)).Succeeded)
+                        @if (veMeuDesempenho)
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Compra" asp-action="Create">Compra</a>
-                            </li>
+                            <a class="nav-app-link @Ativo("Desempenho")" asp-controller="Desempenho" asp-action="Vendedor">Meu desempenho</a>
                         }
-                        @if ((await AuthorizationService.AuthorizeAsync(User, Sistema.Authorization.Politicas.SomenteVendedor)).Succeeded)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Desempenho" asp-action="Vendedor">Meu Desempenho</a>
-                            </li>
-                        }
-                        @* Aviso de estoque baixo: aparece só para ADM (o componente decide sozinho) *@
+                    </div>
+                }
+
+                @* Estoque e relatórios: só ADM. O aviso de estoque baixo aparece aqui sozinho *@
+                @if (podeAdmin)
+                {
+                    <div class="nav-group">
+                        <div class="nav-group-title">Gestão</div>
+                        <a class="nav-app-link @Ativo("Desempenho")" asp-controller="Desempenho" asp-action="Index">Desempenho</a>
+                        <a class="nav-app-link @Ativo("Produto")" asp-controller="Produto" asp-action="Index">Produtos</a>
                         @await Component.InvokeAsync("EstoqueBaixo")
-                    </ul>
-                    <partial name="_LoginPartial" />
-                </div>
+                    </div>
+                    <div class="nav-group">
+                        <div class="nav-group-title">Cadastros</div>
+                        <a class="nav-app-link @Ativo("Fonecedor")" asp-controller="Fonecedor" asp-action="Index">Fornecedores</a>
+                        <a class="nav-app-link @Ativo("TipoProduto")" asp-controller="TipoProduto" asp-action="Index">Tipos de produto</a>
+                        <a class="nav-app-link @Ativo("Usuario")" asp-controller="Usuario" asp-action="Index">Usuários</a>
+                        <a class="nav-app-link @Ativo("Funcao")" asp-controller="Funcao" asp-action="Index">Funções</a>
+                    </div>
+                }
+            </nav>
+
+            <div class="sidebar-footer">
+                <partial name="_LoginPartial" />
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+        </aside>
+
+        <main class="main" role="main">
             @RenderBody()
+            <footer class="text-muted mt-5" style="font-size: 12px;">Sistema</footer>
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Sistema - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

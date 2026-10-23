@@ -4,19 +4,25 @@
     ViewData["Title"] = "Excluir produto";
 }
 
-<h1>Excluir produto</h1>
+<div class="page-header">
+    <div>
+        <h1>Excluir produto</h1>
+        <p class="page-sub">Essa ação não pode ser desfeita.</p>
+    </div>
+</div>
 
-<h3>Tem certeza que quer excluir este produto?</h3>
-<div>
-    <dl class="row">
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Name)</dt>
+<div class="panel form-card">
+    <dl class="row mb-3" style="font-size: 14px;">
+        <dt class="col-sm-3 text-muted fw-normal">Produto</dt>
         <dd class="col-sm-9">@Model.Name</dd>
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Estoque)</dt>
+        <dt class="col-sm-3 text-muted fw-normal">Estoque</dt>
         <dd class="col-sm-9">@Model.Estoque</dd>
     </dl>
     <form asp-action="Delete">
         <input type="hidden" asp-for="ProdutoId" />
-        <input type="submit" value="Excluir" class="btn btn-danger" /> |
-        <a asp-action="Index">Voltar para a lista</a>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">Excluir produto</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
     </form>
 </div>

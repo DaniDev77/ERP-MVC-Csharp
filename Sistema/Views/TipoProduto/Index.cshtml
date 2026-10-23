@@ -1,41 +1,48 @@
 @model IEnumerable<Sistema.Models.TipoProduto>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Tipos de produto";
 }
 
-<h1>Index</h1>
+<div class="page-header">
+    <div>
+        <h1>Tipos de produto</h1>
+        <p class="page-sub">Categorias usadas para organizar os produtos.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">Novo tipo de produto</a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.TipoNome)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TipoDescricao)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.TipoNome)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.TipoDescricao)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.TipoProdutoId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.TipoProdutoId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.TipoProdutoId">Delete</a>
-            </td>
-        </tr>
+@if (!Model.Any())
+{
+    <div class="panel"><p class="mb-0 text-muted">Nenhum tipo de produto cadastrado.</p></div>
 }
-    </tbody>
-</table>
+else
+{
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(m => m.TipoNome)</th>
+                    <th>@Html.DisplayNameFor(m => m.TipoDescricao)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.TipoNome</td>
+                        <td>@item.TipoDescricao</td>
+                        <td class="text-end row-actions">
+                            <a asp-action="Edit" asp-route-id="@item.TipoProdutoId">Editar</a>
+                            <span class="text-muted mx-1">·</span>
+                            <a asp-action="Details" asp-route-id="@item.TipoProdutoId">Detalhes</a>
+                            <span class="text-muted mx-1">·</span>
+                            <a asp-action="Delete" asp-route-id="@item.TipoProdutoId">Excluir</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

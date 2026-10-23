@@ -4,14 +4,18 @@
     ViewData["Title"] = "Venda";
 }
 
-<h1>Registrar venda</h1>
+<div class="page-header">
+    <div>
+        <h1>Registrar venda</h1>
+        <p class="page-sub">A venda é registrada para um usuário padrão e dá baixa no estoque de cada produto.</p>
+    </div>
+    <a asp-controller="Desempenho" asp-action="Vendedor" class="btn btn-outline-secondary">Meu desempenho</a>
+</div>
 
-@* Mensagem de sucesso vinda do redirecionamento após salvar *@
+@* Confirmação vinda do redirecionamento após salvar *@
 @if (TempData["Sucesso"] is string sucesso)
 {
-    <div class="alert alert-success">@sucesso</div>
+    <div class="alert alert-success mb-3">@sucesso</div>
 }
-
-<p class="text-muted">A venda só é registrada para um usuário padrão, e dá baixa no estoque de cada produto.</p>
 
 <partial name="_NovoPedido" model="Model" />

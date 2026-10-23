@@ -1,83 +1,54 @@
 @model IEnumerable<Sistema.Models.Usuario>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Usuários";
 }
 
-<h1>Index</h1>
+<div class="page-header">
+    <div>
+        <h1>Usuários</h1>
+        <p class="page-sub">Quem tem conta no sistema e qual é a função de cada um.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">Novo usuário</a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Email)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Phone)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CPF)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FuncaoId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Funcao)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Password)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.AppUserId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IdentityUser)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Phone)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.CPF)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.FuncaoId)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Funcao)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Password)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.AppUserId)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.IdentityUser)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.UsuarioId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.UsuarioId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.UsuarioId">Delete</a>
-            </td>
-        </tr>
+@if (!Model.Any())
+{
+    <div class="panel"><p class="mb-0 text-muted">Nenhum usuário cadastrado.</p></div>
 }
-    </tbody>
-</table>
+else
+{
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(m => m.Name)</th>
+                    <th>@Html.DisplayNameFor(m => m.Email)</th>
+                    <th>@Html.DisplayNameFor(m => m.Phone)</th>
+                    <th>@Html.DisplayNameFor(m => m.CPF)</th>
+                    <th>@Html.DisplayNameFor(m => m.Funcao)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Name</td>
+                        <td>@item.Email</td>
+                        <td>@item.Phone</td>
+                        <td>@item.CPF</td>
+                        <td><span class="badge-soft">@(item.Funcao?.Name ?? "Sem função")</span></td>
+                        <td class="text-end row-actions">
+                            <a asp-action="Edit" asp-route-usuarioid="@item.UsuarioId">Editar</a>
+                            <span class="text-muted mx-1">·</span>
+                            <a asp-action="Details" asp-route-usuarioid="@item.UsuarioId">Detalhes</a>
+                            <span class="text-muted mx-1">·</span>
+                            <a asp-action="Delete" asp-route-usuarioid="@item.UsuarioId">Excluir</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

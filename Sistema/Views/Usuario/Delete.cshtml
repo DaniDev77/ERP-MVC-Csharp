@@ -4,9 +4,9 @@
     ViewData["Title"] = "Delete";
 }
 
-<h1>Delete</h1>
+<h1>Excluir usuário</h1>
 
-<h3>Are you sure you want to delete this?</h3>
+<h3>Tem certeza que quer excluir este registro?</h3>
 <div>
     <h4>Sistema.Models.Usuario</h4>
     <hr />
@@ -84,7 +84,7 @@
     </dl>
     <form asp-action="Delete">
         <input type="hidden" asp-for="UsuarioId" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+        <input type="submit" value="Excluir" class="btn btn-danger" /> |
+        <a asp-action="Index">Voltar para a lista</a>
     </form>
 </div>

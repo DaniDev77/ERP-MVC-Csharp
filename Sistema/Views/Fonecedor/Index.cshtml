@@ -1,59 +1,54 @@
 @model IEnumerable<Sistema.Models.Fonecedor>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Fornecedores";
 }
 
-<h1>Index</h1>
+<div class="page-header">
+    <div>
+        <h1>Fornecedores</h1>
+        <p class="page-sub">Quem abastece a loja com produtos.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">Novo fornecedor</a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.FonecedorNome)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FonecedorDescricao)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CNPJ)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FonecedorTelefone)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FonecedorEmail)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.FonecedorNome)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.FonecedorDescricao)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.CNPJ)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.FonecedorTelefone)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.FonecedorEmail)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.FonecedorId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.FonecedorId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.FonecedorId">Delete</a>
-            </td>
-        </tr>
+@if (!Model.Any())
+{
+    <div class="panel"><p class="mb-0 text-muted">Nenhum fornecedor cadastrado.</p></div>
 }
-    </tbody>
-</table>
+else
+{
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(m => m.FonecedorNome)</th>
+                    <th>@Html.DisplayNameFor(m => m.FonecedorDescricao)</th>
+                    <th>@Html.DisplayNameFor(m => m.CNPJ)</th>
+                    <th>@Html.DisplayNameFor(m => m.FonecedorTelefone)</th>
+                    <th>@Html.DisplayNameFor(m => m.FonecedorEmail)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.FonecedorNome</td>
+                        <td>@item.FonecedorDescricao</td>
+                        <td>@item.CNPJ</td>
+                        <td>@item.FonecedorTelefone</td>
+                        <td>@item.FonecedorEmail</td>
+                        <td class="text-end row-actions">
+                            <a asp-action="Edit" asp-route-fonecedorid="@item.FonecedorId">Editar</a>
+                            <span class="text-muted mx-1">·</span>
+                            <a asp-action="Details" asp-route-fonecedorid="@item.FonecedorId">Detalhes</a>
+                            <span class="text-muted mx-1">·</span>
+                            <a asp-action="Delete" asp-route-fonecedorid="@item.FonecedorId">Excluir</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

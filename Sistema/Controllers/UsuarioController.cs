@@ -52,7 +52,8 @@ public class UsuarioController : Controller
     [Authorize(Policy = Politicas.Admin)]
     public async Task<IActionResult> Index()
     {
-        var usuarios = await _context.Usuarios.ToListAsync();
+        // Inclui a função para a lista mostrar o nome dela, e não só o código
+        var usuarios = await _context.Usuarios.Include(u => u.Funcao).ToListAsync();
         var rolesPorUsuario = new Dictionary<int, string>();
 
         foreach (var usuario in usuarios)

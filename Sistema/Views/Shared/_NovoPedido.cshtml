@@ -1,42 +1,52 @@
 @model Sistema.Models.NovoPedidoViewModel
 
 @* Formulário compartilhado por Venda e Compra: escolhe produtos e quantidades (até 8 linhas) *@
-<form asp-action="Create" method="post">
-    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+<form asp-action="Create" method="post" class="panel">
+    @* Resumo de erros só aparece quando há erro: senão sobra uma caixa vermelha vazia *@
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All" class="alert alert-danger mb-3"></div>
+    }
 
     @* Campo de comprador aparece só na venda *@
     @if (ViewBag.ExigeComprador == true)
     {
-        <div class="mb-3 col-md-4">
-            <label asp-for="Comprador" class="form-label">CPF ou código do comprador (usuário padrão)</label>
-            <input asp-for="Comprador" class="form-control" />
+        <div class="mb-4" style="max-width: 360px;">
+            <label asp-for="Comprador" class="form-label">CPF ou código do comprador</label>
+            <input asp-for="Comprador" class="form-control" placeholder="Ex.: 123.456.789-00 ou 1005" />
+            <div class="form-text" style="font-size: 12px; color: var(--faint);">Só usuários com a função Padrão podem comprar.</div>
             <span asp-validation-for="Comprador" class="text-danger"></span>
         </div>
     }
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Produto</th>
-                <th style="width: 150px">Quantidade</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (var i = 0; i < Model.Linhas.Count; i++)
-            {
+    <div class="table-wrap mb-3" style="border-color: var(--rule);">
+        <table class="table mb-0">
+            <thead>
                 <tr>
-                    <td>
-                        <select asp-for="@Model.Linhas[i].ProdutoId" class="form-select" asp-items="ViewBag.Produtos">
-                            <option value="0">-- nenhum --</option>
-                        </select>
-                    </td>
-                    <td>
-                        <input asp-for="@Model.Linhas[i].Quantidade" class="form-control" min="0" />
-                    </td>
+                    <th>Produto</th>
+                    <th class="num" style="width: 160px;">Quantidade</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @for (var i = 0; i < Model.Linhas.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            <select asp-for="@Model.Linhas[i].ProdutoId" class="form-select" asp-items="ViewBag.Produtos">
+                                <option value="0">Nenhum</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input asp-for="@Model.Linhas[i].Quantidade" class="form-control text-end" min="0" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 
-    <input type="submit" value="Registrar" class="btn btn-primary" />
+    <div class="d-flex justify-content-between align-items-center">
+        <span class="text-muted" style="font-size: 13px;">Produtos sem estoque não aparecem na lista.</span>
+        <button type="submit" class="btn btn-primary">Registrar</button>
+    </div>
 </form>

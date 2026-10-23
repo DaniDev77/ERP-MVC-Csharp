@@ -2,41 +2,71 @@
 
 @{
     ViewData["Title"] = "Produtos";
+    var filtro = (string?)ViewBag.Filtro;
 }
 
-<h1>Produtos</h1>
-
-<p>
+<div class="page-header">
+    <div>
+        <h1>Produtos</h1>
+        <p class="page-sub">Cadastro, preço e estoque. Repor o estoque é editar a quantidade.</p>
+    </div>
     <a asp-action="Create" class="btn btn-primary">Novo produto</a>
-    <a asp-action="EstoqueBaixo" class="btn btn-outline-danger">Estoque baixo</a>
-</p>
+</div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(m => m.Name)</th>
-            <th>@Html.DisplayNameFor(m => m.TipoProduto)</th>
-            <th>@Html.DisplayNameFor(m => m.Fornecedor)</th>
-            <th>@Html.DisplayNameFor(m => m.Preco)</th>
-            <th>@Html.DisplayNameFor(m => m.Estoque)</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.Name</td>
-                <td>@item.TipoProduto?.TipoNome</td>
-                <td>@item.Fornecedor?.FonecedorNome</td>
-                <td>@item.Preco.ToString("C2")</td>
-                @* Estoque em destaque quando está abaixo do mínimo *@
-                <td class="@(item.Estoque <= Sistema.Models.Produto.EstoqueMinimo ? "text-danger fw-bold" : "")">@item.Estoque</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.ProdutoId">Editar</a> |
-                    <a asp-action="Delete" asp-route-id="@item.ProdutoId">Excluir</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+@* Cartões de contagem que funcionam como filtro da lista *@
+<div class="count-filters">
+    <a class="count-card @(string.IsNullOrEmpty(filtro) ? "selecionado" : "")" asp-action="Index">
+        <div class="label">Todos os produtos</div>
+        <div class="value">@ViewBag.Total</div>
+    </a>
+    <a class="count-card @(filtro == "baixo" ? "selecionado" : "")" asp-action="Index" asp-route-filtro="baixo">
+        <div class="label">Estoque baixo (até @Sistema.Models.Produto.EstoqueMinimo)</div>
+        <div class="value">@ViewBag.Baixos</div>
+    </a>
+    <a class="count-card @(filtro == "zerado" ? "selecionado" : "")" asp-action="Index" asp-route-filtro="zerado">
+        <div class="label">Sem estoque</div>
+        <div class="value">@ViewBag.Zerados</div>
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="panel">
+        <p class="mb-0 text-muted">Nenhum produto nesta lista.</p>
+    </div>
+}
+else
+{
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Tipo</th>
+                    <th>Fornecedor</th>
+                    <th class="num">Preço</th>
+                    <th class="num">Estoque</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Name</td>
+                        <td>@item.TipoProduto?.TipoNome</td>
+                        <td>@item.Fornecedor?.FonecedorNome</td>
+                        <td class="num">@item.Preco.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</td>
+                        @* Estoque em vermelho quando está no nível de reposição (ou zerado) *@
+                        <td class="num @(item.Estoque <= Sistema.Models.Produto.EstoqueMinimo ? "num-alerta" : "")">@item.Estoque</td>
+                        <td class="text-end row-actions">
+                            <a asp-action="Edit" asp-route-id="@item.ProdutoId">Editar</a>
+                            <span class="text-muted mx-1">·</span>
+                            <a asp-action="Delete" asp-route-id="@item.ProdutoId">Excluir</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

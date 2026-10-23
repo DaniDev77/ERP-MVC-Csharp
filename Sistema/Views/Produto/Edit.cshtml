@@ -4,20 +4,20 @@
     ViewData["Title"] = "Editar produto";
 }
 
-<h1>Editar produto</h1>
-
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            @await Html.PartialAsync("_Form", Model)
-            <input type="hidden" asp-for="ProdutoId" />
-            <div class="mb-3">
-                <input type="submit" value="Salvar" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="page-header">
+    <div>
+        <h1>Editar produto</h1>
+        <p class="page-sub">@Model.Name · estoque atual: @Model.Estoque</p>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Voltar para a lista</a>
+<div class="panel form-card">
+    <form asp-action="Edit">
+        @await Html.PartialAsync("_Form", Model)
+        <input type="hidden" asp-for="ProdutoId" />
+        <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary">Salvar alterações</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+    </form>
 </div>

@@ -4,6 +4,12 @@
     ViewData["Title"] = "Meu desempenho";
 }
 
-<h1>Meu desempenho de vendas</h1>
+<div class="page-header">
+    <div>
+        <h1>Meu desempenho de vendas</h1>
+        <p class="page-sub">Somente as vendas registradas por você.</p>
+    </div>
+    <a asp-controller="Venda" asp-action="Create" class="btn btn-primary">Registrar venda</a>
+</div>
 
 <partial name="_Desempenho" model="Model" />

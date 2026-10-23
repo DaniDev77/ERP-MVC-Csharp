@@ -1,46 +1,47 @@
 @model Sistema.Models.DesempenhoViewModel
 
-@* Cartões de totais e filtro de período, compartilhados pelas páginas de desempenho *@
+@* Filtro de período e totais, compartilhados pelas páginas de desempenho *@
 @{
     // Períodos aceitos pela CalcularPeriodo do DesempenhoController
     var periodos = new (string Valor, string Texto)[]
     {
         ("semana", "Semana"), ("mes", "Mês"), ("bimestre", "Bimestre"), ("semestre", "Semestre"), ("ano", "Ano")
     };
+    var moeda = new System.Globalization.CultureInfo("pt-BR");
 }
 
-<ul class="nav nav-pills mb-3">
+<div class="segmented" role="tablist" aria-label="Período">
     @foreach (var (valor, texto) in periodos)
     {
-        <li class="nav-item">
-            <a class="nav-link @(Model.Periodo == valor ? "active" : "")" asp-action="@ViewBag.Acao" asp-route-periodo="@valor">@texto</a>
-        </li>
+        <a class="@(Model.Periodo == valor ? "active" : "")" asp-action="@ViewBag.Acao" asp-route-periodo="@valor">@texto</a>
     }
-</ul>
+</div>
 
-<p class="text-muted">Período de @Model.Inicio.ToString("dd/MM/yyyy") até @Model.Fim.AddDays(-1).ToString("dd/MM/yyyy")</p>
+<p class="text-muted mb-3" style="font-size: 13px;">
+    De @Model.Inicio.ToString("dd/MM/yyyy") até @Model.Fim.AddDays(-1).ToString("dd/MM/yyyy")
+</p>
 
-<div class="row g-3">
+<div class="grid-cards">
     @* Compras só aparecem na página do ADM *@
     @if (ViewBag.MostrarCompras == true)
     {
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Compras</h5>
-                    <p class="card-text mb-1">Quantidade: <strong>@Model.QtdCompras</strong></p>
-                    <p class="card-text">Valor total: <strong>@Model.ValorCompras.ToString("C2")</strong></p>
-                </div>
-            </div>
+        <div class="kpi">
+            <div class="kpi-label">Valor em compras</div>
+            <div class="kpi-value">@Model.ValorCompras.ToString("C2", moeda)</div>
+            <div class="kpi-sub">@Model.QtdCompras compra(s)</div>
         </div>
     }
-    <div class="col-md-6">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Vendas</h5>
-                <p class="card-text mb-1">Quantidade: <strong>@Model.QtdVendas</strong></p>
-                <p class="card-text">Valor total: <strong>@Model.ValorVendas.ToString("C2")</strong></p>
-            </div>
-        </div>
+    <div class="kpi">
+        <div class="kpi-label">Valor em vendas</div>
+        <div class="kpi-value">@Model.ValorVendas.ToString("C2", moeda)</div>
+        <div class="kpi-sub">@Model.QtdVendas venda(s)</div>
     </div>
+    @if (ViewBag.MostrarCompras == true && Model.QtdVendas + Model.QtdCompras > 0)
+    {
+        <div class="kpi">
+            <div class="kpi-label">Ticket médio de venda</div>
+            <div class="kpi-value">@(Model.QtdVendas > 0 ? (Model.ValorVendas / Model.QtdVendas).ToString("C2", moeda) : "—")</div>
+            <div class="kpi-sub">valor por venda no período</div>
+        </div>
+    }
 </div>

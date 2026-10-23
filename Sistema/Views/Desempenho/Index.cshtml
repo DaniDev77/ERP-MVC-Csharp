@@ -4,6 +4,44 @@
     ViewData["Title"] = "Desempenho";
 }
 
-<h1>Desempenho de compras e vendas</h1>
+<div class="page-header">
+    <div>
+        <h1>Desempenho de compras e vendas</h1>
+        <p class="page-sub">Todas as operações da loja no período escolhido.</p>
+    </div>
+</div>
 
 <partial name="_Desempenho" model="Model" />
+
+@* Quanto cada vendedor vendeu no período: a tabela que o gestor usa para cobrar metas *@
+<section class="panel mt-3">
+    <h2 class="panel-title">Vendas por vendedor</h2>
+    @if (Model.PorVendedor.Count == 0)
+    {
+        <p class="text-muted mb-0">Nenhuma venda registrada neste período.</p>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Vendedor</th>
+                        <th class="num">Vendas</th>
+                        <th class="num">Valor vendido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var linha in Model.PorVendedor)
+                    {
+                        <tr>
+                            <td>@linha.Nome</td>
+                            <td class="num">@linha.Quantidade</td>
+                            <td class="num">@linha.Valor.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

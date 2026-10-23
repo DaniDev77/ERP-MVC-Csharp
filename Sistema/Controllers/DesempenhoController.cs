@@ -28,6 +28,18 @@ public class DesempenhoController(ApplicationDbContext context, UsuarioLogadoSer
             ValorVendas = await pedidos.Where(p => p.Tipo == TipoPedido.Venda).SumAsync(p => p.Total)
         };
 
+        // Quanto cada vendedor vendeu no período, do maior para o menor. Agrupa em memória,
+        // porque o nome do vendedor vem da tabela Usuario
+        var vendas = await pedidos
+            .Where(p => p.Tipo == TipoPedido.Venda && p.VendedorId != null)
+            .Select(p => new { p.VendedorId, Nome = p.Vendedor!.Name, p.Total })
+            .ToListAsync();
+        modelo.PorVendedor = vendas
+            .GroupBy(v => v.Nome)
+            .Select(g => new LinhaVendedor { Nome = g.Key, Quantidade = g.Count(), Valor = g.Sum(v => v.Total) })
+            .OrderByDescending(l => l.Valor)
+            .ToList();
+
         ViewBag.Acao = nameof(Index);
         ViewBag.MostrarCompras = true;
         return View(modelo);

@@ -4,14 +4,17 @@
     ViewData["Title"] = "Compra";
 }
 
-<h1>Fazer compra</h1>
+<div class="page-header">
+    <div>
+        <h1>Fazer compra</h1>
+        <p class="page-sub">A compra dá baixa no estoque de cada produto escolhido.</p>
+    </div>
+</div>
 
-@* Mensagem de sucesso vinda do redirecionamento após salvar *@
+@* Confirmação vinda do redirecionamento após salvar *@
 @if (TempData["Sucesso"] is string sucesso)
 {
-    <div class="alert alert-success">@sucesso</div>
+    <div class="alert alert-success mb-3">@sucesso</div>
 }
-
-<p class="text-muted">A compra dá baixa no estoque de cada produto escolhido.</p>
 
 <partial name="_NovoPedido" model="Model" />
