@@ -1,0 +1,17 @@
+@model Sistema.Models.NovoPedidoViewModel
+
+@{
+    ViewData["Title"] = "Compra";
+}
+
+<h1>Fazer compra</h1>
+
+@* Mensagem de sucesso vinda do redirecionamento após salvar *@
+@if (TempData["Sucesso"] is string sucesso)
+{
+    <div class="alert alert-success">@sucesso</div>
+}
+
+<p class="text-muted">A compra dá baixa no estoque de cada produto escolhido.</p>
+
+<partial name="_NovoPedido" model="Model" />

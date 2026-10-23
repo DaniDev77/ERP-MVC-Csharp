@@ -1,0 +1,22 @@
+@model Sistema.Models.Produto
+
+@{
+    ViewData["Title"] = "Excluir produto";
+}
+
+<h1>Excluir produto</h1>
+
+<h3>Tem certeza que quer excluir este produto?</h3>
+<div>
+    <dl class="row">
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Name)</dt>
+        <dd class="col-sm-9">@Model.Name</dd>
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Estoque)</dt>
+        <dd class="col-sm-9">@Model.Estoque</dd>
+    </dl>
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="ProdutoId" />
+        <input type="submit" value="Excluir" class="btn btn-danger" /> |
+        <a asp-action="Index">Voltar para a lista</a>
+    </form>
+</div>

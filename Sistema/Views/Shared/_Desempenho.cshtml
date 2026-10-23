@@ -1,0 +1,46 @@
+@model Sistema.Models.DesempenhoViewModel
+
+@* Cartões de totais e filtro de período, compartilhados pelas páginas de desempenho *@
+@{
+    // Períodos aceitos pela CalcularPeriodo do DesempenhoController
+    var periodos = new (string Valor, string Texto)[]
+    {
+        ("semana", "Semana"), ("mes", "Mês"), ("bimestre", "Bimestre"), ("semestre", "Semestre"), ("ano", "Ano")
+    };
+}
+
+<ul class="nav nav-pills mb-3">
+    @foreach (var (valor, texto) in periodos)
+    {
+        <li class="nav-item">
+            <a class="nav-link @(Model.Periodo == valor ? "active" : "")" asp-action="@ViewBag.Acao" asp-route-periodo="@valor">@texto</a>
+        </li>
+    }
+</ul>
+
+<p class="text-muted">Período de @Model.Inicio.ToString("dd/MM/yyyy") até @Model.Fim.AddDays(-1).ToString("dd/MM/yyyy")</p>
+
+<div class="row g-3">
+    @* Compras só aparecem na página do ADM *@
+    @if (ViewBag.MostrarCompras == true)
+    {
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Compras</h5>
+                    <p class="card-text mb-1">Quantidade: <strong>@Model.QtdCompras</strong></p>
+                    <p class="card-text">Valor total: <strong>@Model.ValorCompras.ToString("C2")</strong></p>
+                </div>
+            </div>
+        </div>
+    }
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Vendas</h5>
+                <p class="card-text mb-1">Quantidade: <strong>@Model.QtdVendas</strong></p>
+                <p class="card-text">Valor total: <strong>@Model.ValorVendas.ToString("C2")</strong></p>
+            </div>
+        </div>
+    </div>
+</div>

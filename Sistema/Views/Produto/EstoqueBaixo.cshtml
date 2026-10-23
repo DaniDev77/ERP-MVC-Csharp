@@ -1,0 +1,39 @@
+@model IEnumerable<Sistema.Models.Produto>
+
+@{
+    ViewData["Title"] = "Estoque baixo";
+}
+
+<h1>Estoque baixo</h1>
+<p class="text-muted">Produtos com <strong>@Sistema.Models.Produto.EstoqueMinimo</strong> unidades ou menos. Edite o produto para repor o estoque.</p>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-success">Nenhum produto com estoque baixo.</div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Tipo</th>
+                <th>Fornecedor</th>
+                <th>Estoque</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.TipoProduto?.TipoNome</td>
+                    <td>@item.Fornecedor?.FonecedorNome</td>
+                    <td class="text-danger fw-bold">@item.Estoque</td>
+                    <td><a asp-action="Edit" asp-route-id="@item.ProdutoId" class="btn btn-sm btn-primary">Repor estoque</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

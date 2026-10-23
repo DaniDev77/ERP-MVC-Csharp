@@ -1,0 +1,44 @@
+@model Sistema.Models.Produto
+
+@* Campos compartilhados por Criar e Editar; o estoque pode ser alterado aqui para repor o produto *@
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<div class="mb-3">
+    <label asp-for="Name" class="form-label"></label>
+    <input asp-for="Name" class="form-control" />
+    <span asp-validation-for="Name" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Descricao" class="form-label"></label>
+    <input asp-for="Descricao" class="form-control" />
+    <span asp-validation-for="Descricao" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Preco" class="form-label"></label>
+    <input asp-for="Preco" class="form-control" />
+    <span asp-validation-for="Preco" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Estoque" class="form-label"></label>
+    <input asp-for="Estoque" class="form-control" />
+    <span asp-validation-for="Estoque" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="FornecedorId" class="form-label"></label>
+    <select asp-for="FornecedorId" class="form-select" asp-items="ViewBag.Fornecedores">
+        <option value="">-- selecione --</option>
+    </select>
+    <span asp-validation-for="FornecedorId" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="TipoProdutoId" class="form-label"></label>
+    <select asp-for="TipoProdutoId" class="form-select" asp-items="ViewBag.Tipos">
+        <option value="">-- selecione --</option>
+    </select>
+    <span asp-validation-for="TipoProdutoId" class="text-danger"></span>
+</div>

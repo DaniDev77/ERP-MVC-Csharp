@@ -53,7 +53,40 @@
                                    asp-controller="TipoProduto"
                                    asp-action="Index">Tipo Produto</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark"
+                                   asp-area=""
+                                   asp-controller="Produto"
+                                   asp-action="Index">Produto</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark"
+                                   asp-area=""
+                                   asp-controller="Desempenho"
+                                   asp-action="Index">Desempenho</a>
+                            </li>
                         }
+                        @* Venda: vendedor (e ADM). Compra: usuário padrão (e ADM). Desempenho do vendedor: só vendedor *@
+                        @if ((await AuthorizationService.AuthorizeAsync(User, Sistema.Authorization.Politicas.Vendedor)).Succeeded)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Venda" asp-action="Create">Venda</a>
+                            </li>
+                        }
+                        @if ((await AuthorizationService.AuthorizeAsync(User, Sistema.Authorization.Politicas.Padrao)).Succeeded)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Compra" asp-action="Create">Compra</a>
+                            </li>
+                        }
+                        @if ((await AuthorizationService.AuthorizeAsync(User, Sistema.Authorization.Politicas.SomenteVendedor)).Succeeded)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Desempenho" asp-action="Vendedor">Meu Desempenho</a>
+                            </li>
+                        }
+                        @* Aviso de estoque baixo: aparece só para ADM (o componente decide sozinho) *@
+                        @await Component.InvokeAsync("EstoqueBaixo")
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

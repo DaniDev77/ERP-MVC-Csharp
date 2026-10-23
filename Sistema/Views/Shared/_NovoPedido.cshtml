@@ -1,0 +1,42 @@
+@model Sistema.Models.NovoPedidoViewModel
+
+@* Formulário compartilhado por Venda e Compra: escolhe produtos e quantidades (até 8 linhas) *@
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    @* Campo de comprador aparece só na venda *@
+    @if (ViewBag.ExigeComprador == true)
+    {
+        <div class="mb-3 col-md-4">
+            <label asp-for="Comprador" class="form-label">CPF ou código do comprador (usuário padrão)</label>
+            <input asp-for="Comprador" class="form-control" />
+            <span asp-validation-for="Comprador" class="text-danger"></span>
+        </div>
+    }
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th style="width: 150px">Quantidade</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (var i = 0; i < Model.Linhas.Count; i++)
+            {
+                <tr>
+                    <td>
+                        <select asp-for="@Model.Linhas[i].ProdutoId" class="form-select" asp-items="ViewBag.Produtos">
+                            <option value="0">-- nenhum --</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input asp-for="@Model.Linhas[i].Quantidade" class="form-control" min="0" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <input type="submit" value="Registrar" class="btn btn-primary" />
+</form>
