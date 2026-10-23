@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Identity;
 using Sistema.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
+// PedidoService (registra vendas/compras) e UsuarioLogadoService (usuário logado)
+using Sistema.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +32,20 @@ builder.Services.AddAuthorization(options =>
         policy.RequireAuthenticatedUser().AddRequirements(new AdminRequirement()));
 });
 
+// Políticas de venda, compra e desempenho do vendedor (ADM também passa nas de venda e compra)
+builder.Services.AddScoped<IAuthorizationHandler, FuncaoHandler>();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy(Politicas.Vendedor, policy =>
+        policy.RequireAuthenticatedUser().AddRequirements(new FuncaoRequirement(Politicas.FuncaoAdminId, Politicas.FuncaoVendedorId)))
+    .AddPolicy(Politicas.Padrao, policy =>
+        policy.RequireAuthenticatedUser().AddRequirements(new FuncaoRequirement(Politicas.FuncaoAdminId, Politicas.FuncaoPadraoId)))
+    .AddPolicy(Politicas.SomenteVendedor, policy =>
+        policy.RequireAuthenticatedUser().AddRequirements(new FuncaoRequirement(Politicas.FuncaoVendedorId)));
 
+// Serviços de venda/compra, busca do comprador por CPF/código e de usuário logado
+builder.Services.AddScoped<PedidoService>();
+builder.Services.AddScoped<BuscaCompradorService>();
+builder.Services.AddScoped<UsuarioLogadoService>();
 
 
 
