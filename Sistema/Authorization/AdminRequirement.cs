@@ -12,6 +12,16 @@ namespace Sistema.Authorization
 
         // Usuários com esta FuncaoId controlam o sistema inteiro
         public const int FuncaoAdminId = 1;
+
+        // Funções de venda e compra, com os ids já cadastrados na tabela Funcao ("VENDEDOR" e "USUARIO PADRÃO")
+        public const int FuncaoVendedorId = 2;
+        public const int FuncaoPadraoId = 1002;
+
+        // Nomes das políticas de venda, compra e desempenho do vendedor
+        // ADM passa em todas as políticas de venda e compra
+        public const string Vendedor = "Vendedor";
+        public const string Padrao = "Padrao";
+        public const string SomenteVendedor = "SomenteVendedor";
     }
 
     public class AdminRequirement : IAuthorizationRequirement { }
