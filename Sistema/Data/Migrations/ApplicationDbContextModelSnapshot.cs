@@ -276,6 +276,107 @@ namespace Sistema.Data.Migrations
                     b.ToTable("Funcao", (string)null);
                 });
 
+            modelBuilder.Entity("Sistema.Models.Pedido", b =>
+                {
+                    b.Property<int>("PedidoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PedidoId"));
+
+                    b.Property<int>("CompradorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DataHora")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("VendedorId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PedidoId");
+
+                    b.HasIndex("CompradorId");
+
+                    b.HasIndex("VendedorId");
+
+                    b.ToTable("Pedido", (string)null);
+                });
+
+            modelBuilder.Entity("Sistema.Models.PedidoItem", b =>
+                {
+                    b.Property<int>("PedidoItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PedidoItemId"));
+
+                    b.Property<int>("PedidoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PrecoUnitario")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProdutoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("int");
+
+                    b.HasKey("PedidoItemId");
+
+                    b.HasIndex("PedidoId");
+
+                    b.HasIndex("ProdutoId");
+
+                    b.ToTable("PedidoItem", (string)null);
+                });
+
+            modelBuilder.Entity("Sistema.Models.Produto", b =>
+                {
+                    b.Property<int>("ProdutoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProdutoId"));
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Estoque")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("FornecedorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Preco")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TipoProdutoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProdutoId");
+
+                    b.HasIndex("FornecedorId");
+
+                    b.HasIndex("TipoProdutoId");
+
+                    b.ToTable("Produto", (string)null);
+                });
+
             modelBuilder.Entity("Sistema.Models.TipoProduto", b =>
                 {
                     b.Property<int>("TipoProdutoId")
@@ -394,6 +495,62 @@ namespace Sistema.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Sistema.Models.Pedido", b =>
+                {
+                    b.HasOne("Sistema.Models.Usuario", "Comprador")
+                        .WithMany()
+                        .HasForeignKey("CompradorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Models.Usuario", "Vendedor")
+                        .WithMany()
+                        .HasForeignKey("VendedorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Comprador");
+
+                    b.Navigation("Vendedor");
+                });
+
+            modelBuilder.Entity("Sistema.Models.PedidoItem", b =>
+                {
+                    b.HasOne("Sistema.Models.Pedido", "Pedido")
+                        .WithMany("Itens")
+                        .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Models.Produto", "Produto")
+                        .WithMany()
+                        .HasForeignKey("ProdutoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Pedido");
+
+                    b.Navigation("Produto");
+                });
+
+            modelBuilder.Entity("Sistema.Models.Produto", b =>
+                {
+                    b.HasOne("Sistema.Models.Fonecedor", "Fornecedor")
+                        .WithMany()
+                        .HasForeignKey("FornecedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Models.TipoProduto", "TipoProduto")
+                        .WithMany()
+                        .HasForeignKey("TipoProdutoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Fornecedor");
+
+                    b.Navigation("TipoProduto");
+                });
+
             modelBuilder.Entity("Sistema.Models.Usuario", b =>
                 {
                     b.HasOne("Sistema.Models.Funcao", "Funcao")
@@ -409,6 +566,11 @@ namespace Sistema.Data.Migrations
                     b.Navigation("Funcao");
 
                     b.Navigation("IdentityUser");
+                });
+
+            modelBuilder.Entity("Sistema.Models.Pedido", b =>
+                {
+                    b.Navigation("Itens");
                 });
 #pragma warning restore 612, 618
         }
