@@ -114,9 +114,9 @@ public class LoginModel : PageModel
 
         if (ModelState.IsValid)
         {
-            // This doesn't count login failures towards account lockout
-            // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-            var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+            // Senhas erradas contam para o bloqueio da conta (5 tentativas, 5 minutos).
+            // Antes estava false, o que permitia tentar senhas sem limite (força bruta).
+            var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
             if (result.Succeeded)
             {
                 // Obter o Usuario que esta logado
@@ -131,7 +131,7 @@ public class LoginModel : PageModel
                 // Verificar se o usuario completou o cadastro
                 var usuario = _context.Usuarios.FirstOrDefault(u => u.AppUserId == Guid.Parse(userId));
 
-                // Se o usuario nao completou o cadastro, redireciona para a pagina de cadastro Usuarios/Create
+                // Se o usuario nao completou o cadastro, redireciona para a pagina de cadastro Usuario/Create
                 if (usuario == null)
                 {
                     return LocalRedirect("~/Usuario/Create");

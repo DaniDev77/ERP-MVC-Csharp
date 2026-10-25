@@ -51,7 +51,7 @@ public class VendaController : Controller
         // Ignora as linhas em branco do formulário
         var itens = model.Linhas
             .Where(l => l.ProdutoId > 0)
-            .Select(l => (l.ProdutoId, l.Quantidade))
+            .Select(l => (l.ProdutoId, Quantidade: l.Quantidade ?? 0))
             .ToList();
 
         if (ModelState.IsValid && comprador != null)
@@ -72,12 +72,12 @@ public class VendaController : Controller
     // Lista os produtos com estoque para o vendedor escolher
     private async Task CarregarProdutos()
     {
+        // Os produtos vão inteiros (nome, preço e estoque): a tela monta as opções e calcula o total sem ida ao servidor
         var produtos = await _context.Produtos
             .Where(p => p.Estoque > 0)
             .OrderBy(p => p.Name)
-            .Select(p => new { p.ProdutoId, Texto = p.Name + " - " + p.Preco.ToString("C2") + " (estoque: " + p.Estoque + ")" })
             .ToListAsync();
-        ViewBag.Produtos = new SelectList(produtos, "ProdutoId", "Texto");
+        ViewBag.Produtos = produtos;
         ViewBag.ExigeComprador = true;
     }
 }

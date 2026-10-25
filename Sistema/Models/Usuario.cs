@@ -24,13 +24,16 @@ namespace Sistema.Models
         [Required(ErrorMessage = "O CPF é obrigatório.")] 
         public string CPF { get; set; }
 
+        // Nulo = conta criada pelo próprio usuário, aguardando um ADM dar a função (vendedor ou padrão).
+        // Sem função, a conta não acessa venda, compra nem desempenho.
         [Display(Name = "Função")]
-        [Required(ErrorMessage = "A Função é obrigatória.")]
-        public int FuncaoId { get; set; }
+        public int? FuncaoId { get; set; }
         public Funcao? Funcao { get; set; }
 
+        // Campo legado: senhas em texto puro guardadas aqui. A senha de acesso é do Identity (com hash),
+        // então este campo não é mais preenchido nem exibido. Para remover os valores antigos do banco,
+        // rode: UPDATE Usuario SET Password = ''
         [Display(Name = "Senha")]
-        [Required(ErrorMessage = "A Senha é obrigatória.")]
         public string? Password { get; set; } = string.Empty;
 
         // Relacionamento com o IdentityUser

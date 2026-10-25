@@ -27,6 +27,10 @@ namespace Sistema.Models
         [Range(0, int.MaxValue, ErrorMessage = "O Estoque não pode ser negativo.")]
         public int Estoque { get; set; }
 
+        // Controle de concorrência: duas vendas ao mesmo tempo não podem passar do estoque disponível
+        [Timestamp]
+        public byte[]? RowVersion { get; set; }
+
         [Display(Name = "Fornecedor")]
         [Required(ErrorMessage = "O Fornecedor é obrigatório.")]
         public Guid FornecedorId { get; set; }

@@ -28,6 +28,10 @@ namespace Sistema.Controllers
             var usuario = await usuarioLogado.ObterAsync(User);
             modelo.EhVendedor = usuario?.FuncaoId == Politicas.FuncaoVendedorId;
             modelo.EhPadrao = usuario?.FuncaoId == Politicas.FuncaoPadraoId;
+            // Conta sem cadastro ou sem função: ainda não pode vender nem comprar
+            modelo.Pendente = !modelo.EhAdmin && !modelo.EhVendedor && !modelo.EhPadrao;
+            // Vazio quando a conta ainda não tem cadastro: a tela oferece completá-lo
+            modelo.NomeUsuario = usuario?.Name ?? "";
 
             if (modelo.EhAdmin)
             {

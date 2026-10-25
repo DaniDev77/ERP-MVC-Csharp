@@ -108,7 +108,9 @@ public class RegisterModel : PageModel
 
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
-        returnUrl ??= Url.Content("~/Usuarios/Create");
+        // Depois de criar a conta, a pessoa vai direto para completar o cadastro.
+        // Antes o caminho estava errado ("/Usuarios/Create"): a rota é /Usuario/Create, e isso dava erro 404.
+        returnUrl ??= Url.Action("Create", "Usuario") ?? "/";
         ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         if (ModelState.IsValid)
         {

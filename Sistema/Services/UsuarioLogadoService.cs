@@ -14,7 +14,10 @@ namespace Sistema.Services
             if (!Guid.TryParse(userId, out var appUserId))
                 return null;
 
-            return await context.Usuarios.FirstOrDefaultAsync(u => u.AppUserId == appUserId);
+            // Inclui a função para o menu e o perfil mostrarem o nome dela
+            return await context.Usuarios
+                .Include(u => u.Funcao)
+                .FirstOrDefaultAsync(u => u.AppUserId == appUserId);
         }
     }
 }

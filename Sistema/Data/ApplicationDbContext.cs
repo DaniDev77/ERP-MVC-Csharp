@@ -23,6 +23,10 @@ namespace Sistema.Data
             builder.Entity<Fonecedor>().ToTable("Fornecedor");
             builder.Entity<TipoProduto>().ToTable("TipoProduto");
             builder.Entity<Usuario>().ToTable("Usuario");
+            // Apagar uma função não apaga os usuários dela (antes a exclusão era em cascata)
+            builder.Entity<Usuario>().HasOne(u => u.Funcao).WithMany().HasForeignKey(u => u.FuncaoId).OnDelete(DeleteBehavior.Restrict);
+            // Uma conta de login liga-se a no máximo um cadastro de usuário
+            builder.Entity<Usuario>().HasIndex(u => u.AppUserId).IsUnique().HasFilter("[AppUserId] IS NOT NULL");
             // Configurações adicionais do modelo podem ser feitas aqui
 
             // Produto: liga com Fornecedor e TipoProduto; Restrict impede apagar um fornecedor/tipo que ainda tenha produto

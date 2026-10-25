@@ -365,6 +365,11 @@ namespace Sistema.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("TipoProdutoId")
                         .HasColumnType("int");
 
@@ -417,7 +422,7 @@ namespace Sistema.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("FuncaoId")
+                    b.Property<int?>("FuncaoId")
                         .HasColumnType("int");
 
                     b.Property<string>("IdentityUserId")
@@ -428,7 +433,6 @@ namespace Sistema.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Password")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
@@ -436,6 +440,10 @@ namespace Sistema.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UsuarioId");
+
+                    b.HasIndex("AppUserId")
+                        .IsUnique()
+                        .HasFilter("[AppUserId] IS NOT NULL");
 
                     b.HasIndex("FuncaoId");
 
@@ -556,8 +564,7 @@ namespace Sistema.Data.Migrations
                     b.HasOne("Sistema.Models.Funcao", "Funcao")
                         .WithMany()
                         .HasForeignKey("FuncaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "IdentityUser")
                         .WithMany()

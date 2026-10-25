@@ -1,18 +1,34 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using Sistema.Helpers
+@using Sistema.Services
 @inject SignInManager<IdentityUser> SignInManager
+@inject UsuarioLogadoService UsuarioLogado
 
-@* Rodapé da barra lateral: nome de quem está logado e a saída; para visitantes, entrar e cadastrar *@
+@* Rodapé da barra lateral: quem está logado (com link para o perfil) e a saída; para visitantes, entrar e cadastrar *@
 @if (SignInManager.IsSignedIn(User))
 {
-    <div class="user-name mb-1" title="Conta logada">@User.Identity?.Name</div>
-    <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-        <button type="submit" class="btn-sair">Sair</button>
+    var usuario = await UsuarioLogado.ObterAsync(User);
+    var nome = usuario?.Name ?? User.Identity?.Name ?? "Conta";
+    // Iniciais do avatar: primeira letra do primeiro e do último nome
+    var partes = nome.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var iniciais = partes.Length == 0 ? "?" : partes.Length == 1 ? partes[0][..1] : partes[0][..1] + partes[^1][..1];
+
+    <a class="profile-link" asp-controller="Perfil" asp-action="Index" aria-label="Meu perfil">
+        <span class="avatar" aria-hidden="true">@iniciais.ToUpperInvariant()</span>
+        <span class="profile-text">
+            <span class="profile-link-name">@nome</span>
+            <span class="profile-link-role">@(usuario?.Funcao?.Name ?? "Sem cadastro")</span>
+        </span>
+        @Html.Raw(Icones.Get("perfil"))
+    </a>
+    <form class="logout-form" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+        <button type="submit" class="btn-sair">@Html.Raw(Icones.Get("sair"))<span>Sair da conta</span></button>
     </form>
 }
 else
 {
     <div class="d-flex flex-column gap-1">
-        <a class="nav-app-link" asp-area="Identity" asp-page="/Account/Login">Entrar</a>
-        <a class="nav-app-link" asp-area="Identity" asp-page="/Account/Register">Cadastrar-se</a>
+        <a class="nav-app-link" asp-area="Identity" asp-page="/Account/Login">@Html.Raw(Icones.Get("perfil"))<span>Entrar</span></a>
+        <a class="nav-app-link" asp-area="Identity" asp-page="/Account/Register">@Html.Raw(Icones.Get("usuarios"))<span>Cadastrar-se</span></a>
     </div>
 }

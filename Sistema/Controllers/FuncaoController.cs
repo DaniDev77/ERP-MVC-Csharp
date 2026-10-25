@@ -14,28 +14,30 @@ public class FuncaoController : Controller
 {
     private readonly ApplicationDbContext _context;
 
+    // Funções que o próprio sistema usa nas políticas de acesso: não podem ser excluídas
+    private static readonly int[] FuncoesReservadas = { Politicas.FuncaoAdminId, Politicas.FuncaoVendedorId, Politicas.FuncaoPadraoId };
 
     public FuncaoController(ApplicationDbContext context)
     {
         _context = context;
     }
 
-    // GET: FUNCAOS
-    public async Task<IActionResult> Index()    
+    // GET: FUNCAO
+    public async Task<IActionResult> Index()
     {
-        return View(await _context.Funcoes.ToListAsync());
+        return View(await _context.Funcoes.OrderBy(f => f.FuncaoId).ToListAsync());
     }
 
-    // GET: FUNCAOS/Details/5
-    public async Task<IActionResult> Details(int? funcaoid)
+    // GET: FUNCAO/Details/5
+    // O parâmetro se chama "id" porque é esse o nome usado pela rota padrão (/{controller}/{action}/{id?})
+    public async Task<IActionResult> Details(int? id)
     {
-        if (funcaoid == null)
+        if (id == null)
         {
             return NotFound();
         }
 
-        var funcao = await _context.Funcoes
-            .FirstOrDefaultAsync(m => m.FuncaoId == funcaoid);
+        var funcao = await _context.Funcoes.FirstOrDefaultAsync(m => m.FuncaoId == id);
         if (funcao == null)
         {
             return NotFound();
@@ -44,18 +46,17 @@ public class FuncaoController : Controller
         return View(funcao);
     }
 
-    // GET: FUNCAOS/Create
+    // GET: FUNCAO/Create
     public IActionResult Create()
     {
         return View();
     }
 
-    // POST: FUNCAOS/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    // POST: FUNCAO/Create
+    // O Id não é lido do formulário: quem gera o código é o banco
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("FuncaoId,Name,Descricao")] Funcao funcao)
+    public async Task<IActionResult> Create([Bind("Name,Descricao")] Funcao funcao)
     {
         if (ModelState.IsValid)
         {
@@ -66,15 +67,15 @@ public class FuncaoController : Controller
         return View(funcao);
     }
 
-    // GET: FUNCAOS/Edit/5
-    public async Task<IActionResult> Edit(int? funcaoid)
+    // GET: FUNCAO/Edit/5
+    public async Task<IActionResult> Edit(int? id)
     {
-        if (funcaoid == null)
+        if (id == null)
         {
             return NotFound();
         }
 
-        var funcao = await _context.Funcoes.FindAsync(funcaoid);
+        var funcao = await _context.Funcoes.FindAsync(id);
         if (funcao == null)
         {
             return NotFound();
@@ -82,14 +83,13 @@ public class FuncaoController : Controller
         return View(funcao);
     }
 
-    // POST: FUNCAOS/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    // POST: FUNCAO/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? funcaoid, [Bind("FuncaoId,Name,Descricao")] Funcao funcao)
+    public async Task<IActionResult> Edit(int? id, [Bind("FuncaoId,Name,Descricao")] Funcao funcao)
     {
-        if (funcaoid != funcao.FuncaoId)
+        // A URL e o campo oculto precisam apontar para a mesma função
+        if (id != funcao.FuncaoId)
         {
             return NotFound();
         }
@@ -107,26 +107,22 @@ public class FuncaoController : Controller
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
             return RedirectToAction(nameof(Index));
         }
         return View(funcao);
     }
 
-    // GET: FUNCAOS/Delete/5
-    public async Task<IActionResult> Delete(int? funcaoid)
+    // GET: FUNCAO/Delete/5
+    public async Task<IActionResult> Delete(int? id)
     {
-        if (funcaoid == null)
+        if (id == null)
         {
             return NotFound();
         }
 
-        var funcao = await _context.Funcoes
-            .FirstOrDefaultAsync(m => m.FuncaoId == funcaoid);
+        var funcao = await _context.Funcoes.FirstOrDefaultAsync(m => m.FuncaoId == id);
         if (funcao == null)
         {
             return NotFound();
@@ -135,23 +131,32 @@ public class FuncaoController : Controller
         return View(funcao);
     }
 
-    // POST: FUNCAOS/Delete/5
+    // POST: FUNCAO/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int? funcaoid)
+    public async Task<IActionResult> DeleteConfirmed(int? id)
     {
-        // A função ADM não pode ser excluída: apagaria em cascata todos os administradores
-        if (funcaoid == Politicas.FuncaoAdminId)
+        var funcao = await _context.Funcoes.FindAsync(id);
+        if (funcao == null)
         {
-            return BadRequest("A função de administrador não pode ser excluída.");
+            return RedirectToAction(nameof(Index));
         }
 
-        var funcao = await _context.Funcoes.FindAsync(funcaoid);
-        if (funcao != null)
+        // Função usada pelo sistema: apagá-la quebraria as regras de venda, compra e ADM
+        if (FuncoesReservadas.Contains(funcao.FuncaoId))
         {
-            _context.Funcoes.Remove(funcao);
+            ModelState.AddModelError(string.Empty, "Esta função é usada pelo sistema e não pode ser excluída.");
+            return View("Delete", funcao);
         }
 
+        // Com usuários nesta função, a exclusão apagaria os usuários em cascata: bloqueia antes
+        if (await _context.Usuarios.AnyAsync(u => u.FuncaoId == funcao.FuncaoId))
+        {
+            ModelState.AddModelError(string.Empty, "Existem usuários com esta função. Troque a função deles antes de excluir.");
+            return View("Delete", funcao);
+        }
+
+        _context.Funcoes.Remove(funcao);
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }

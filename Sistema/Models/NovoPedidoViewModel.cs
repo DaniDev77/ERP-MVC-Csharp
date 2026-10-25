@@ -15,6 +15,7 @@ namespace Sistema.Models
     {
         public int ProdutoId { get; set; }
 
-        public int Quantidade { get; set; }
+        // Nulo quando a linha está em branco: um campo vazio não pode quebrar a validação do pedido inteiro
+        public int? Quantidade { get; set; }
     }
 }

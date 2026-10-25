@@ -1,26 +1,57 @@
-﻿@model Sistema.Models.InicioViewModel
+﻿@using System.Globalization
+@using Sistema.Helpers
+@model Sistema.Models.InicioViewModel
 
 @{
     ViewData["Title"] = "Início";
-    // Nome do mês em português, para o subtítulo (ex.: "outubro de 2026")
-    var nomeMes = Model.Mes.ToString("MMMM 'de' yyyy", new System.Globalization.CultureInfo("pt-BR"));
+    var moeda = new CultureInfo("pt-BR");
+    var nomeMes = Model.Mes.ToString("MMMM 'de' yyyy", moeda);
+    var diasComVenda = DateTime.Today.Day;
 }
 
 @if (!Model.Logado)
 {
-    @* Visitante: apresentação e convite para entrar *@
+    @* Visitante: o que é o sistema e como entrar *@
     <div class="page-header">
         <div>
             <h1>Sistema de vendas e estoque</h1>
             <p class="page-sub">Venda, compra e acompanhamento do estoque em um só lugar.</p>
         </div>
     </div>
-    <div class="panel auth-card" style="margin-left: 0;">
-        <p class="mb-3">Entre com sua conta para registrar vendas e compras, ou acompanhar o desempenho.</p>
-        <div class="d-flex gap-2">
+    <div class="panel boas-vindas">
+        <p>Entre com sua conta para registrar vendas e compras e acompanhar o desempenho. Se você ainda não tem conta, crie uma: um administrador libera a sua função.</p>
+        <div class="acoes">
             <a class="btn btn-primary" asp-area="Identity" asp-page="/Account/Login">Entrar</a>
-            <a class="btn btn-outline-secondary" asp-area="Identity" asp-page="/Account/Register">Cadastrar-se</a>
+            <a class="btn btn-outline-secondary" asp-area="Identity" asp-page="/Account/Register">Criar conta</a>
         </div>
+    </div>
+}
+else if (Model.Pendente)
+{
+    @* Conta sem função: explica o que falta, sem mostrar telas que não funcionam para ela *@
+    <div class="page-header">
+        <div>
+            <h1>Início</h1>
+            <p class="page-sub">Sua conta está criada, mas ainda não pode vender nem comprar.</p>
+        </div>
+    </div>
+    <div class="panel passos">
+        @if (string.IsNullOrEmpty(Model.NomeUsuario))
+        {
+            <h2 class="panel-title">Falta completar seu cadastro</h2>
+            <p class="text-muted">Informe seus dados (nome e CPF) para que um administrador possa liberar sua função.</p>
+            <a class="btn btn-primary" asp-controller="Usuario" asp-action="Create">Completar cadastro</a>
+        }
+        else
+        {
+            <h2 class="panel-title">Aguardando liberação de @Model.NomeUsuario</h2>
+            <ol class="passos-lista">
+                <li><span class="passo-ok">Conta criada</span></li>
+                <li><span class="passo-atual">Um administrador define sua função (vendedor ou padrão)</span></li>
+                <li><span>Você passa a ver as telas de venda ou compra</span></li>
+            </ol>
+            <p class="text-muted mb-0">Não precisa fazer nada agora. Quando a função for definida, esta tela muda sozinha.</p>
+        }
     </div>
 }
 else if (Model.EhAdmin)
@@ -28,83 +59,93 @@ else if (Model.EhAdmin)
     <div class="page-header">
         <div>
             <h1>Início</h1>
-            <p class="page-sub">Visão geral da loja em @nomeMes</p>
+            <p class="page-sub">A loja em @nomeMes</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="acoes-topo">
             <a class="btn btn-outline-secondary" asp-controller="Produto" asp-action="Create">Novo produto</a>
-            <a class="btn btn-primary" asp-controller="Venda" asp-action="Create">Registrar venda</a>
+            <a class="btn btn-primary" asp-controller="Venda" asp-action="Create">@Html.Raw(Icones.Get("mais"))<span>Registrar venda</span></a>
         </div>
     </div>
 
-    @* Quatro números, sem ícones nem barrinhas: o valor é o protagonista *@
-    <div class="grid-cards">
-        <div class="kpi">
-            <div class="kpi-label">Vendas no mês</div>
-            <div class="kpi-value">@Model.ValorVendasMes.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</div>
-            <div class="kpi-sub">@Model.QtdVendasMes venda(s)</div>
+    @* Números do mês em uma faixa só, separados por filetes: o valor é o protagonista *@
+    <div class="faixa-numeros">
+        <div class="numero">
+            <div class="numero-rotulo">Vendas no mês</div>
+            <div class="numero-valor num">@Model.ValorVendasMes.ToString("C2", moeda)</div>
+            <div class="numero-sub">@Model.QtdVendasMes venda(s)</div>
         </div>
-        <div class="kpi">
-            <div class="kpi-label">Compras no mês</div>
-            <div class="kpi-value">@Model.ValorComprasMes.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</div>
-            <div class="kpi-sub">@Model.QtdComprasMes compra(s)</div>
+        <div class="numero">
+            <div class="numero-rotulo">Compras no mês</div>
+            <div class="numero-valor num">@Model.ValorComprasMes.ToString("C2", moeda)</div>
+            <div class="numero-sub">@Model.QtdComprasMes compra(s)</div>
         </div>
-        <div class="kpi @(Model.TotalEstoqueBaixo > 0 ? "alerta" : "")">
-            <div class="kpi-label">Produtos com estoque baixo</div>
-            <div class="kpi-value">@Model.TotalEstoqueBaixo</div>
-            <div class="kpi-sub">até @Sistema.Models.Produto.EstoqueMinimo unidades</div>
+        <div class="numero @(Model.TotalEstoqueBaixo > 0 ? "numero-alerta" : "")">
+            <div class="numero-rotulo">Produtos com estoque baixo</div>
+            <div class="numero-valor num">@Model.TotalEstoqueBaixo</div>
+            <div class="numero-sub">com até @Sistema.Models.Produto.EstoqueMinimo unidades</div>
         </div>
-        <div class="kpi">
-            <div class="kpi-label">Valor em estoque</div>
-            <div class="kpi-value">@Model.ValorEmEstoque.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</div>
-            <div class="kpi-sub">preço × quantidade</div>
+        <div class="numero">
+            <div class="numero-rotulo">Valor em estoque</div>
+            <div class="numero-valor num">@Model.ValorEmEstoque.ToString("C2", moeda)</div>
+            <div class="numero-sub">preço × quantidade</div>
         </div>
     </div>
 
-    @* Gráfico de vendas por dia (a cor do dado principal) e a reposição de estoque, lado a lado *@
-    <div class="split">
+    <div class="grade-inicio">
         <section class="panel">
-            <div class="d-flex justify-content-between align-items-baseline mb-2">
-                <h2 class="panel-title mb-0">Vendas por dia</h2>
-                <span class="text-muted" style="font-size: 13px;">maior dia: @Model.MaiorVendaDoDia.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</span>
+            <div class="painel-cabecalho">
+                <h2 class="panel-title">Vendas por dia</h2>
+                <span class="text-muted">Maior dia: <span class="num">@Model.MaiorVendaDoDia.ToString("C2", moeda)</span></span>
             </div>
-            <svg viewBox="0 0 720 180" width="100%" height="180" role="img" aria-label="Vendas por dia no mês">
-                <line x1="0" y1="174" x2="720" y2="174" stroke="#e3e6eb" stroke-width="1" />
-                <polyline points="@Model.PontosVendasPorDia" fill="none" stroke="#1d5fbf" stroke-width="2.5" stroke-linejoin="round" />
-            </svg>
-        </section>
-
-        <section class="panel">
-            <div class="d-flex justify-content-between align-items-baseline mb-2">
-                <h2 class="panel-title mb-0">Repor estoque</h2>
-                <a asp-controller="Produto" asp-action="EstoqueBaixo" style="font-size: 13px;">Ver todos</a>
-            </div>
-            @if (Model.EstoqueBaixo.Count == 0)
+            @if (Model.QtdVendasMes == 0)
             {
-                <p class="text-muted mb-0">Nenhum produto com estoque baixo.</p>
+                <div class="vazio-pequeno">Nenhuma venda em @nomeMes ainda. As vendas aparecem aqui assim que forem registradas.</div>
             }
             else
             {
-                <table class="table mb-0">
-                    <tbody>
-                        @foreach (var produto in Model.EstoqueBaixo)
-                        {
-                            <tr>
-                                <td>@produto.Name</td>
-                                <td class="num num-alerta">@produto.Estoque</td>
-                                <td class="text-end"><a asp-controller="Produto" asp-action="Edit" asp-route-id="@produto.ProdutoId" class="btn btn-sm btn-outline-secondary">Repor</a></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                <svg class="grafico" viewBox="0 0 720 180" preserveAspectRatio="none" role="img" aria-label="Vendas por dia no mês">
+                    <line x1="0" y1="174" x2="720" y2="174" stroke="var(--border-strong)" stroke-width="1" vector-effect="non-scaling-stroke" />
+                    <line x1="0" y1="90" x2="720" y2="90" stroke="var(--grid)" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" />
+                    <line x1="0" y1="6" x2="720" y2="6" stroke="var(--grid)" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" />
+                    <polyline points="@Model.PontosVendasPorDia" fill="none" stroke="var(--chart)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+                </svg>
+                <div class="eixo-x"><span>Dia 1</span><span>Dia @(Math.Max(1, diasComVenda / 2))</span><span>Hoje (dia @diasComVenda)</span></div>
+            }
+        </section>
+
+        <section class="panel">
+            <div class="painel-cabecalho">
+                <h2 class="panel-title">Estoque baixo</h2>
+                <a asp-controller="Produto" asp-action="Index" asp-route-filtro="baixo" class="link-discreto">Ver todos</a>
+            </div>
+            @if (!Model.EstoqueBaixo.Any())
+            {
+                <div class="vazio-pequeno">Nenhum produto em nível baixo. Tudo certo com o estoque.</div>
+            }
+            else
+            {
+                <ul class="lista-estoque">
+                    @foreach (var p in Model.EstoqueBaixo)
+                    {
+                        <li>
+                            <span class="lista-nome">@p.Name</span>
+                            <span class="num @(p.Estoque == 0 ? "num-alerta" : "")">@p.Estoque un.</span>
+                            <a asp-controller="Produto" asp-action="Edit" asp-route-id="@p.ProdutoId" class="btn btn-sm btn-outline-secondary">Repor</a>
+                        </li>
+                    }
+                </ul>
             }
         </section>
     </div>
 
-    <section class="panel mt-3">
-        <h2 class="panel-title">Últimos pedidos</h2>
-        @if (Model.UltimosPedidos.Count == 0)
+    <section class="panel">
+        <div class="painel-cabecalho">
+            <h2 class="panel-title">Últimas operações</h2>
+            <a asp-controller="Desempenho" asp-action="Index" class="link-discreto">Ver desempenho</a>
+        </div>
+        @if (!Model.UltimosPedidos.Any())
         {
-            <p class="text-muted mb-0">Nenhum pedido registrado ainda.</p>
+            <div class="vazio-pequeno">Nenhuma operação registrada ainda.</div>
         }
         else
         {
@@ -112,9 +153,9 @@ else if (Model.EhAdmin)
                 <table class="table mb-0">
                     <thead>
                         <tr>
-                            <th>Data</th>
+                            <th>Quando</th>
                             <th>Tipo</th>
-                            <th>Comprador</th>
+                            <th>Cliente</th>
                             <th>Vendedor</th>
                             <th class="num">Total</th>
                         </tr>
@@ -123,11 +164,11 @@ else if (Model.EhAdmin)
                         @foreach (var pedido in Model.UltimosPedidos)
                         {
                             <tr>
-                                <td>@pedido.DataHora.ToString("dd/MM HH:mm")</td>
-                                <td><span class="badge-soft">@(pedido.Tipo == Sistema.Models.TipoPedido.Venda ? "Venda" : "Compra")</span></td>
-                                <td>@pedido.Comprador?.Name</td>
+                                <td class="mono">@pedido.DataHora.ToString("dd/MM HH:mm")</td>
+                                <td>@Html.Raw(Pilulas.Tipo(pedido.Tipo == Sistema.Models.TipoPedido.Venda))</td>
+                                <td>@(pedido.Comprador?.Name ?? "—")</td>
                                 <td>@(pedido.Vendedor?.Name ?? "—")</td>
-                                <td class="num">@pedido.Total.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</td>
+                                <td class="num">@pedido.Total.ToString("C2", moeda)</td>
                             </tr>
                         }
                     </tbody>
@@ -136,42 +177,57 @@ else if (Model.EhAdmin)
         }
     </section>
 }
-else
+else if (Model.EhVendedor)
 {
-    @* Vendedor ou padrão: o próprio mês e atalho para a tarefa principal *@
     <div class="page-header">
         <div>
             <h1>Início</h1>
-            <p class="page-sub">Seu movimento em @nomeMes</p>
+            <p class="page-sub">Suas vendas em @nomeMes</p>
         </div>
-        <div class="d-flex gap-2">
-            @if (Model.EhVendedor)
-            {
-                <a class="btn btn-primary" asp-controller="Venda" asp-action="Create">Registrar venda</a>
-            }
-            @if (Model.EhPadrao)
-            {
-                <a class="btn btn-primary" asp-controller="Compra" asp-action="Create">Fazer compra</a>
-            }
+        <div class="acoes-topo">
+            <a class="btn btn-primary" asp-controller="Venda" asp-action="Create">@Html.Raw(Icones.Get("mais"))<span>Registrar venda</span></a>
         </div>
     </div>
 
-    <div class="grid-cards">
-        @if (Model.EhVendedor)
-        {
-            <div class="kpi">
-                <div class="kpi-label">Minhas vendas no mês</div>
-                <div class="kpi-value">@Model.ValorVendasMes.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</div>
-                <div class="kpi-sub">@Model.QtdVendasMes venda(s)</div>
-            </div>
-        }
-        @if (Model.EhPadrao)
-        {
-            <div class="kpi">
-                <div class="kpi-label">Minhas compras no mês</div>
-                <div class="kpi-value">@Model.ValorComprasMes.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</div>
-                <div class="kpi-sub">@Model.QtdComprasMes compra(s)</div>
-            </div>
-        }
+    <div class="faixa-numeros faixa-duas">
+        <div class="numero">
+            <div class="numero-rotulo">Suas vendas no mês</div>
+            <div class="numero-valor num">@Model.ValorVendasMes.ToString("C2", moeda)</div>
+            <div class="numero-sub">@Model.QtdVendasMes venda(s)</div>
+        </div>
+        <div class="numero">
+            <div class="numero-rotulo">Ticket médio</div>
+            <div class="numero-valor num">@(Model.QtdVendasMes > 0 ? (Model.ValorVendasMes / Model.QtdVendasMes).ToString("C2", moeda) : "—")</div>
+            <div class="numero-sub">valor médio por venda</div>
+        </div>
+    </div>
+
+    <section class="panel">
+        <h2 class="panel-title">Próximo passo</h2>
+        <p class="text-muted">Registre a venda assim que o cliente escolher os produtos. Use o CPF ou o código do cliente para encontrá-lo.</p>
+        <div class="acoes">
+            <a class="btn btn-primary" asp-controller="Venda" asp-action="Create">Registrar venda</a>
+            <a class="btn btn-outline-secondary" asp-controller="Desempenho" asp-action="Vendedor">Ver meu desempenho</a>
+        </div>
+    </section>
+}
+else if (Model.EhPadrao)
+{
+    <div class="page-header">
+        <div>
+            <h1>Início</h1>
+            <p class="page-sub">Suas compras em @nomeMes</p>
+        </div>
+        <div class="acoes-topo">
+            <a class="btn btn-primary" asp-controller="Compra" asp-action="Create">@Html.Raw(Icones.Get("mais"))<span>Fazer compra</span></a>
+        </div>
+    </div>
+
+    <div class="faixa-numeros faixa-duas">
+        <div class="numero">
+            <div class="numero-rotulo">Suas compras no mês</div>
+            <div class="numero-valor num">@Model.ValorComprasMes.ToString("C2", moeda)</div>
+            <div class="numero-sub">@Model.QtdComprasMes compra(s)</div>
+        </div>
     </div>
 }

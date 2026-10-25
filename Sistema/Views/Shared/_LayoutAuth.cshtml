@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] · Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="auth-body">
+    <main class="auth-shell">
+        <section class="auth-card content-enter">
+            @* Marca e uma ilustração pequena: três barras de estoque, a última em azul (o dado principal) *@
+            <div class="auth-brand">
+                <svg class="brand-mark" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
+                    <rect x="2.5" y="14" width="5" height="11.5" rx="1.5" fill="currentColor" />
+                    <rect x="11.5" y="8" width="5" height="17.5" rx="1.5" fill="currentColor" />
+                    <rect x="20.5" y="3" width="5" height="22.5" rx="1.5" fill="var(--chart)" />
+                </svg>
+                <span class="brand-name">Sistema<small>Vendas e estoque</small></span>
+            </div>
+
+            <svg class="auth-art" viewBox="0 0 320 200" aria-hidden="true" focusable="false">
+                <line x1="8" y1="180" x2="312" y2="180" stroke="var(--border-strong)" stroke-width="1" />
+                <line x1="8" y1="130" x2="312" y2="130" stroke="var(--grid)" stroke-width="1" stroke-dasharray="4 4" />
+                <line x1="8" y1="80" x2="312" y2="80" stroke="var(--grid)" stroke-width="1" stroke-dasharray="4 4" />
+                <rect class="bar bar-1" x="28" y="112" width="28" height="68" rx="3" fill="var(--text)" opacity=".16" />
+                <rect class="bar bar-2" x="78" y="90" width="28" height="90" rx="3" fill="var(--text)" opacity=".16" />
+                <rect class="bar bar-3" x="128" y="134" width="28" height="46" rx="3" fill="var(--text)" opacity=".16" />
+                <rect class="bar bar-4" x="178" y="58" width="28" height="122" rx="3" fill="var(--text)" opacity=".16" />
+                <rect class="bar bar-5" x="228" y="28" width="28" height="152" rx="3" fill="var(--chart)" />
+                <polyline class="trace" points="42,104 92,82 142,126 192,50 242,20 292,62" fill="none" stroke="var(--text)" stroke-width="1.6" stroke-linejoin="round" />
+            </svg>
+
+            @RenderBody()
+        </section>
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

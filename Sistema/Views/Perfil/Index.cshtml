@@ -1,0 +1,83 @@
+@model Sistema.Models.Usuario?
+
+@{
+    ViewData["Title"] = "Meu perfil";
+
+    // Iniciais para o avatar: primeira letra do primeiro e do último nome
+    string Iniciais(string nome)
+    {
+        var partes = nome.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (partes.Length == 0) return "?";
+        if (partes.Length == 1) return partes[0][..1].ToUpperInvariant();
+        return (partes[0][..1] + partes[^1][..1]).ToUpperInvariant();
+    }
+
+    // CPF mostrado parcialmente: só os dois últimos dígitos, para quem olha a tela não ver o número inteiro
+    string CpfMascarado(string? cpf)
+    {
+        var digitos = new string((cpf ?? "").Where(char.IsDigit).ToArray());
+        return digitos.Length < 2 ? "•••" : "•••.•••.•••-" + digitos[^2..];
+    }
+}
+
+<div class="page-header">
+    <div>
+        <h1>Meu perfil</h1>
+        <p class="page-sub">Seus dados de cadastro e o acesso à conta</p>
+    </div>
+</div>
+
+@if (Model == null)
+{
+    // Conta criada, mas sem cadastro de usuário: o perfil convida a completar
+    <div class="panel profile-empty">
+        <h2 class="panel-title">Falta completar o cadastro</h2>
+        <p class="text-muted mb-3">Sua conta já existe, mas ainda não tem dados de usuário no sistema. Complete o cadastro para vender ou comprar.</p>
+        <a class="btn btn-primary" asp-controller="Usuario" asp-action="Create">Completar cadastro</a>
+    </div>
+}
+else
+{
+    <div class="profile">
+        <section class="panel profile-card">
+            <div class="avatar avatar-lg" aria-hidden="true">@Iniciais(Model.Name)</div>
+            <div class="profile-id">
+                <div class="profile-name">@Model.Name</div>
+                <div class="text-muted">@Model.Email</div>
+                <div class="mt-2">@Html.Raw(Sistema.Helpers.Pilulas.Funcao(Model.FuncaoId, Model.Funcao?.Name))</div>
+            </div>
+        </section>
+
+        @if (Model.FuncaoId == null)
+        {
+            <section class="aviso aviso-neutro">
+                @Html.Raw(Sistema.Helpers.Icones.Get("espera"))
+                <div>
+                    <strong>Sua função ainda não foi liberada.</strong>
+                    <span>Um administrador define se você é vendedor ou comprador. Até lá, venda e compra ficam bloqueadas.</span>
+                </div>
+            </section>
+        }
+
+        <section class="panel">
+            <h2 class="panel-title">Dados do cadastro</h2>
+            <dl class="detail-list mb-0">
+                <dt>Telefone</dt>
+                <dd>@(string.IsNullOrWhiteSpace(Model.Phone) ? "—" : Model.Phone)</dd>
+                <dt>CPF</dt>
+                <dd class="mono">@CpfMascarado(Model.CPF)</dd>
+                <dt>Código</dt>
+                <dd class="mono">@Model.UsuarioId</dd>
+            </dl>
+        </section>
+
+        <section class="panel">
+            <h2 class="panel-title">Acesso à conta</h2>
+            <p class="text-muted">Troque o e-mail ou a senha de login. A senha é guardada de forma protegida pelo sistema de acesso.</p>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-outline-secondary" asp-area="Identity" asp-page="/Account/Manage/Index">Dados da conta</a>
+                <a class="btn btn-outline-secondary" asp-area="Identity" asp-page="/Account/Manage/ChangePassword">Alterar senha</a>
+            </div>
+        </section>
+    </div>
+}

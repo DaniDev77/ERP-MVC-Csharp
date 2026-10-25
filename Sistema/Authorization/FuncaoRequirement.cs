@@ -22,7 +22,8 @@ namespace Sistema.Authorization
 
             // Verifica se a função do usuário logado está entre as permitidas pela política
             var permitido = await context.Usuarios
-                .AnyAsync(u => u.AppUserId == appUserId && requirement.FuncoesPermitidas.Contains(u.FuncaoId));
+                // Conta sem função (FuncaoId nulo, aguardando liberação) nunca passa
+                .AnyAsync(u => u.AppUserId == appUserId && u.FuncaoId.HasValue && requirement.FuncoesPermitidas.Contains(u.FuncaoId.Value));
 
             if (permitido)
                 authContext.Succeed(requirement);

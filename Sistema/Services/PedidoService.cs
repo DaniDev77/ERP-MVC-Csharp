@@ -62,7 +62,15 @@ namespace Sistema.Services
             }
 
             context.Pedidos.Add(pedido);
-            await context.SaveChangesAsync();
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Outra venda mexeu no estoque ao mesmo tempo: nada é gravado (a transação é desfeita ao sair)
+                return (null, "O estoque mudou enquanto a operação era registrada. Confira as quantidades e tente de novo.");
+            }
             await transacao.CommitAsync();
 
             return (pedido, null);

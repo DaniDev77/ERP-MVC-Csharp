@@ -1,21 +1,15 @@
 @model Sistema.Models.NovoPedidoViewModel
 
 @{
-    ViewData["Title"] = "Venda";
+    ViewData["Title"] = "Registrar venda";
 }
 
 <div class="page-header">
     <div>
         <h1>Registrar venda</h1>
-        <p class="page-sub">A venda é registrada para um usuário padrão e dá baixa no estoque de cada produto.</p>
+        <p class="page-sub">Informe o cliente, escolha os produtos e as quantidades. O estoque é baixado ao salvar.</p>
     </div>
-    <a asp-controller="Desempenho" asp-action="Vendedor" class="btn btn-outline-secondary">Meu desempenho</a>
+    <a asp-controller="Desempenho" asp-action="Vendedor" class="btn btn-outline-secondary">Ver meu desempenho</a>
 </div>
-
-@* Confirmação vinda do redirecionamento após salvar *@
-@if (TempData["Sucesso"] is string sucesso)
-{
-    <div class="alert alert-success mb-3">@sucesso</div>
-}
 
 <partial name="_NovoPedido" model="Model" />

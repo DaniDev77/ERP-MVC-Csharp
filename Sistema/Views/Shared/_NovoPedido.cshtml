@@ -1,52 +1,62 @@
 @model Sistema.Models.NovoPedidoViewModel
+@using System.Globalization
+@{
+    var moeda = new CultureInfo("pt-BR");
+    var produtos = (List<Sistema.Models.Produto>)ViewBag.Produtos;
+    var venda = ViewBag.ExigeComprador == true;
+}
 
-@* Formulário compartilhado por Venda e Compra: escolhe produtos e quantidades (até 8 linhas) *@
-<form asp-action="Create" method="post" class="panel">
-    @* Resumo de erros só aparece quando há erro: senão sobra uma caixa vermelha vazia *@
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div asp-validation-summary="All" class="alert alert-danger mb-3"></div>
-    }
+@* Formulário compartilhado por Venda e Compra: escolhe produtos e quantidades (até 8 linhas).
+   O total e o subtotal de cada linha são calculados na tela (site.js); o servidor recalcula ao salvar. *@
+<form asp-action="Create" method="post" class="pedido" id="formPedido">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4" role="alert"></div>
 
-    @* Campo de comprador aparece só na venda *@
-    @if (ViewBag.ExigeComprador == true)
+    @if (venda)
     {
-        <div class="mb-4" style="max-width: 360px;">
-            <label asp-for="Comprador" class="form-label">CPF ou código do comprador</label>
-            <input asp-for="Comprador" class="form-control" placeholder="Ex.: 123.456.789-00 ou 1005" />
-            <div class="form-text" style="font-size: 12px; color: var(--faint);">Só usuários com a função Padrão podem comprar.</div>
+        <div class="pedido-comprador">
+            <label asp-for="Comprador" class="form-label">Quem está comprando</label>
+            <input asp-for="Comprador" class="form-control" placeholder="CPF ou código do cliente" autocomplete="off" autofocus />
+            <div class="form-text">Só clientes com a função Padrão podem comprar. Use o CPF ou o código que aparece na lista de usuários.</div>
             <span asp-validation-for="Comprador" class="text-danger"></span>
         </div>
     }
 
-    <div class="table-wrap mb-3" style="border-color: var(--rule);">
-        <table class="table mb-0">
-            <thead>
-                <tr>
-                    <th>Produto</th>
-                    <th class="num" style="width: 160px;">Quantidade</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (var i = 0; i < Model.Linhas.Count; i++)
-                {
-                    <tr>
-                        <td>
-                            <select asp-for="@Model.Linhas[i].ProdutoId" class="form-select" asp-items="ViewBag.Produtos">
-                                <option value="0">Nenhum</option>
-                            </select>
-                        </td>
-                        <td>
-                            <input asp-for="@Model.Linhas[i].Quantidade" class="form-control text-end" min="0" />
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="pedido-linhas" role="group" aria-label="Itens do pedido">
+        <div class="pedido-cabecalho" aria-hidden="true">
+            <span>Produto</span>
+            <span class="num">Quantidade</span>
+            <span class="num">Subtotal</span>
+        </div>
+
+        @for (var i = 0; i < Model.Linhas.Count; i++)
+        {
+            <div class="pedido-linha" data-linha>
+                <div class="pedido-produto">
+                    <select asp-for="@Model.Linhas[i].ProdutoId" class="form-select" data-produto aria-label="Produto @(i + 1)">
+                        <option value="0">Escolha um produto</option>
+                        @foreach (var p in produtos)
+                        {
+                            <option value="@p.ProdutoId" data-preco="@p.Preco.ToString(CultureInfo.InvariantCulture)" data-estoque="@p.Estoque">
+                                @p.Name · @p.Preco.ToString("C2", moeda) · @p.Estoque em estoque
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="pedido-quantidade">
+                    @* Linha vazia mostra o campo em branco, não um "0" repetido em cada linha *@
+                    <input name="Linhas[@i].Quantidade" id="Linhas_@(i)__Quantidade" class="form-control text-end" type="number" min="0" step="1" inputmode="numeric" placeholder="0" value="@(Model.Linhas[i].Quantidade is > 0 ? Model.Linhas[i].Quantidade.ToString() : "")" data-quantidade aria-label="Quantidade do produto @(i + 1)" />
+                </div>
+                <div class="pedido-subtotal num" data-subtotal>—</div>
+            </div>
+        }
     </div>
 
-    <div class="d-flex justify-content-between align-items-center">
-        <span class="text-muted" style="font-size: 13px;">Produtos sem estoque não aparecem na lista.</span>
-        <button type="submit" class="btn btn-primary">Registrar</button>
+    <div class="pedido-rodape">
+        <div>
+            <div class="pedido-total-rotulo">Total</div>
+            <div class="pedido-total num" id="pedidoTotal" aria-live="polite">R$ 0,00</div>
+            <div class="form-text">Produtos sem estoque não aparecem na lista. Linhas em branco são ignoradas.</div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">@(venda ? "Registrar venda" : "Registrar compra")</button>
     </div>
 </form>

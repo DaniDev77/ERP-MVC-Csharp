@@ -11,6 +11,11 @@ namespace Sistema.Models
 
         public bool EhPadrao { get; set; }
 
+        // Conta sem função ainda (aguardando o ADM liberar)
+        public bool Pendente { get; set; }
+
+        public string NomeUsuario { get; set; } = string.Empty;
+
         // Primeiro dia do mês exibido
         public DateTime Mes { get; set; } = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
 

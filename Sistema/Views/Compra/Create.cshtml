@@ -1,20 +1,14 @@
 @model Sistema.Models.NovoPedidoViewModel
 
 @{
-    ViewData["Title"] = "Compra";
+    ViewData["Title"] = "Fazer compra";
 }
 
 <div class="page-header">
     <div>
         <h1>Fazer compra</h1>
-        <p class="page-sub">A compra dá baixa no estoque de cada produto escolhido.</p>
+        <p class="page-sub">Escolha os produtos e as quantidades. A compra fica no seu histórico e dá baixa no estoque.</p>
     </div>
 </div>
-
-@* Confirmação vinda do redirecionamento após salvar *@
-@if (TempData["Sucesso"] is string sucesso)
-{
-    <div class="alert alert-success mb-3">@sucesso</div>
-}
 
 <partial name="_NovoPedido" model="Model" />

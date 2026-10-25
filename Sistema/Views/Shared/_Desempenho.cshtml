@@ -21,27 +21,27 @@
     De @Model.Inicio.ToString("dd/MM/yyyy") até @Model.Fim.AddDays(-1).ToString("dd/MM/yyyy")
 </p>
 
-<div class="grid-cards">
+<div class="faixa-numeros">
     @* Compras só aparecem na página do ADM *@
     @if (ViewBag.MostrarCompras == true)
     {
-        <div class="kpi">
-            <div class="kpi-label">Valor em compras</div>
-            <div class="kpi-value">@Model.ValorCompras.ToString("C2", moeda)</div>
-            <div class="kpi-sub">@Model.QtdCompras compra(s)</div>
+        <div class="numero">
+            <div class="numero-rotulo">Valor em compras</div>
+            <div class="numero-valor num">@Model.ValorCompras.ToString("C2", moeda)</div>
+            <div class="numero-sub">@Model.QtdCompras compra(s)</div>
         </div>
     }
-    <div class="kpi">
-        <div class="kpi-label">Valor em vendas</div>
-        <div class="kpi-value">@Model.ValorVendas.ToString("C2", moeda)</div>
-        <div class="kpi-sub">@Model.QtdVendas venda(s)</div>
+    <div class="numero">
+        <div class="numero-rotulo">Valor em vendas</div>
+        <div class="numero-valor num">@Model.ValorVendas.ToString("C2", moeda)</div>
+        <div class="numero-sub">@Model.QtdVendas venda(s)</div>
     </div>
     @if (ViewBag.MostrarCompras == true && Model.QtdVendas + Model.QtdCompras > 0)
     {
-        <div class="kpi">
-            <div class="kpi-label">Ticket médio de venda</div>
-            <div class="kpi-value">@(Model.QtdVendas > 0 ? (Model.ValorVendas / Model.QtdVendas).ToString("C2", moeda) : "—")</div>
-            <div class="kpi-sub">valor por venda no período</div>
+        <div class="numero">
+            <div class="numero-rotulo">Ticket médio de venda</div>
+            <div class="numero-valor num">@(Model.QtdVendas > 0 ? (Model.ValorVendas / Model.QtdVendas).ToString("C2", moeda) : "—")</div>
+            <div class="numero-sub">valor por venda no período</div>
         </div>
     }
 </div>

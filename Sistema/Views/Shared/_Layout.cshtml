@@ -1,6 +1,7 @@
 @* Casca do sistema: barra lateral com a navegação de cada função e o conteúdo à direita *@
 @using Microsoft.AspNetCore.Authorization
 @using Sistema.Authorization
+@using Sistema.Helpers
 @inject IAuthorizationService AuthorizationService
 @{
     // Políticas que decidem o que cada função enxerga no menu (ADM passa em todas as de venda e compra)
@@ -13,14 +14,17 @@
     // Marca o item do menu da página atual (pelo nome do controller)
     string Ativo(string controller) =>
         string.Equals((string?)ViewContext.RouteData.Values["controller"], controller, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+
+    // Item de navegação: ícone, nome e marcação de página atual, sem repetir o markup
+    string Item(string controller, string action, string icone, string rotulo) =>
+        $"<a class=\"nav-app-link {Ativo(controller)}\" href=\"{Url.Action(action, controller)}\">{Icones.Get(icone)}<span>{rotulo}</span></a>";
 }
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Sistema</title>
-    @* Fonte Geist (Google Fonts), a face escolhida para o sistema *@
+    <title>@ViewData["Title"] · Sistema</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -28,18 +32,25 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
     <div class="app-shell">
         <aside class="sidebar">
-            <a class="brand" asp-controller="Home" asp-action="Index">
-                <span class="brand-mark" aria-hidden="true">S</span>
-                <span>Sistema</span>
+            <a class="brand" asp-controller="Home" asp-action="Index" aria-label="Sistema, início">
+                @* Marca própria: três barras de estoque; a azul é o dado principal, a única cor da marca *@
+                <svg class="brand-mark" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
+                    <rect x="2.5" y="14" width="5" height="11.5" rx="1.5" fill="currentColor" />
+                    <rect x="11.5" y="8" width="5" height="17.5" rx="1.5" fill="currentColor" />
+                    <rect x="20.5" y="3" width="5" height="22.5" rx="1.5" fill="var(--chart)" />
+                </svg>
+                <span class="brand-name">Sistema<small>Vendas e estoque</small></span>
             </a>
 
-            <nav aria-label="Menu principal" class="d-flex flex-column gap-4">
+            <nav aria-label="Menu principal" class="sidebar-nav">
                 @if (logado)
                 {
                     <div class="nav-group">
-                        <a class="nav-app-link @Ativo("Home")" asp-controller="Home" asp-action="Index">Início</a>
+                        @Html.Raw(Item("Home", "Index", "inicio", "Início"))
                     </div>
                 }
 
@@ -50,15 +61,15 @@
                         <div class="nav-group-title">Operação</div>
                         @if (podeVender)
                         {
-                            <a class="nav-app-link @Ativo("Venda")" asp-controller="Venda" asp-action="Create">Venda</a>
+                            @Html.Raw(Item("Venda", "Create", "venda", "Venda"))
                         }
                         @if (podeComprar)
                         {
-                            <a class="nav-app-link @Ativo("Compra")" asp-controller="Compra" asp-action="Create">Compra</a>
+                            @Html.Raw(Item("Compra", "Create", "compra", "Compra"))
                         }
                         @if (veMeuDesempenho)
                         {
-                            <a class="nav-app-link @Ativo("Desempenho")" asp-controller="Desempenho" asp-action="Vendedor">Meu desempenho</a>
+                            @Html.Raw(Item("Desempenho", "Vendedor", "desempenho", "Meu desempenho"))
                         }
                     </div>
                 }
@@ -68,16 +79,16 @@
                 {
                     <div class="nav-group">
                         <div class="nav-group-title">Gestão</div>
-                        <a class="nav-app-link @Ativo("Desempenho")" asp-controller="Desempenho" asp-action="Index">Desempenho</a>
-                        <a class="nav-app-link @Ativo("Produto")" asp-controller="Produto" asp-action="Index">Produtos</a>
+                        @Html.Raw(Item("Desempenho", "Index", "desempenho", "Desempenho"))
+                        @Html.Raw(Item("Produto", "Index", "produtos", "Produtos"))
                         @await Component.InvokeAsync("EstoqueBaixo")
                     </div>
                     <div class="nav-group">
                         <div class="nav-group-title">Cadastros</div>
-                        <a class="nav-app-link @Ativo("Fonecedor")" asp-controller="Fonecedor" asp-action="Index">Fornecedores</a>
-                        <a class="nav-app-link @Ativo("TipoProduto")" asp-controller="TipoProduto" asp-action="Index">Tipos de produto</a>
-                        <a class="nav-app-link @Ativo("Usuario")" asp-controller="Usuario" asp-action="Index">Usuários</a>
-                        <a class="nav-app-link @Ativo("Funcao")" asp-controller="Funcao" asp-action="Index">Funções</a>
+                        @Html.Raw(Item("Fonecedor", "Index", "fornecedores", "Fornecedores"))
+                        @Html.Raw(Item("TipoProduto", "Index", "tipos", "Tipos de produto"))
+                        @Html.Raw(Item("Usuario", "Index", "usuarios", "Usuários"))
+                        @Html.Raw(Item("Funcao", "Index", "funcoes", "Funções"))
                     </div>
                 }
             </nav>
@@ -87,9 +98,26 @@
             </div>
         </aside>
 
-        <main class="main" role="main">
-            @RenderBody()
-            <footer class="text-muted mt-5" style="font-size: 12px;">Sistema</footer>
+        <main class="main" id="conteudo" role="main" tabindex="-1">
+            <div class="content-enter">
+                @* Confirmação e erros vindos de um redirecionamento: aparecem uma vez, no topo da página *@
+                @if (TempData["Sucesso"] is string sucesso)
+                {
+                    <div class="flash flash-ok" role="status">
+                        @Html.Raw(Icones.Get("check"))
+                        <span>@sucesso</span>
+                    </div>
+                }
+                @if (TempData["Erro"] is string erro)
+                {
+                    <div class="flash flash-erro" role="alert">
+                        @Html.Raw(Icones.Get("alerta"))
+                        <span>@erro</span>
+                    </div>
+                }
+                @RenderBody()
+            </div>
+            <footer class="site-footer">Sistema · vendas e estoque</footer>
         </main>
     </div>
 
