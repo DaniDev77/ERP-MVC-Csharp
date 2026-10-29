@@ -54,12 +54,18 @@ namespace Sistema.Controllers
                     valoresPorDia[venda.DataHora.Day - 1] += venda.Total;
                 modelo.PontosVendasPorDia = MontarPontos(valoresPorDia);
                 modelo.MaiorVendaDoDia = valoresPorDia.Max();
+                // Os mesmos totais diários, para o gráfico de colunas da tela inicial
+                modelo.VendasPorDia = valoresPorDia;
 
                 // Estoque: contagem e valor total, mais os produtos que precisam de reposição
                 modelo.TotalEstoqueBaixo = await context.Produtos.CountAsync(p => p.Estoque <= Produto.EstoqueMinimo);
                 modelo.ValorEmEstoque = await context.Produtos.SumAsync(p => p.Preco * p.Estoque);
+                // Contagens do resumo de estoque: produtos cadastrados e produtos zerados
+                modelo.TotalProdutos = await context.Produtos.CountAsync();
+                modelo.TotalSemEstoque = await context.Produtos.CountAsync(p => p.Estoque == 0);
+                // Os cinco menores estoques da loja (abaixo do mínimo ou não): a lista de reposição nunca fica vazia
+                // enquanto houver produto, e os que estão no mínimo ou abaixo aparecem marcados
                 modelo.EstoqueBaixo = await context.Produtos
-                    .Where(p => p.Estoque <= Produto.EstoqueMinimo)
                     .OrderBy(p => p.Estoque)
                     .Take(5)
                     .ToListAsync();

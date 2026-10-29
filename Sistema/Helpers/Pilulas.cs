@@ -18,7 +18,11 @@ namespace Sistema.Helpers
                 Politicas.FuncaoVendedorId => "pill-azul",
                 _ => "pill"
             };
-            return Selo(classe, nome ?? "Sem nome");
+            // O nome vem do banco em caixa alta ("USUARIO PADRÃO"); no selo fica em caixa normal, exceto siglas curtas como ADM
+            var texto = nome ?? "Sem nome";
+            if (texto.Length > 3)
+                texto = System.Globalization.CultureInfo.GetCultureInfo("pt-BR").TextInfo.ToTitleCase(texto.ToLowerInvariant());
+            return Selo(classe, texto);
         }
 
         // Selo do tipo de operação: venda (azul) ou compra (neutro)

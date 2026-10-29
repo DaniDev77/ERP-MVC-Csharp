@@ -33,6 +33,11 @@ namespace Sistema.Models
 
         public decimal ValorEmEstoque { get; set; }
 
+        // Só ADM: quantos produtos existem e quantos estão zerados (o resumo no pé do cartão de reposição)
+        public int TotalProdutos { get; set; }
+
+        public int TotalSemEstoque { get; set; }
+
         public List<Produto> EstoqueBaixo { get; set; } = new();
 
         public List<Pedido> UltimosPedidos { get; set; } = new();
@@ -41,5 +46,8 @@ namespace Sistema.Models
         public string PontosVendasPorDia { get; set; } = string.Empty;
 
         public decimal MaiorVendaDoDia { get; set; }
+
+        // Vendas somadas de cada dia do mês, do dia 1 até hoje (o gráfico de colunas do início)
+        public decimal[] VendasPorDia { get; set; } = Array.Empty<decimal>();
     }
 }
