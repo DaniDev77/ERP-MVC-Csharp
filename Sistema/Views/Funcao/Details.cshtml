@@ -4,22 +4,24 @@
     ViewData["Title"] = "Detalhes da função";
 }
 
-<div class="page-header">
-    <div>
-        <h1>@Model.Name</h1>
-        <p class="page-sub">Função de código @Model.FuncaoId</p>
-    </div>
-    <div class="d-flex gap-2">
-        <a asp-action="Edit" asp-route-id="@Model.FuncaoId" class="btn btn-outline-secondary">Editar</a>
-        <a asp-action="Index" class="btn btn-outline-secondary">Voltar para a lista</a>
-    </div>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Função", VoltarTexto = "Funções", VoltarUrl = Url.Action("Index") }' />
 
-<div class="panel form-card">
-    <dl class="detail-list mb-0">
-        <dt>@Html.DisplayNameFor(model => model.Name)</dt>
-        <dd>@Model.Name</dd>
-        <dt>@Html.DisplayNameFor(model => model.Descricao)</dt>
-        <dd>@Model.Descricao</dd>
+<div class="ui-card confirm-card">
+    <div class="object-header">
+        <span class="bubble bubble-lg" aria-hidden="true">@Html.Raw(Icones.Get("funcoes"))</span>
+        <div class="object-header-texto">
+            <h1>@Visual.NomeFuncao(Model.Name)</h1>
+            <div class="object-header-meta"><span>@Html.Raw(Icones.Get("id"))Código @Model.FuncaoId</span></div>
+        </div>
+    </div>
+    <dl class="detail-grid">
+        <div><dt>@Html.Raw(Icones.Get("etiqueta"))@Html.DisplayNameFor(m => m.Name)</dt><dd>@Model.Name</dd></div>
+        <div><dt>@Html.Raw(Icones.Get("texto"))@Html.DisplayNameFor(m => m.Descricao)</dt><dd>@Model.Descricao</dd></div>
     </dl>
+    <div class="ui-card-footer">
+        <a asp-action="Delete" asp-route-id="@Model.FuncaoId" class="btn btn-ghost-danger esquerda-btn">@Html.Raw(Icones.Get("excluir"))<span>Excluir</span></a>
+        <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+        <a asp-action="Edit" asp-route-id="@Model.FuncaoId" class="btn btn-primary">@Html.Raw(Icones.Get("editar"))<span>Editar</span></a>
+    </div>
 </div>

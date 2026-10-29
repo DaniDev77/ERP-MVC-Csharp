@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 170" fill="none">
+  <!-- Redesign: paleta trocada do azul-marinho para o verde-petróleo da etiqueta de gôndola e neutros -->
+  <!-- Carrinho vazio em azul-marinho, traço firme e sem brilhos -->
+  <rect x="24" y="16" width="192" height="140" rx="14" fill="#2A8199" opacity=".07"/>
+  <ellipse cx="124" cy="150" rx="58" ry="5" fill="#1D3A42" opacity=".10"/>
+  <!-- Carrinho -->
+  <path d="M52 52 h18 l16 70 h76 l14 -52 h-100" stroke="#1B6C80" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M80 70 h92 l-12 44 h-70z" fill="#E3EEEF"/>
+  <path d="M100 70 v44 M122 70 v44 M144 70 v44" stroke="#C7DDE2" stroke-width="3"/>
+  <circle cx="96" cy="138" r="8" fill="#1B6C80"/>
+  <circle cx="152" cy="138" r="8" fill="#1B6C80"/>
+  <circle cx="96" cy="138" r="3" fill="#fff"/>
+  <circle cx="152" cy="138" r="3" fill="#fff"/>
+  <!-- Produto entrando -->
+  <g transform="rotate(14 131 39)">
+    <rect x="118" y="26" width="26" height="26" rx="4" fill="#5D9FB0"/>
+    <path d="M126 39 h10 M131 34 v10" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

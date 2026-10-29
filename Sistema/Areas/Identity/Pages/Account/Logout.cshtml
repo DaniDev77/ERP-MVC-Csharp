@@ -1,21 +1,25 @@
 @page
 @model LogoutModel
 @{
-    ViewData["Title"] = "Log out";
+    ViewData["Title"] = "Sair";
+    Layout = "/Views/Shared/_LayoutAuth.cshtml";
 }
 
-<header>
-    <h1>@ViewData["Title"]</h1>
-    @{
-        if (User.Identity?.IsAuthenticated ?? false)
-        {
-            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
-                <button type="submit" class="nav-link btn btn-link text-dark">Click here to Logout</button>
-            </form>
-        }
-        else
-        {
-            <p>You have successfully logged out of the application.</p>
-        }
-    }
-</header>
+@* Saída da conta: confirma a saída ou avisa que ela já aconteceu *@
+@if (User.Identity?.IsAuthenticated ?? false)
+{
+    <span class="bubble bubble-lg mb-4" aria-hidden="true">@Html.Raw(Icones.Get("sair"))</span>
+    <h1>Sair da conta?</h1>
+    <p class="auth-sub">Você vai precisar entrar de novo para usar o sistema neste aparelho.</p>
+    <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post" class="d-grid gap-2">
+        <button type="submit" class="btn btn-primary btn-lg">Sair agora</button>
+        <a class="btn btn-secondary btn-lg" href="~/">Continuar no sistema</a>
+    </form>
+}
+else
+{
+    <img class="auth-ilustra" src="~/img/tudo-certo.svg" alt="" width="180" height="128" />
+    <h1>Até logo!</h1>
+    <p class="auth-sub">Você saiu da sua conta com segurança.</p>
+    <a class="btn btn-primary btn-lg w-100" asp-page="./Login">Entrar novamente</a>
+}

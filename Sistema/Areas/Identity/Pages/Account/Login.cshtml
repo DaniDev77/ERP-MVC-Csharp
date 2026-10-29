@@ -6,38 +6,51 @@
     Layout = "/Views/Shared/_LayoutAuth.cshtml";
 }
 
-<h1 class="auth-title">Entrar</h1>
-<p class="auth-sub">Use o e-mail e a senha da sua conta.</p>
+@* Lado direito da tela dividida: título, formulário com ícones nos campos e link para criar conta *@
+<span class="bubble bubble-solid bubble-lg mb-4" aria-hidden="true">@Html.Raw(Icones.Get("cadeado"))</span>
+<h1>Boas-vindas de volta</h1>
+<p class="auth-sub">Entre com o e-mail e a senha da sua conta.</p>
 
 <form id="account" method="post" class="auth-form" novalidate>
     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-    <div class="mb-3">
+    <div>
         <label asp-for="Input.Email" class="form-label">E-mail</label>
-        <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" autofocus placeholder="voce@empresa.com" />
+        <div class="input-icon">
+            @Html.Raw(Icones.Get("email"))
+            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" autofocus placeholder="voce@empresa.com" />
+        </div>
         <span asp-validation-for="Input.Email" class="text-danger"></span>
     </div>
 
-    <div class="mb-3">
-        <div class="d-flex justify-content-between align-items-baseline">
+    <div>
+        <div class="auth-linha">
             <label asp-for="Input.Password" class="form-label">Senha</label>
-            <a id="forgot-password" class="form-hint" asp-page="./ForgotPassword">Esqueci a senha</a>
+            <a id="forgot-password" class="small fw-semibold mb-2" asp-page="./ForgotPassword">Esqueci a senha</a>
         </div>
-        <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Sua senha" />
+        <div class="input-icon tem-acao">
+            @Html.Raw(Icones.Get("cadeado"))
+            <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Sua senha" />
+            @* Mostrar/ocultar senha (site.js) *@
+            <button type="button" class="input-acao" data-senha-alternar aria-controls="Input_Password" aria-pressed="false" aria-label="Mostrar senha">
+                <span data-icone-senha="mostrar">@Html.Raw(Icones.Get("olho"))</span>
+                <span data-icone-senha="ocultar" hidden>@Html.Raw(Icones.Get("olho-off"))</span>
+            </button>
+        </div>
         <span asp-validation-for="Input.Password" class="text-danger"></span>
     </div>
 
-    <div class="form-check mb-4">
+    <div class="form-check">
         <input asp-for="Input.RememberMe" class="form-check-input" />
         <label asp-for="Input.RememberMe" class="form-check-label">Manter conectado neste aparelho</label>
     </div>
 
-    <button id="login-submit" type="submit" class="btn btn-primary btn-block w-100">Entrar</button>
+    <button id="login-submit" type="submit" class="btn btn-primary btn-lg w-100"><span>Entrar</span>@Html.Raw(Icones.Get("seta"))</button>
 </form>
 
 <p class="auth-footer">
     Ainda não tem conta?
-    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Criar conta</a>
+    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Criar conta grátis</a>
 </p>
 
 @section Scripts {

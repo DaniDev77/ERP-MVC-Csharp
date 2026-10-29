@@ -1,0 +1,30 @@
+@model Sistema.Models.TipoProduto
+
+@* Campos do tipo de produto, compartilhados por Criar e Editar *@
+<div asp-validation-summary="ModelOnly" class="alert alert-danger m-4 mb-0" role="alert"></div>
+
+<section class="form-section">
+    <div class="form-section-head">
+        @* Tom neutro (slate) no lugar do antigo violeta *@
+        <h2><span class="bubble bubble-sm bubble-slate" aria-hidden="true">@Html.Raw(Icones.Get("tipos"))</span>Categoria</h2>
+        <p>O nome aparece na lista de produtos, embaixo do nome de cada um.</p>
+    </div>
+    <div class="form-grid">
+        <div>
+            <label asp-for="TipoNome" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("etiqueta"))
+                <input asp-for="TipoNome" class="form-control" placeholder="Ex.: Bebidas" autofocus />
+            </div>
+            <span asp-validation-for="TipoNome" class="text-danger"></span>
+        </div>
+        <div>
+            <label asp-for="TipoDescricao" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("texto"))
+                <input asp-for="TipoDescricao" class="form-control" placeholder="Ex.: Refrigerantes, sucos e águas" />
+            </div>
+            <span asp-validation-for="TipoDescricao" class="text-danger"></span>
+        </div>
+    </div>
+</section>

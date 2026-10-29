@@ -1,10 +1,11 @@
 @model List<Sistema.Models.Produto>
 
-@* Aviso para o ADM: link na barra lateral com a quantidade de produtos com estoque baixo *@
+@* Estoque baixo no menu: só aparece quando há o que repor, com a contagem num selo vermelho *@
 @if (Model.Count > 0)
 {
-    <a class="nav-app-link estoque-alerta" asp-controller="Produto" asp-action="EstoqueBaixo">
-        <span>Estoque baixo</span>
-        <span class="nav-count">@Model.Count</span>
+    var ativo = string.Equals((string?)ViewContext.RouteData.Values["action"], "EstoqueBaixo", StringComparison.OrdinalIgnoreCase);
+    <a class="nav-item-x alerta @(ativo ? "ativo" : "")" asp-area="" asp-controller="Produto" asp-action="EstoqueBaixo" aria-label="Estoque baixo, @Model.Count produtos para repor" aria-current="@(ativo ? "page" : null)">
+        @Html.Raw(Icones.Get("sino"))<span>Estoque baixo</span>
+        <span class="contador contador-danger" aria-hidden="true">@Model.Count</span>
     </a>
 }

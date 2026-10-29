@@ -4,25 +4,33 @@
     ViewData["Title"] = "Excluir função";
 }
 
-<div class="page-header">
-    <div>
-        <h1>Excluir função</h1>
-        <p class="page-sub">Esta ação não pode ser desfeita.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Excluir função", Descricao = "Esta ação não pode ser desfeita.",
+    VoltarTexto = "Funções", VoltarUrl = Url.Action("Index") }' />
 
-<div class="panel form-card">
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-    <dl class="detail-list">
-        <dt>@Html.DisplayNameFor(model => model.Name)</dt>
-        <dd>@Model.Name</dd>
-        <dt>@Html.DisplayNameFor(model => model.Descricao)</dt>
-        <dd>@Model.Descricao</dd>
-    </dl>
+<div class="ui-card danger-card confirm-card">
+    <div class="object-header">
+        <span class="bubble bubble-lg bubble-danger" aria-hidden="true">@Html.Raw(Icones.Get("funcoes"))</span>
+        <div class="object-header-texto">
+            <h2>@Visual.NomeFuncao(Model.Name)</h2>
+            <div class="object-header-meta"><span>@Model.Descricao</span></div>
+        </div>
+    </div>
+
+    @* Erro do servidor (ex.: função em uso por usuários) *@
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger m-4 mb-0" role="alert"></div>
+
+    <div class="danger-zone" role="alert">
+        @Html.Raw(Icones.Get("alerta"))
+        <div>
+            <strong>Esta ação não pode ser desfeita.</strong>
+            <p>A função <b>@Model.Name</b> será removida do cadastro.</p>
+        </div>
+    </div>
 
     @* O id vai na rota, porque a action recebe o parâmetro "id" *@
-    <form asp-action="Delete" asp-route-id="@Model.FuncaoId" class="d-flex gap-2 align-items-center mt-3">
-        <button type="submit" class="btn btn-danger">Excluir função</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+    <form asp-action="Delete" asp-route-id="@Model.FuncaoId" class="ui-card-footer mt-4">
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-danger">@Html.Raw(Icones.Get("excluir"))<span>Excluir função</span></button>
     </form>
 </div>

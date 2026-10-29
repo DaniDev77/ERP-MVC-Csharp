@@ -1,0 +1,110 @@
+/* =========================================================================
+   base.css · Tipografia, elementos HTML, foco e utilitários
+   Carregado depois do Bootstrap: o Bootstrap fica com grid e utilitários,
+   a aparência vem daqui e de components.css
+   Redesign "moldura e folha": IBM Plex Sans, títulos em peso 600 e tamanhos de app
+   ========================================================================= */
+
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+
+/* Fundo da página é a moldura (a folha branca fica no layout.css); fonte IBM Plex Sans */
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--frame);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Troca de tema sem piscar: só cor e fundo animam */
+  transition: background-color var(--t-base) var(--ease), color var(--t-base) var(--ease);
+}
+
+/* Títulos: mesma família do texto, peso 600 e tamanhos de tela de trabalho (22/16/14) */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: var(--font-display);
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin: 0;
+}
+h1, .h1 { font-size: var(--fs-2xl); }
+h2, .h2 { font-size: var(--fs-md); }
+h3, .h3 { font-size: var(--fs-base); }
+h4, h5, h6 { font-size: var(--fs-base); }
+
+p { margin: 0 0 var(--s-3); }
+p:last-child { margin-bottom: 0; }
+
+/* Links na cor de destaque, sem sublinhado */
+a { color: var(--accent); text-decoration: none; transition: color var(--t-fast) var(--ease); }
+a:hover { color: var(--accent-ink); }
+
+hr { border-color: var(--border); opacity: 1; }
+
+small, .small { font-size: var(--fs-sm); }
+
+/* Monoespaçada só para códigos, CPF e IDs: IBM Plex Mono */
+code, kbd, .mono {
+  font-family: var(--font-mono);
+  font-size: .92em;
+}
+code { color: var(--accent); }
+
+/* Números alinhados em colunas (KPIs, preços, tabelas) */
+.num, .tabular { font-variant-numeric: tabular-nums; }
+
+/* Seleção no tom pálido do destaque */
+::selection { background: #C7DDE2; color: #131416; }
+
+/* ---------- Foco visível em tudo que é clicável ---------- */
+:focus { outline: none; }
+/* Contorno de foco no verde-petróleo do tema (6:1 no claro, 7,8:1 no escuro) */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------- Skip-link: aparece só ao receber foco pelo teclado ---------- */
+/* Fundo do botão principal (inverte no escuro) */
+.skip-link {
+  position: absolute;
+  left: var(--s-4);
+  top: -60px;
+  z-index: 2000;
+  padding: var(--s-2) var(--s-4);
+  border-radius: var(--r-control);
+  background: var(--primary-fill);
+  color: var(--on-primary-fill);
+  font-weight: 600;
+  /* Sem sombra: o contraste do fundo já basta (botões são planos) */
+  box-shadow: none;
+  transition: top var(--t-fast) var(--ease);
+}
+.skip-link:focus { top: var(--s-4); color: var(--on-primary-fill); }
+
+/* ---------- Utilitários próprios ---------- */
+/* Utilitários de cor apontam para os papéis novos (texto de apoio e estados) */
+.text-2 { color: var(--muted) !important; }
+.text-3 { color: var(--faint) !important; }
+.text-muted { color: var(--faint) !important; }
+.text-brand { color: var(--accent) !important; }
+.text-success-ink { color: var(--positive) !important; }
+.text-danger-ink { color: var(--negative) !important; }
+.text-warning-ink { color: var(--warning) !important; }
+.fw-display { font-family: var(--font-display); }
+.stack > * + * { margin-top: var(--s-4); }
+.stack-lg > * + * { margin-top: var(--s-6); }
+
+/* Reduz movimento para quem pediu isso no sistema operacional */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

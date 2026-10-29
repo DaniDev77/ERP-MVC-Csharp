@@ -1,0 +1,20 @@
+@model KpiCard
+@* Miolo do card de KPI (usado pelo _KpiCard, com ou sem link) *@
+@* Redesign: KPI é tipo, não ladrilho; sai o ícone em bolha colorida e fica só o rótulo acima do número *@
+<div class="kpi-topo">
+    <span class="kpi-rotulo">@Model.Rotulo</span>
+</div>
+<div class="kpi-valor">@Model.Valor</div>
+@if (Model.Rodape != null || Model.Selo != null)
+{
+    <div class="kpi-rodape">
+        @if (Model.Selo != null)
+        {
+            <span class="chip chip-@Model.SeloTom">@Model.Selo</span>
+        }
+        @if (Model.Rodape != null)
+        {
+            <span>@Model.Rodape</span>
+        }
+    </div>
+}

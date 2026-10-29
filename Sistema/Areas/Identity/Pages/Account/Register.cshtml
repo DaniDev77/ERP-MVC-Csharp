@@ -6,32 +6,47 @@
     Layout = "/Views/Shared/_LayoutAuth.cshtml";
 }
 
-<h1 class="auth-title">Criar conta</h1>
-<p class="auth-sub">Depois de criar a conta, você completa seu cadastro com nome, CPF e função.</p>
+@* Criação de conta: e-mail e senha com confirmação; os dados pessoais vêm depois, no cadastro *@
+<span class="bubble bubble-solid bubble-lg mb-4" aria-hidden="true">@Html.Raw(Icones.Get("brilho"))</span>
+<h1>Crie sua conta</h1>
+<p class="auth-sub">Depois você completa o cadastro com nome e CPF, e um administrador libera sua função.</p>
 
 <form id="registerForm" method="post" asp-route-returnUrl="@Model.ReturnUrl" class="auth-form" novalidate>
     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-    <div class="mb-3">
+    <div>
         <label asp-for="Input.Email" class="form-label">E-mail</label>
-        <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" autofocus placeholder="voce@empresa.com" />
+        <div class="input-icon">
+            @Html.Raw(Icones.Get("email"))
+            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" autofocus placeholder="voce@empresa.com" />
+        </div>
         <span asp-validation-for="Input.Email" class="text-danger"></span>
     </div>
 
-    <div class="mb-3">
+    <div>
         <label asp-for="Input.Password" class="form-label">Senha</label>
-        <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Mínimo 8 caracteres" />
-        <div class="form-text">Use maiúscula, minúscula, número e um símbolo (ex.: ! # $).</div>
+        <div class="input-icon tem-acao">
+            @Html.Raw(Icones.Get("cadeado"))
+            <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Mínimo de 8 caracteres" aria-describedby="dicaSenha" />
+            <button type="button" class="input-acao" data-senha-alternar aria-controls="Input_Password" aria-pressed="false" aria-label="Mostrar senha">
+                <span data-icone-senha="mostrar">@Html.Raw(Icones.Get("olho"))</span>
+                <span data-icone-senha="ocultar" hidden>@Html.Raw(Icones.Get("olho-off"))</span>
+            </button>
+        </div>
+        <span class="form-text" id="dicaSenha">Use maiúscula, minúscula, número e um símbolo (ex.: ! # $).</span>
         <span asp-validation-for="Input.Password" class="text-danger"></span>
     </div>
 
-    <div class="mb-4">
+    <div>
         <label asp-for="Input.ConfirmPassword" class="form-label">Confirme a senha</label>
-        <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Repita a senha" />
+        <div class="input-icon">
+            @Html.Raw(Icones.Get("cadeado"))
+            <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Repita a senha" />
+        </div>
         <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
     </div>
 
-    <button id="registerSubmit" type="submit" class="btn btn-primary w-100">Criar conta</button>
+    <button id="registerSubmit" type="submit" class="btn btn-primary btn-lg w-100"><span>Criar conta</span>@Html.Raw(Icones.Get("seta"))</button>
 </form>
 
 <p class="auth-footer">

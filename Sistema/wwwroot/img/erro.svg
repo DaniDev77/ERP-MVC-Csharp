@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220" fill="none">
+  <!-- Redesign: paleta trocada do azul-marinho para o verde-petróleo da etiqueta de gôndola e neutros -->
+  <!-- Erro: janela do app com aviso, em azul-marinho e vermelho sóbrio; sem ferramentas nem brilhos -->
+  <rect x="30" y="20" width="260" height="180" rx="16" fill="#2A8199" opacity=".07"/>
+  <ellipse cx="160" cy="194" rx="90" ry="6" fill="#1D3A42" opacity=".10"/>
+  <!-- Janela -->
+  <rect x="70" y="44" width="180" height="128" rx="10" fill="#fff" stroke="#C7DDE2" stroke-width="2"/>
+  <path d="M70 54 a10 10 0 0 1 10 -10 h160 a10 10 0 0 1 10 10 v14 h-180z" fill="#E3EEEF"/>
+  <circle cx="86" cy="56" r="3.5" fill="#9CC4CE"/>
+  <circle cx="98" cy="56" r="3.5" fill="#9CC4CE"/>
+  <circle cx="110" cy="56" r="3.5" fill="#9CC4CE"/>
+  <!-- Aviso -->
+  <path d="M160 88 l30 52 h-60z" fill="#FFEDEA" stroke="#C4242A" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M160 106 v16" stroke="#C4242A" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="160" cy="131" r="3" fill="#C4242A"/>
+  <!-- Linhas de log -->
+  <rect x="88" y="150" width="36" height="5" rx="2" fill="#E6E9E9"/>
+  <rect x="196" y="150" width="36" height="5" rx="2" fill="#E6E9E9"/>
+</svg>

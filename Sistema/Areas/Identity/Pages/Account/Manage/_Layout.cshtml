@@ -1,24 +1,28 @@
 @{
-    if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout !=  null)
+    if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout != null)
     {
         Layout = parentLayout.ToString();
     }
     else
     {
-        Layout = "/Areas/Identity/Pages/_Layout.cshtml";
+        // Antes apontava para /Areas/Identity/Pages/_Layout.cshtml, que não existe: usa a casca do sistema
+        Layout = "/Views/Shared/_Layout.cshtml";
     }
 }
 
-<h1>Manage your account</h1>
+@* Configurações da conta: navegação vertical à esquerda e a seção escolhida num card à direita *@
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Configurações da conta", Descricao = "E-mail de acesso, senha e dados de segurança.", Icone = "cadeado",
+    VoltarTexto = "Meu perfil", VoltarUrl = Url.Action("Index", "Perfil", new { area = "" }) }' />
 
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
-    <div class="row">
-        <div class="col-md-3">
+<div class="row g-4">
+    <div class="col-lg-3">
+        <div class="ui-card p-2">
             <partial name="_ManageNav" />
         </div>
-        <div class="col-md-9">
+    </div>
+    <div class="col-lg-9">
+        <div class="ui-card manage-card">
             @RenderBody()
         </div>
     </div>

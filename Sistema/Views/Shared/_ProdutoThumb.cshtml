@@ -1,0 +1,6 @@
+@model ProdutoThumb
+@* Placeholder de imagem do produto: etiqueta em tom pálido da cor do nome (sem gradiente), iniciais e uma caixa ao fundo *@
+<span class="thumb @Model.Tamanho" style="--h: @Visual.Matiz(Model.Nome)" aria-hidden="true">
+    @Html.Raw(Icones.Get("caixa"))
+    <span>@Visual.Iniciais(Model.Nome)</span>
+</span>

@@ -1,34 +1,33 @@
 @model Sistema.Models.TipoProduto
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Excluir tipo de produto";
 }
 
-<h1>Excluir tipo de produto</h1>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Excluir tipo de produto", Descricao = "Confira os dados antes de confirmar.",
+    VoltarTexto = "Tipos de produto", VoltarUrl = Url.Action("Index") }' />
 
-<h3>Tem certeza que quer excluir este registro?</h3>
-<div>
-    <h4>Sistema.Models.TipoProduto</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TipoNome)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TipoNome)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TipoDescricao)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TipoDescricao)
-        </dd>
-    </dl>
-    <form asp-action="Delete">
+<div class="ui-card danger-card confirm-card">
+    <div class="object-header">
+        <span class="bubble bubble-lg bubble-danger" aria-hidden="true">@Html.Raw(Icones.Get("tipos"))</span>
+        <div class="object-header-texto">
+            <h2>@Model.TipoNome</h2>
+            <div class="object-header-meta"><span>@Model.TipoDescricao</span></div>
+        </div>
+    </div>
+
+    <div class="danger-zone" role="alert">
+        @Html.Raw(Icones.Get("alerta"))
+        <div>
+            <strong>Esta ação não pode ser desfeita.</strong>
+            <p>O tipo <b>@Model.TipoNome</b> será removido do cadastro.</p>
+        </div>
+    </div>
+
+    <form asp-action="Delete" class="ui-card-footer mt-4">
         <input type="hidden" asp-for="TipoProdutoId" />
-        <input type="submit" value="Excluir" class="btn btn-danger" /> |
-        <a asp-action="Index">Voltar para a lista</a>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-danger">@Html.Raw(Icones.Get("excluir"))<span>Excluir tipo</span></button>
     </form>
 </div>

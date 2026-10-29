@@ -2,22 +2,32 @@
 
 @{
     ViewData["Title"] = "Editar produto";
+    var minimo = Sistema.Models.Produto.EstoqueMinimo;
+    var tom = Model.Estoque == 0 ? "danger" : Model.Estoque <= minimo ? "warning" : "success";
 }
 
-<div class="page-header">
-    <div>
-        <h1>Editar produto</h1>
-        <p class="page-sub">@Model.Name · estoque atual: @Model.Estoque</p>
-    </div>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Editar produto", VoltarTexto = "Produtos", VoltarUrl = Url.Action("Index") }' />
 
-<div class="panel form-card">
-    <form asp-action="Edit">
-        @await Html.PartialAsync("_Form", Model)
-        <input type="hidden" asp-for="ProdutoId" />
-        <div class="d-flex gap-2 mt-3">
-            <button type="submit" class="btn btn-primary">Salvar alterações</button>
-            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+<form asp-action="Edit" class="ui-card form-card">
+    @* Cabeçalho do objeto: miniatura, nome e a situação atual do estoque *@
+    <div class="object-header">
+        <partial name="_ProdutoThumb" model='new ProdutoThumb { Nome = Model.Name, Tamanho = "thumb-lg" }' />
+        <div class="object-header-texto">
+            <h2>@Model.Name</h2>
+            <div class="object-header-meta">
+                <span class="chip chip-@tom">@(Model.Estoque == 0 ? "Sem estoque" : Model.Estoque + " un. em estoque")</span>
+                <span>@Html.Raw(Icones.Get("id"))Código @Model.ProdutoId</span>
+            </div>
         </div>
-    </form>
-</div>
+    </div>
+
+    @await Html.PartialAsync("_Form", Model)
+    <input type="hidden" asp-for="ProdutoId" />
+
+    <div class="ui-card-footer">
+        <a asp-action="Delete" asp-route-id="@Model.ProdutoId" class="btn btn-ghost-danger esquerda-btn">@Html.Raw(Icones.Get("excluir"))<span>Excluir</span></a>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">@Html.Raw(Icones.Get("ok"))<span>Salvar alterações</span></button>
+    </div>
+</form>

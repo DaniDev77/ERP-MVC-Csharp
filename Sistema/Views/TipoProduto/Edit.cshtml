@@ -1,38 +1,32 @@
 @model Sistema.Models.TipoProduto
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Editar tipo de produto";
 }
 
-<h1>Editar tipo de produto</h1>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Editar tipo de produto", VoltarTexto = "Tipos de produto", VoltarUrl = Url.Action("Index") }' />
 
-<h4>TipoProduto</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="TipoProdutoId" />
-            <div class="form-group">
-                <label asp-for="TipoNome" class="control-label"></label>
-                <input asp-for="TipoNome" class="form-control" />
-                <span asp-validation-for="TipoNome" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TipoDescricao" class="control-label"></label>
-                <input asp-for="TipoDescricao" class="form-control" />
-                <span asp-validation-for="TipoDescricao" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Salvar" class="btn btn-primary" />
-            </div>
-        </form>
+<form asp-action="Edit" class="ui-card form-card">
+    <div class="object-header">
+        @* Tom neutro (slate) no lugar do antigo violeta *@
+        <span class="bubble bubble-lg bubble-slate" aria-hidden="true">@Html.Raw(Icones.Get("tipos"))</span>
+        <div class="object-header-texto">
+            <h2>@Model.TipoNome</h2>
+            <div class="object-header-meta"><span>@Html.Raw(Icones.Get("id"))Código @Model.TipoProdutoId</span></div>
+        </div>
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Voltar para a lista</a>
-</div>
+    @* O código fica oculto: é ele que identifica o tipo ao salvar *@
+    <input type="hidden" asp-for="TipoProdutoId" />
+    <partial name="_Form" model="Model" />
+
+    <div class="ui-card-footer">
+        <a asp-action="Delete" asp-route-tipoprodutoid="@Model.TipoProdutoId" class="btn btn-ghost-danger esquerda-btn">@Html.Raw(Icones.Get("excluir"))<span>Excluir</span></a>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">@Html.Raw(Icones.Get("ok"))<span>Salvar alterações</span></button>
+    </div>
+</form>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

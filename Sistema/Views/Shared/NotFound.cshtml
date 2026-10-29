@@ -1,0 +1,14 @@
+@{
+    ViewData["Title"] = "Página não encontrada";
+}
+
+@* Página 404 pronta para uso. Ainda não há rota para ela: veja a sugestão de UseStatusCodePagesWithReExecute no resumo *@
+<section class="status-page">
+    <img src="~/img/404.svg" alt="" width="320" height="220" />
+    <span class="chip chip-brand">Erro 404</span>
+    <h1>Página não encontrada</h1>
+    <p>O endereço pode ter mudado ou o item foi removido. Confira o link ou volte para o início.</p>
+    <div class="status-acoes">
+        <a class="btn btn-primary" href="~/">@Html.Raw(Icones.Get("inicio"))<span>Ir para o início</span></a>
+    </div>
+</section>

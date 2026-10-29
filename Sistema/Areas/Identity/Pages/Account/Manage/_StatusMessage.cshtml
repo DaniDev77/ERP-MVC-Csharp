@@ -1,10 +1,12 @@
 @model string
 
+@* Mensagem de status das configurações: alerta com ícone, verde no sucesso e vermelho no erro *@
 @if (!String.IsNullOrEmpty(Model))
 {
-    var statusMessageClass = Model.StartsWith("Error") ? "danger" : "success";
-    <div class="alert alert-@statusMessageClass alert-dismissible" role="alert">
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        @Model
+    var erro = Model.StartsWith("Error");
+    <div class="alert alert-@(erro ? "danger" : "success") alert-dismissible mb-4" role="@(erro ? "alert" : "status")">
+        @Html.Raw(Icones.Get(erro ? "alerta" : "check"))
+        <div>@Model</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
     </div>
 }

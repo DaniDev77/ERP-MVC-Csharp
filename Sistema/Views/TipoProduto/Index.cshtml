@@ -2,47 +2,69 @@
 
 @{
     ViewData["Title"] = "Tipos de produto";
+    var total = Model.Count();
 }
 
-<div class="page-header">
-    <div>
-        <h1>Tipos de produto</h1>
-        <p class="page-sub">Categorias usadas para organizar os produtos.</p>
-    </div>
-    <a asp-action="Create" class="btn btn-primary">Novo tipo de produto</a>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Tipos de produto", Descricao = "Categorias usadas para organizar os produtos.", Icone = "tipos",
+    AcaoTexto = "Novo tipo", AcaoUrl = Url.Action("Create") }' />
 
-@if (!Model.Any())
-{
-    <div class="panel"><p class="mb-0 text-muted">Nenhum tipo de produto cadastrado.</p></div>
-}
-else
-{
-    <div class="table-wrap">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>@Html.DisplayNameFor(m => m.TipoNome)</th>
-                    <th>@Html.DisplayNameFor(m => m.TipoDescricao)</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
+<div class="ui-card table-card">
+    @if (!Model.Any())
+    {
+        <partial name="_EmptyState" model='new EmptyState {
+            Imagem = "~/img/vazio-caixas.svg", Titulo = "Nenhum tipo de produto cadastrado",
+            Texto = "Os tipos organizam os produtos por categoria. Crie o primeiro para começar.",
+            AcaoTexto = "Cadastrar primeiro tipo", AcaoUrl = Url.Action("Create") }' />
+    }
+    else
+    {
+        <div class="toolbar">
+            <div class="busca input-icon">
+                @Html.Raw(Icones.Get("buscar"))
+                <input type="search" class="form-control" placeholder="Buscar por nome ou descrição" aria-label="Buscar tipos de produto"
+                       data-filtro-alvo="#tabelaTipos" data-filtro-vazio="#semTipos" data-filtro-contagem="#contagemTipos" />
+            </div>
+            <span class="toolbar-info" id="contagemTipos" data-singular="tipo" data-plural="tipos" aria-live="polite">@total @(total == 1 ? "tipo" : "tipos")</span>
+        </div>
+
+        <div class="table-wrap">
+            <table class="table-ui table-stack" id="tabelaTipos">
+                <thead>
                     <tr>
-                        <td>@item.TipoNome</td>
-                        <td>@item.TipoDescricao</td>
-                        <td class="text-end row-actions">
-                            <a asp-action="Edit" asp-route-id="@item.TipoProdutoId">Editar</a>
-                            <span class="text-muted mx-1">·</span>
-                            <a asp-action="Details" asp-route-id="@item.TipoProdutoId">Detalhes</a>
-                            <span class="text-muted mx-1">·</span>
-                            <a asp-action="Delete" asp-route-id="@item.TipoProdutoId">Excluir</a>
-                        </td>
+                        <th scope="col">@Html.DisplayNameFor(m => m.TipoNome)</th>
+                        <th scope="col">@Html.DisplayNameFor(m => m.TipoDescricao)</th>
+                        <th scope="col" class="acoes-col"><span class="visually-hidden">Ações</span></th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-}
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr data-filtro="@item.TipoNome @item.TipoDescricao">
+                            <td class="cell-head">
+                                <div class="cell-main">
+                                    @* Tom neutro (slate) no lugar do antigo violeta *@
+                                    <span class="bubble bubble-sm bubble-slate" aria-hidden="true">@Html.Raw(Icones.Get("tipos"))</span>
+                                    @* Rotas com tipoprodutoid: é o nome que a action espera *@
+                                    <a asp-action="Details" asp-route-tipoprodutoid="@item.TipoProdutoId" class="cell-title">@item.TipoNome</a>
+                                </div>
+                            </td>
+                            <td data-label="Descrição" class="text-2">@item.TipoDescricao</td>
+                            <td class="acoes-col">
+                                <div class="row-actions">
+                                    <a asp-action="Details" asp-route-tipoprodutoid="@item.TipoProdutoId" class="btn btn-ghost btn-icon btn-sm" aria-label="Ver @item.TipoNome" title="Ver detalhes">@Html.Raw(Icones.Get("olho"))</a>
+                                    <a asp-action="Edit" asp-route-tipoprodutoid="@item.TipoProdutoId" class="btn btn-ghost btn-icon btn-sm" aria-label="Editar @item.TipoNome" title="Editar">@Html.Raw(Icones.Get("editar"))</a>
+                                    <a asp-action="Delete" asp-route-tipoprodutoid="@item.TipoProdutoId" class="btn btn-ghost-danger btn-icon btn-sm" aria-label="Excluir @item.TipoNome" title="Excluir">@Html.Raw(Icones.Get("excluir"))</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="sem-resultado" id="semTipos" hidden>
+                <img src="~/img/vazio-busca.svg" alt="" width="120" height="85" />
+                Nenhum tipo encontrado para essa busca.
+            </div>
+        </div>
+    }
+</div>

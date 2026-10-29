@@ -4,11 +4,7 @@
     ViewData["Title"] = "Fazer compra";
 }
 
-<div class="page-header">
-    <div>
-        <h1>Fazer compra</h1>
-        <p class="page-sub">Escolha os produtos e as quantidades. A compra fica no seu histórico e dá baixa no estoque.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Fazer compra", Descricao = "Escolha os produtos e as quantidades. A compra fica no seu histórico e dá baixa no estoque.", Icone = "compra" }' />
 
 <partial name="_NovoPedido" model="Model" />

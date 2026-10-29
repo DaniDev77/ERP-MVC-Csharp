@@ -4,12 +4,8 @@
     ViewData["Title"] = "Registrar venda";
 }
 
-<div class="page-header">
-    <div>
-        <h1>Registrar venda</h1>
-        <p class="page-sub">Informe o cliente, escolha os produtos e as quantidades. O estoque é baixado ao salvar.</p>
-    </div>
-    <a asp-controller="Desempenho" asp-action="Vendedor" class="btn btn-outline-secondary">Ver meu desempenho</a>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Registrar venda", Descricao = "Informe o cliente, adicione os produtos e finalize. O estoque é baixado ao salvar.", Icone = "venda",
+    SecundariaTexto = "Meu desempenho", SecundariaUrl = Url.Action("Vendedor", "Desempenho"), SecundariaIcone = "desempenho" }' />
 
 <partial name="_NovoPedido" model="Model" />

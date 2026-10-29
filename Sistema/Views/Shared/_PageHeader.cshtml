@@ -1,0 +1,36 @@
+@model PageHeader
+@* Cabeçalho padrão das páginas: voltar, título-substantivo, descrição e ações *@
+<header class="page-header">
+    <div>
+        @if (Model.VoltarUrl != null)
+        {
+            <a class="voltar" href="@Model.VoltarUrl">@Html.Raw(Icones.Get("seta"))<span>@(Model.VoltarTexto ?? "Voltar")</span></a>
+        }
+        <div class="page-header-texto">
+            @* Redesign: a bolha de ícone ao lado do título saiu; o título de 22px já diz onde se está (Model.Icone segue aceito, só não é desenhado) *@
+            <div>
+                <h1>@Model.Titulo</h1>
+                @if (!string.IsNullOrEmpty(Model.Descricao))
+                {
+                    <p class="page-header-sub">@Model.Descricao</p>
+                }
+            </div>
+        </div>
+    </div>
+    @if (Model.AcaoUrl != null || Model.SecundariaUrl != null)
+    {
+        <div class="page-header-acoes">
+            @if (Model.SecundariaUrl != null)
+            {
+                <a class="btn btn-secondary" href="@Model.SecundariaUrl">
+                    @if (Model.SecundariaIcone != null) { @Html.Raw(Icones.Get(Model.SecundariaIcone)) }
+                    <span>@Model.SecundariaTexto</span>
+                </a>
+            }
+            @if (Model.AcaoUrl != null)
+            {
+                <a class="btn btn-primary" href="@Model.AcaoUrl">@Html.Raw(Icones.Get(Model.AcaoIcone))<span>@Model.AcaoTexto</span></a>
+            }
+        </div>
+    }
+</header>

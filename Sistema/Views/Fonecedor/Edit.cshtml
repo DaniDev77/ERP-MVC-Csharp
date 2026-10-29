@@ -1,53 +1,31 @@
 @model Sistema.Models.Fonecedor
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Editar fornecedor";
 }
 
-<h1>Editar fornecedor</h1>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Editar fornecedor", VoltarTexto = "Fornecedores", VoltarUrl = Url.Action("Index") }' />
 
-<h4>Fonecedor</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="FonecedorId" />
-            <div class="form-group">
-                <label asp-for="FonecedorNome" class="control-label"></label>
-                <input asp-for="FonecedorNome" class="form-control" />
-                <span asp-validation-for="FonecedorNome" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="FonecedorDescricao" class="control-label"></label>
-                <input asp-for="FonecedorDescricao" class="form-control" />
-                <span asp-validation-for="FonecedorDescricao" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CNPJ" class="control-label"></label>
-                <input asp-for="CNPJ" class="form-control" />
-                <span asp-validation-for="CNPJ" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="FonecedorTelefone" class="control-label"></label>
-                <input asp-for="FonecedorTelefone" class="form-control" />
-                <span asp-validation-for="FonecedorTelefone" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="FonecedorEmail" class="control-label"></label>
-                <input asp-for="FonecedorEmail" class="form-control" />
-                <span asp-validation-for="FonecedorEmail" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Salvar" class="btn btn-primary" />
-            </div>
-        </form>
+<form asp-action="Edit" class="ui-card form-card">
+    <div class="object-header">
+        <span class="avatar avatar-lg" style="--h: @Visual.Matiz(Model.FonecedorNome)" aria-hidden="true">@Visual.Iniciais(Model.FonecedorNome)</span>
+        <div class="object-header-texto">
+            <h2>@Model.FonecedorNome</h2>
+            <div class="object-header-meta"><span>@Html.Raw(Icones.Get("documento"))<span class="mono">@Model.CNPJ</span></span></div>
+        </div>
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Voltar para a lista</a>
-</div>
+    @* O código fica oculto: é ele que identifica o fornecedor ao salvar *@
+    <input type="hidden" asp-for="FonecedorId" />
+    <partial name="_Form" model="Model" />
+
+    <div class="ui-card-footer">
+        <a asp-action="Delete" asp-route-fonecedorid="@Model.FonecedorId" class="btn btn-ghost-danger esquerda-btn">@Html.Raw(Icones.Get("excluir"))<span>Excluir</span></a>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">@Html.Raw(Icones.Get("ok"))<span>Salvar alterações</span></button>
+    </div>
+</form>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

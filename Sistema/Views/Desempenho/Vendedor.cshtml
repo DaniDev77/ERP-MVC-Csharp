@@ -4,12 +4,18 @@
     ViewData["Title"] = "Meu desempenho";
 }
 
-<div class="page-header">
-    <div>
-        <h1>Meu desempenho de vendas</h1>
-        <p class="page-sub">Somente as vendas registradas por você.</p>
-    </div>
-    <a asp-controller="Venda" asp-action="Create" class="btn btn-primary">Registrar venda</a>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Meu desempenho", Descricao = "Somente as vendas registradas por você.", Icone = "desempenho",
+    AcaoTexto = "Registrar venda", AcaoUrl = Url.Action("Create", "Venda") }' />
 
 <partial name="_Desempenho" model="Model" />
+
+@if (Model.QtdVendas == 0)
+{
+    <div class="ui-card">
+        <partial name="_EmptyState" model='new EmptyState {
+            Imagem = "~/img/vazio-carrinho.svg", Titulo = "Nenhuma venda neste período",
+            Texto = "Suas vendas aparecem aqui assim que forem registradas.",
+            AcaoTexto = "Registrar venda", AcaoUrl = Url.Action("Create", "Venda"), Compacto = true }' />
+    </div>
+}

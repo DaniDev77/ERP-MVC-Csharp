@@ -1,0 +1,14 @@
+@model KpiCard
+@* Card de indicador: rótulo + bolha colorida em cima, número grande, rodapé com selo *@
+@if (Model.Url != null)
+{
+    <a class="ui-card ui-card-link hover-lift kpi @(Model.Alerta ? "kpi-alerta" : "")" href="@Model.Url">
+        <partial name="_KpiCardCorpo" model="Model" />
+    </a>
+}
+else
+{
+    <div class="ui-card hover-lift kpi @(Model.Alerta ? "kpi-alerta" : "")">
+        <partial name="_KpiCardCorpo" model="Model" />
+    </div>
+}

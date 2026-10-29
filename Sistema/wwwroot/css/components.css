@@ -1,0 +1,891 @@
+/* =========================================================================
+   components.css · Peças do design system
+   Botões, campos, cards, badges, tabelas, alertas, toasts, avatar, bolhas,
+   KPI, miniatura de produto, estado vazio, cabeçalho de página, menus
+   Também dá a mesma cara às classes do Bootstrap que as páginas do Identity usam
+   Redesign "moldura e folha": peças planas (borda de 1px, sem sombra parada),
+   raio 8 nos cards e 6 nos controles, cor só em dados, estados e foco.
+   Todos os seletores antigos continuam existindo (classes geradas por C# e JS).
+   ========================================================================= */
+
+/* ===================== Botões ===================== */
+/* Altura padrão 36px (32 no pequeno, 40 no grande), raio 6, peso 500 */
+.btn {
+  --btn-h: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: var(--btn-h);
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--r-control);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+              color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.btn svg { width: 16px; height: 16px; flex: none; }
+.btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* Resposta ao clique: o botão afunda 1px */
+.btn:active { transform: translateY(1px); }
+.btn:disabled, .btn.disabled { opacity: .5; pointer-events: none; }
+
+.btn-sm { --btn-h: 32px; padding: 0 var(--s-3); font-size: var(--fs-sm); border-radius: var(--r-sm); }
+.btn-sm svg { width: 15px; height: 15px; }
+.btn-lg { --btn-h: 40px; padding: 0 var(--s-5); font-size: var(--fs-base); }
+.btn-block, .w-100.btn { width: 100%; }
+
+/* Primário: quase preto com rótulo branco (invertido no tema escuro); sem sombra */
+.btn-primary {
+  color: var(--on-primary-fill);
+  background: var(--primary-fill);
+  border-color: var(--primary-fill);
+  box-shadow: none;
+}
+.btn-primary:hover, .btn-primary:focus-visible {
+  color: var(--on-primary-fill);
+  background: var(--primary-fill-hover);
+  border-color: var(--primary-fill-hover);
+}
+.btn-primary:focus-visible { box-shadow: var(--focus-ring); }
+.btn-primary:active { background: var(--action-active) !important; border-color: var(--action-active) !important; color: var(--on-primary-fill) !important; }
+
+/* Secundário: folha com borda de controle (substitui os outline do Bootstrap) */
+.btn-secondary, .btn-outline-secondary, .btn-light, .btn-outline-primary {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--control);
+  box-shadow: none;
+}
+.btn-secondary:hover, .btn-outline-secondary:hover, .btn-light:hover, .btn-outline-primary:hover {
+  color: var(--text);
+  background: var(--raised);
+  border-color: var(--input-line);
+}
+.btn-secondary:active, .btn-outline-secondary:active { background: var(--active) !important; color: var(--text) !important; }
+
+/* Suave: degrau de tom neutro (antes era o azul tinto) */
+.btn-soft { color: var(--text); background: var(--raised); border-color: var(--border); }
+.btn-soft:hover { color: var(--text); background: var(--active); border-color: var(--control); }
+
+/* Fantasma: sem fundo; para ações dentro de tabelas e cards */
+.btn-ghost, .btn-link { color: var(--muted); background: transparent; border-color: transparent; box-shadow: none; }
+.btn-ghost:hover, .btn-link:hover { color: var(--text); background: var(--active); }
+.btn-link { color: var(--accent); font-weight: 500; }
+
+/* Perigo: vermelho chapado com texto branco; versão fantasma para ações de linha */
+.btn-danger { color: #fff; background: var(--negative); border-color: transparent; box-shadow: none; }
+[data-theme="dark"] .btn-danger { color: #111314; }
+.btn-danger:hover { color: #fff; background: var(--danger-hover); }
+[data-theme="dark"] .btn-danger:hover { color: #111314; }
+.btn-ghost-danger { color: var(--negative); background: transparent; border-color: transparent; }
+.btn-ghost-danger:hover { color: var(--pill-negative-ink); background: var(--pill-negative-bg); }
+
+/* Botão só com ícone: quadrado */
+.btn-icon { width: var(--btn-h); padding: 0; }
+
+/* Carregando: o texto some e aparece o spinner (site.js põe a classe ao enviar o form) */
+.btn.is-loading { position: relative; color: transparent !important; pointer-events: none; }
+.btn.is-loading > * { visibility: hidden; }
+/* Spinner na cor do rótulo de cada variante (claro no primário, tinta no secundário) */
+.btn.is-loading::after {
+  content: "";
+  position: absolute;
+  width: 16px; height: 16px;
+  border: 2px solid var(--on-primary-fill);
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  animation: girar .7s linear infinite;
+}
+.btn-secondary.is-loading::after, .btn-outline-secondary.is-loading::after, .btn-soft.is-loading::after, .btn-ghost.is-loading::after {
+  border-color: var(--text);
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
+
+/* ===================== Campos ===================== */
+/* Rótulo acima do campo, 14px peso 500 */
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: var(--fs-base);
+  font-weight: 500;
+  color: var(--text);
+}
+.form-label .opcional { color: var(--faint); font-weight: 400; }
+
+/* Campo de 40px, borda de 3:1 (WCAG 1.4.11), raio 6, sem sombra */
+.form-control, .form-select {
+  min-height: 40px;
+  padding: 8px var(--s-3);
+  font-size: var(--fs-base);
+  color: var(--text);
+  background-color: var(--surface);
+  border: 1px solid var(--input-line);
+  border-radius: var(--r-control);
+  box-shadow: none;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease);
+}
+.form-select { padding-right: 36px; background-position: right 12px center; }
+/* Placeholder em cinza que ainda passa 4.5:1 */
+.form-control::placeholder { color: var(--faint); opacity: 1; }
+.form-control:hover, .form-select:hover { border-color: var(--muted); }
+/* Foco: borda e anel no verde-petróleo */
+.form-control:focus, .form-select:focus {
+  color: var(--text);
+  background-color: var(--surface);
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+.form-control:disabled, .form-control[readonly], .form-select:disabled {
+  background-color: var(--raised);
+  color: var(--muted);
+  border-color: var(--control);
+  box-shadow: none;
+}
+textarea.form-control { min-height: 96px; }
+/* Seta do select clara no tema escuro */
+[data-theme="dark"] .form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23b4b6b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+/* Campo com ícone à esquerda (ícone de 16px a 13px da borda) */
+.input-icon { position: relative; }
+.input-icon > svg {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px; height: 16px;
+  color: var(--faint);
+  pointer-events: none;
+  transition: color var(--t-fast) var(--ease);
+}
+.input-icon > .form-control, .input-icon > .form-select { padding-left: 38px; }
+.input-icon:focus-within > svg { color: var(--accent); }
+
+/* Botão de mostrar/ocultar senha dentro do campo */
+.input-icon .input-acao {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  width: 32px; height: 32px;
+  display: inline-grid; place-items: center;
+  border: 0; border-radius: var(--r-sm);
+  background: transparent; color: var(--faint);
+  cursor: pointer;
+}
+.input-icon .input-acao:hover { background: var(--active); color: var(--text); }
+.input-icon .input-acao svg { width: 16px; height: 16px; }
+.input-icon.tem-acao > .form-control { padding-right: 42px; }
+
+.form-text { margin-top: 6px; font-size: var(--fs-xs); color: var(--faint); display: block; }
+
+/* Checkbox com borda de 3:1; marcado no verde-petróleo */
+.form-check-input {
+  width: 18px; height: 18px;
+  border: 1px solid var(--input-line);
+  border-radius: 4px;
+  background-color: var(--surface);
+  cursor: pointer;
+}
+.form-check-input:checked { background-color: var(--accent-fill); border-color: var(--accent-fill); }
+.form-check-input:focus { box-shadow: var(--focus-ring); border-color: var(--accent); }
+.form-check-label { color: var(--muted); cursor: pointer; }
+
+/* Validação: borda vermelha e mensagem com ícone (classes do jquery.validate e do Bootstrap) */
+.form-control.input-validation-error, .form-select.input-validation-error,
+.form-control.is-invalid, .form-select.is-invalid {
+  border-color: var(--negative);
+  background-image: none;
+  padding-right: var(--s-3);
+}
+.form-control.input-validation-error:focus, .form-control.is-invalid:focus { box-shadow: 0 0 0 3px rgba(196, 36, 42, .22); }
+.field-validation-error, span.text-danger:not(:empty) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--negative) !important;
+}
+.field-validation-error::before, span.text-danger:not(:empty)::before {
+  content: "";
+  flex: none;
+  width: 14px; height: 14px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3e%3ccircle cx='12' cy='12' r='9'/%3e%3cpath d='M12 7.5v5.5M12 16.5v.01'/%3e%3c/svg%3e") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3e%3ccircle cx='12' cy='12' r='9'/%3e%3cpath d='M12 7.5v5.5M12 16.5v.01'/%3e%3c/svg%3e") center / contain no-repeat;
+}
+.field-validation-valid { display: none; }
+/* Resumo de validação: só aparece quando há erros */
+.validation-summary-valid { display: none !important; }
+.validation-summary-errors ul { margin: 0; padding-left: 18px; }
+
+/* Grade de campos: uma coluna no celular, duas a partir de 640px; 16px entre campos */
+.form-grid { display: grid; gap: var(--s-4); }
+@media (min-width: 640px) {
+  .form-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .form-grid .span-2 { grid-column: 1 / -1; }
+}
+
+/* Seção de formulário no padrão de configurações: título e descrição à esquerda, campos à direita */
+.form-section { padding: var(--s-6); border-top: 1px solid var(--rule); }
+.form-section:first-child { border-top: 0; }
+.form-section-head { margin-bottom: var(--s-5); }
+.form-section-head h2 { font-size: var(--fs-md); font-weight: 600; display: flex; align-items: center; gap: var(--s-2); }
+/* Ícone do título da seção: pequeno e cinza */
+.form-section-head h2 svg { width: 16px; height: 16px; color: var(--faint); }
+.form-section-head p { margin: 4px 0 0; color: var(--muted); font-size: var(--fs-base); }
+@media (min-width: 992px) {
+  .form-section { display: grid; grid-template-columns: 280px 1fr; gap: var(--s-8); }
+  .form-section-head { margin-bottom: 0; padding-top: 6px; }
+}
+
+/* ===================== Cards ===================== */
+/* Card plano: borda de 1px, raio 8, sem sombra */
+.ui-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  box-shadow: none;
+  transition: border-color var(--t-base) var(--ease), background-color var(--t-base) var(--ease);
+}
+.ui-card-body { padding: var(--s-5); }
+.ui-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--rule);
+}
+.ui-card-header.sem-linha { border-bottom: 0; padding-bottom: 0; }
+/* Título de card 16px peso 600; ícone, quando houver, pequeno e cinza */
+.ui-card-title { font-size: var(--fs-md); font-weight: 600; display: flex; align-items: center; gap: var(--s-2); }
+.ui-card-title > svg { width: 16px; height: 16px; color: var(--faint); }
+.ui-card-sub { margin: 2px 0 0; font-size: var(--fs-sm); color: var(--muted); }
+.ui-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  background: var(--raised);
+  border-top: 1px solid var(--rule);
+  border-radius: 0 0 var(--r-card) var(--r-card);
+}
+.ui-card-footer .esquerda { margin-right: auto; color: var(--muted); font-size: var(--fs-sm); }
+/* Card clicável: sem "pulo"; só a borda escurece e o fundo ganha um degrau */
+.ui-card.hover-lift:hover { border-color: var(--control); }
+.ui-card-link { color: inherit; display: block; }
+.ui-card-link:hover { color: inherit; background: var(--raised); }
+
+/* Bootstrap .card (usado em páginas do Identity) com a mesma cara */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: none; color: var(--text); }
+
+/* ===================== Badges ===================== */
+/* Selo: 22px, raio 4, par pálido (fundo claro, texto escuro da mesma cor) */
+.chip, .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--r-xs);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--pill-neutral-ink);
+  background: var(--pill-neutral-bg);
+  border: 1px solid transparent;
+}
+.chip svg, .pill svg { width: 13px; height: 13px; }
+/* Ponto de 6px como glifo do estado */
+.chip::before, .pill::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .8;
+}
+.chip.sem-ponto::before { display: none; }
+/* Destaque (ADM no Pilulas.cs, venda) no tom pálido do verde-petróleo */
+.chip-brand, .pill-forte { color: var(--accent-ink); background: var(--accent-soft); border-color: transparent; }
+.chip-success { color: var(--pill-positive-ink); background: var(--pill-positive-bg); border-color: var(--pill-positive-line); }
+.chip-warning, .pill-alerta { color: var(--pill-warning-ink); background: var(--pill-warning-bg); border-color: var(--pill-warning-line); }
+.chip-danger, .pill-erro { color: var(--pill-negative-ink); background: var(--pill-negative-bg); border-color: var(--pill-negative-line); }
+/* Informação e vendedor (pill-azul do Pilulas.cs): neutro com borda, para não virar um segundo destaque */
+.chip-info, .pill-azul { color: var(--text); background: var(--surface); border-color: var(--control); }
+/* Tons antigos que chegam pelo SeloTom do KpiCard */
+.chip-violet, .chip-slate { color: var(--pill-neutral-ink); background: var(--pill-neutral-bg); }
+
+/* Contador (menu e abas): neutro, 12px */
+.contador {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px; height: 20px;
+  padding: 0 6px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  background: var(--active);
+  color: var(--text);
+}
+/* Contador de fila que pede ação (estoque baixo): vermelho chapado */
+.contador-danger { background: var(--negative); color: #fff; }
+[data-theme="dark"] .contador-danger { color: #111314; }
+
+/* ===================== Bolha de ícone ===================== */
+/* Bolha neutra (sem quadrado colorido); os tons de estado ficam só para toasts e avisos */
+.bubble {
+  --bubble: 32px;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--bubble); height: var(--bubble);
+  border-radius: var(--r-control);
+  color: var(--muted);
+  background: var(--raised);
+}
+.bubble svg { width: 18px; height: 18px; }
+.bubble-sm { --bubble: 28px; }
+.bubble-sm svg { width: 16px; height: 16px; }
+.bubble-lg { --bubble: 40px; }
+.bubble-lg svg { width: 20px; height: 20px; }
+/* Tons do Tom do KpiCard (brand, violet, slate, info) viram neutros */
+.bubble-brand, .bubble-info, .bubble-slate, .bubble-violet { color: var(--muted); background: var(--raised); }
+.bubble-success { color: var(--pill-positive-ink); background: var(--pill-positive-bg); }
+.bubble-warning { color: var(--pill-warning-ink); background: var(--pill-warning-bg); }
+.bubble-danger { color: var(--pill-negative-ink); background: var(--pill-negative-bg); }
+/* Bolha sólida: fundo do botão principal */
+.bubble-solid { color: var(--on-primary-fill); background: var(--primary-fill); }
+/* Nos títulos de seção e de card a bolha vira só o ícone cinza de 16px (sem caixa repetida em cada título) */
+.form-section-head h2 .bubble, .ui-card-title .bubble {
+  --bubble: auto;
+  width: auto; height: auto;
+  background: transparent;
+  color: var(--faint);
+}
+.form-section-head h2 .bubble svg, .ui-card-title .bubble svg { width: 16px; height: 16px; }
+
+/* ===================== Avatar com iniciais ===================== */
+/* Tinta pálida da matiz de cada pessoa (Visual.Matiz), texto escuro da mesma matiz */
+.avatar {
+  --h: 200;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--h) 45% 24%);
+  background: hsl(var(--h) 32% 88%);
+}
+[data-theme="dark"] .avatar { color: hsl(var(--h) 40% 84%); background: hsl(var(--h) 22% 22%); }
+.avatar-sm { width: 28px; height: 28px; font-size: 11px; }
+.avatar-lg { width: 48px; height: 48px; font-size: 17px; }
+/* Avatar grande do perfil: anel da cor da folha, sem sombra */
+.avatar-xl { width: 80px; height: 80px; font-size: 28px; box-shadow: 0 0 0 4px var(--surface); }
+
+/* ===================== Miniatura de produto (placeholder) ===================== */
+/* Etiqueta de produto: tinta pálida chapada da matiz do nome (sem gradiente) */
+.thumb {
+  --h: 200;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 40px; height: 40px;
+  border-radius: var(--r-control);
+  overflow: hidden;
+  color: hsl(var(--h) 45% 24%);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 14px;
+  background: hsl(var(--h) 26% 90%);
+}
+[data-theme="dark"] .thumb { color: hsl(var(--h) 40% 84%); background: hsl(var(--h) 20% 20%); }
+/* Caixa discreta no canto, na mesma cor do texto */
+.thumb svg { position: absolute; right: -6px; bottom: -6px; width: 60%; height: 60%; opacity: .14; color: currentColor; }
+.thumb span { position: relative; }
+.thumb-sm { width: 32px; height: 32px; border-radius: var(--r-sm); font-size: 12px; }
+/* Na miniatura pequena a caixa ao fundo vira ruído: some */
+.thumb-sm svg { display: none; }
+.thumb-lg { width: 64px; height: 64px; border-radius: var(--r-card); font-size: 22px; }
+.thumb-card { width: 100%; height: auto; aspect-ratio: 16 / 10; border-radius: var(--r-sm); font-size: 26px; }
+.thumb-card svg { width: 44%; height: 44%; right: -4%; bottom: -8%; }
+
+/* ===================== Régua de estoque (elemento próprio do Sistema) ===================== */
+/* Trilho fino com o estoque preenchido e um tique no mínimo (Produto.EstoqueMinimo);
+   neutro quando está bem, âmbar no mínimo, vazio quando zerado. O número fica em texto ao lado */
+.regua { position: relative; display: block; height: 6px; min-width: 72px; border-radius: 3px; background: var(--active); }
+.regua-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--muted); }
+.regua-baixo .regua-fill { background: var(--warning); }
+.regua-marco { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--text); }
+/* Célula com a régua e o número em texto */
+.estoque-cel { display: grid; grid-template-columns: minmax(72px, 120px) auto; align-items: center; gap: var(--s-3); }
+.estoque-cel .chip { justify-self: start; }
+
+/* ===================== Tabelas ===================== */
+.table-card { overflow: hidden; }
+.table-wrap { width: 100%; overflow-x: auto; }
+.table-ui { width: 100%; margin: 0; border-collapse: separate; border-spacing: 0; color: var(--text); }
+/* Cabeçalho: 12px cinza, caixa normal, sem faixa; uma linha embaixo, a mais forte da tabela */
+.table-ui thead th {
+  position: sticky; top: 0;
+  padding: 10px var(--s-4);
+  font-size: var(--fs-xs);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  text-align: left;
+}
+/* Linhas de 1px um tom acima da folha; sem zebra */
+.table-ui tbody td {
+  padding: 12px var(--s-4);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface);
+  transition: background-color var(--t-fast) var(--ease);
+}
+.table-ui tbody tr:last-child td { border-bottom: 0; }
+.table-ui tbody tr:hover td { background: var(--raised); }
+.table-ui th:first-child, .table-ui td:first-child { padding-left: var(--s-5); }
+.table-ui th:last-child, .table-ui td:last-child { padding-right: var(--s-5); }
+/* Números à direita em algarismos tabulares */
+.table-ui .num, .table-ui .text-end { text-align: right; font-variant-numeric: tabular-nums; }
+.table-ui .acoes-col { width: 1%; white-space: nowrap; text-align: right; }
+
+/* Célula com miniatura/avatar + nome + linha de apoio */
+.cell-main { display: flex; align-items: center; gap: var(--s-3); min-width: 0; }
+.cell-main > div { min-width: 0; }
+.cell-title { display: block; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+a.cell-title:hover { color: var(--accent); }
+.cell-sub { display: block; font-size: var(--fs-xs); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Ações de linha: botões fantasma com ícone */
+.row-actions { display: inline-flex; align-items: center; gap: 2px; }
+.row-actions .btn { --btn-h: 32px; }
+.row-actions .btn-icon svg { width: 16px; height: 16px; }
+
+/* Bootstrap .table (Identity) com a mesma cara */
+.table { --bs-table-bg: transparent; --bs-table-color: var(--text); --bs-table-border-color: var(--rule); color: var(--text); }
+
+/* Celular: cada linha vira um bloco de duas linhas; o rótulo vem do data-label da célula */
+@media (max-width: 767.98px) {
+  .table-ui.table-stack thead { display: none; }
+  .table-ui.table-stack, .table-ui.table-stack tbody, .table-ui.table-stack tr, .table-ui.table-stack td { display: block; width: 100%; }
+  .table-card:has(.table-stack) { background: transparent; border: 0; overflow: visible; }
+  .table-ui.table-stack tbody { display: grid; gap: var(--s-3); }
+  /* Bloco da linha com borda, sem sombra */
+  .table-ui.table-stack tr {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s-1) 0;
+  }
+  .table-ui.table-stack tr[hidden] { display: none; }
+  .table-ui.table-stack td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    padding: 8px var(--s-4) !important;
+    border: 0;
+    text-align: right;
+    background: transparent !important;
+  }
+  .table-ui.table-stack td::before {
+    content: attr(data-label);
+    flex: none;
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    color: var(--muted);
+    text-align: left;
+  }
+  /* Primeira célula (nome) sem rótulo, como título do bloco */
+  .table-ui.table-stack td.cell-head { padding-top: var(--s-3) !important; padding-bottom: var(--s-3) !important; border-bottom: 1px solid var(--rule); margin-bottom: var(--s-1); text-align: left; }
+  .table-ui.table-stack td.cell-head::before { display: none; }
+  .table-ui.table-stack td.acoes-col { justify-content: flex-end; width: 100%; border-top: 1px solid var(--rule); margin-top: var(--s-1); padding-top: var(--s-2) !important; }
+  .table-ui.table-stack td.acoes-col::before { display: none; }
+  /* Régua no celular fica mais curta, ao lado do número */
+  .table-ui.table-stack .estoque-cel { grid-template-columns: 72px auto; }
+}
+
+/* ===================== Alertas e avisos ===================== */
+/* Aviso plano: raio 6, par pálido por estado */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-control);
+  border: 1px solid var(--border);
+  background: var(--raised);
+  color: var(--text);
+  font-size: var(--fs-sm);
+}
+.alert > svg { flex: none; width: 18px; height: 18px; margin-top: 1px; }
+.alert strong { display: block; font-weight: 600; margin-bottom: 2px; }
+.alert-success { color: var(--pill-positive-ink); background: var(--pill-positive-bg); border-color: var(--pill-positive-line); }
+.alert-danger { color: var(--pill-negative-ink); background: var(--pill-negative-bg); border-color: var(--pill-negative-line); }
+.alert-warning { color: var(--pill-warning-ink); background: var(--pill-warning-bg); border-color: var(--pill-warning-line); }
+.alert-info { color: var(--text); background: var(--raised); border-color: var(--border); }
+/* Aviso da marca: tom pálido do destaque */
+.alert-brand { color: var(--accent-ink); background: var(--accent-soft); border-color: transparent; }
+.alert .alert-texto { color: var(--muted); }
+.alert-danger .alert-texto, .alert-warning .alert-texto, .alert-success .alert-texto, .alert-info .alert-texto, .alert-brand .alert-texto { color: inherit; opacity: .92; }
+.alert-dismissible { padding-right: var(--s-4); }
+.alert-dismissible .btn-close { position: static; margin-left: auto; padding: 4px; }
+
+/* ===================== Toasts ===================== */
+.toast-stack {
+  position: fixed;
+  right: var(--s-6);
+  bottom: var(--s-6);
+  z-index: 1080;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  width: min(380px, calc(100vw - 32px));
+  pointer-events: none;
+}
+/* Toast flutua: é o único lugar com sombra, junto com os menus */
+.toast-x {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  animation: toast-entra 200ms var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+.toast-x.saindo { animation: toast-sai 180ms var(--ease) forwards; }
+.toast-x .bubble { --bubble: 28px; border-radius: var(--r-control); }
+.toast-x .bubble svg { width: 16px; height: 16px; }
+.toast-x-corpo { flex: 1; min-width: 0; padding-top: 3px; }
+.toast-x-titulo { display: block; font-weight: 600; font-size: var(--fs-sm); }
+.toast-x-texto { display: block; font-size: var(--fs-sm); color: var(--muted); }
+.toast-x-fechar {
+  flex: none;
+  width: 28px; height: 28px;
+  display: inline-grid; place-items: center;
+  border: 0; border-radius: var(--r-control);
+  background: transparent; color: var(--faint);
+  cursor: pointer;
+}
+.toast-x-fechar:hover { background: var(--active); color: var(--text); }
+.toast-x-fechar svg { width: 16px; height: 16px; }
+/* Barra de tempo de 2px no pé do toast, na cor do estado */
+.toast-x::after {
+  content: "";
+  position: absolute; left: 0; bottom: 0;
+  height: 2px; width: 100%;
+  background: var(--toast-cor, var(--accent));
+  transform-origin: left;
+  animation: toast-tempo 5s linear forwards;
+}
+.toast-x:hover::after { animation-play-state: paused; }
+.toast-sucesso { --toast-cor: var(--positive); }
+.toast-erro { --toast-cor: var(--negative); }
+.toast-aviso { --toast-cor: var(--warning); }
+@keyframes toast-entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes toast-sai { to { opacity: 0; transform: translateX(16px); } }
+@keyframes toast-tempo { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@media (max-width: 575.98px) {
+  .toast-stack { right: 16px; left: 16px; bottom: 16px; width: auto; }
+}
+
+/* ===================== Cabeçalho de página ===================== */
+/* Título-substantivo de 22px, uma linha de apoio e as ações à direita */
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-bottom: var(--s-6);
+}
+.page-header-texto { display: flex; align-items: center; gap: var(--s-3); min-width: 0; }
+/* A bolha de ícone ao lado do título saiu do design */
+.page-header-texto > .bubble { display: none; }
+.page-header h1 { font-size: var(--fs-2xl); font-weight: 600; }
+.page-header-sub { margin: 4px 0 0; color: var(--muted); font-size: var(--fs-base); max-width: 720px; }
+.page-header-sub strong { color: var(--text); font-weight: 600; }
+.page-header-acoes { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.voltar {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-bottom: var(--s-2);
+  font-size: var(--fs-sm); font-weight: 500;
+  color: var(--muted);
+}
+.voltar svg { width: 15px; height: 15px; transform: rotate(180deg); }
+.voltar:hover { color: var(--text); }
+@media (max-width: 575.98px) {
+  .page-header h1 { font-size: 20px; }
+  .page-header-acoes, .page-header-acoes .btn { width: 100%; }
+}
+
+/* ===================== Barra de ferramentas e busca ===================== */
+/* Busca de 32px à esquerda, contagem à direita */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--rule);
+}
+.toolbar .busca { flex: 1 1 260px; max-width: 320px; }
+.toolbar .form-control { min-height: 32px; padding-top: 4px; padding-bottom: 4px; }
+.toolbar-info { font-size: var(--fs-sm); color: var(--muted); font-variant-numeric: tabular-nums; }
+@media (max-width: 767.98px) {
+  .table-card .toolbar { padding: 0 0 var(--s-4); border: 0; }
+  .toolbar .busca { max-width: none; }
+}
+
+/* ===================== Abas (antes segmentadas, agora sublinhadas) ===================== */
+/* Abas sobre uma linha de 1px; a ativa ganha um traço de 2px no verde-petróleo */
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-6);
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border-bottom: 1px solid var(--border);
+}
+.segmented a, .segmented button {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 40px;
+  padding: 0;
+  margin-bottom: -1px;
+  border-radius: 0;
+  font-size: var(--fs-base);
+  font-weight: 400;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.segmented a:hover { color: var(--text); border-bottom-color: var(--control); }
+/* No celular as abas rolam de lado em vez de quebrar linha */
+@media (max-width: 575.98px) {
+  .segmented { flex-wrap: nowrap; max-width: 100%; overflow-x: auto; scrollbar-width: none; gap: var(--s-5); }
+  .segmented a, .segmented button { flex: none; white-space: nowrap; }
+}
+.segmented .ativo, .segmented .active, .segmented [aria-current="page"] {
+  color: var(--text);
+  font-weight: 500;
+  background: transparent;
+  box-shadow: none;
+  border-bottom-color: var(--accent);
+}
+
+/* ===================== Estado vazio ===================== */
+/* O bloco mantém a moldura: ilustração pequena, título curto, uma frase e a ação */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--s-10) var(--s-6);
+}
+.empty-state img { width: 140px; max-width: 60%; height: auto; margin-bottom: var(--s-4); }
+.empty-state h2 { font-size: var(--fs-md); margin-bottom: var(--s-1); }
+.empty-state p { max-width: 420px; color: var(--muted); margin-bottom: var(--s-5); }
+.empty-state .acoes { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s-2); }
+.empty-state.compacto { padding: var(--s-6) var(--s-4); }
+.empty-state.compacto img { width: 96px; margin-bottom: var(--s-3); }
+.sem-resultado { padding: var(--s-8) var(--s-4); text-align: center; color: var(--muted); }
+.sem-resultado img { width: 96px; display: block; margin: 0 auto var(--s-3); }
+
+/* ===================== KPI ===================== */
+/* KPI é tipo, não ladrilho: rótulo cinza em cima, número grande em peso 400 */
+.kpi { padding: var(--s-4) var(--s-5); display: flex; flex-direction: column; gap: var(--s-2); height: 100%; }
+.kpi-topo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.kpi-topo .bubble { display: none; }
+.kpi-rotulo { font-size: var(--fs-base); font-weight: 500; color: var(--muted); }
+.kpi-valor {
+  font-family: var(--font-sans);
+  font-size: var(--fs-kpi);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.kpi-rodape { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: var(--fs-sm); color: var(--muted); margin-top: auto; }
+/* Selo do rodapé vira texto cinza; a cor só aparece no KPI em alerta */
+.kpi-rodape .chip { height: auto; padding: 0; background: transparent; border: 0; color: var(--text); font-weight: 500; font-size: var(--fs-sm); }
+.kpi-rodape .chip::before { display: none; }
+.kpi-rodape .chip + span::before { content: "· "; }
+/* KPI de alerta: só o número e o selo no tom de aviso, sem filete nem borda colorida */
+.kpi-alerta .kpi-valor { color: var(--warning); }
+.kpi-alerta .kpi-rodape .chip-danger { color: var(--negative); }
+.kpi-alerta .kpi-rodape .chip-warning { color: var(--warning); }
+@media (max-width: 575.98px) { .kpi-valor { font-size: 24px; } }
+
+/* ===================== Lista de detalhes (Details/Delete) ===================== */
+.detail-grid { display: grid; gap: 0; margin: 0; }
+/* Pares rótulo/valor separados por réguas finas */
+.detail-grid > div {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: var(--s-4);
+  padding: var(--s-3) var(--s-5);
+  border-top: 1px solid var(--rule);
+}
+.detail-grid > div:first-child { border-top: 0; }
+.detail-grid dt { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-base); font-weight: 400; color: var(--muted); }
+.detail-grid dt svg { width: 15px; height: 15px; color: var(--faint); }
+.detail-grid dd { margin: 0; color: var(--text); font-weight: 500; overflow-wrap: anywhere; }
+@media (max-width: 575.98px) {
+  .detail-grid > div { grid-template-columns: 1fr; gap: 2px; padding: var(--s-3) var(--s-4); }
+}
+
+/* Cabeçalho de objeto: miniatura + nome + metadados, sem faixa tinta */
+.object-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  background: transparent;
+  border-bottom: 1px solid var(--rule);
+  border-radius: var(--r-card) var(--r-card) 0 0;
+}
+.object-header-texto { flex: 1; min-width: 200px; }
+.object-header h1, .object-header h2 { font-size: 18px; font-weight: 600; }
+.object-header-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); margin-top: 4px; font-size: var(--fs-sm); color: var(--muted); }
+.object-header-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.object-header-meta svg { width: 14px; height: 14px; color: var(--faint); }
+
+/* Card de exclusão: borda vermelha clara e a consequência escrita em destaque */
+.danger-card { border-color: var(--pill-negative-line); }
+.danger-card .object-header { background: transparent; }
+.danger-zone {
+  display: flex; gap: var(--s-3); align-items: flex-start;
+  margin: var(--s-5); margin-bottom: 0;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-control);
+  background: var(--pill-negative-bg);
+  border: 1px solid var(--pill-negative-line);
+  color: var(--pill-negative-ink);
+}
+.danger-zone > svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+.danger-zone strong { display: block; }
+.danger-zone p { margin: 2px 0 0; font-size: var(--fs-sm); opacity: .92; }
+
+/* ===================== Menu de ações (três pontos e usuário) ===================== */
+.menu-acoes { position: relative; display: inline-block; }
+/* Menu flutua: sombra permitida */
+.menu-acoes-lista {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 50;
+  min-width: 200px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-lg);
+  text-align: left;
+  animation: menu-entra 120ms var(--ease);
+}
+.menu-acoes-lista[hidden] { display: none; }
+.menu-acoes-lista a, .menu-acoes-lista button {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 0; border-radius: var(--r-control);
+  background: transparent;
+  font-size: var(--fs-base); font-weight: 400;
+  color: var(--text);
+  text-align: left;
+}
+.menu-acoes-lista a:hover, .menu-acoes-lista button:hover, .menu-acoes-lista a:focus-visible { background: var(--active); color: var(--text); }
+.menu-acoes-lista svg { width: 16px; height: 16px; color: var(--faint); }
+.menu-acoes-lista .perigo, .menu-acoes-lista .perigo svg { color: var(--negative); }
+.menu-acoes-lista .perigo:hover { background: var(--pill-negative-bg); color: var(--pill-negative-ink); }
+.menu-acoes-lista hr { margin: 4px 2px; }
+.menu-acoes-cabeca { padding: 8px 10px 10px; border-bottom: 1px solid var(--rule); margin-bottom: 4px; }
+.menu-acoes-cabeca strong { display: block; font-size: var(--fs-base); font-weight: 600; }
+.menu-acoes-cabeca span { display: block; font-size: var(--fs-xs); color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+@keyframes menu-entra { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+/* ===================== Skeleton ===================== */
+/* Carregando: barra chapada no tamanho final, sem brilho em gradiente */
+.skeleton {
+  display: block;
+  border-radius: var(--r-control);
+  background: var(--raised);
+}
+
+/* ===================== Passos (conta aguardando liberação) ===================== */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-3); }
+.steps li { display: flex; align-items: center; gap: var(--s-3); color: var(--muted); }
+.steps .passo-marca {
+  display: inline-grid; place-items: center; flex: none;
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 1px solid var(--input-line);
+  font-size: 12px; font-weight: 500; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+/* Passo feito em verde de estado; passo atual no verde-petróleo */
+.steps .feito .passo-marca { border-color: var(--positive); background: var(--positive); color: #fff; }
+[data-theme="dark"] .steps .feito .passo-marca { color: #111314; }
+.steps .feito .passo-marca svg { width: 14px; height: 14px; }
+.steps .atual .passo-marca { border: 2px solid var(--accent); color: var(--accent); }
+.steps .atual { color: var(--text); font-weight: 500; }
+
+/* ===================== Navegação vertical (Manage do Identity) ===================== */
+/* Mesma pílula cinza do menu lateral */
+.nav-pills { gap: 2px; }
+.nav-pills .nav-link {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: var(--r-control);
+  color: var(--muted);
+  font-weight: 400;
+  transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.nav-pills .nav-link svg { width: 16px; height: 16px; color: var(--faint); }
+.nav-pills .nav-link:hover { background: var(--active); color: var(--text); }
+.nav-pills .nav-link.active { background: var(--active); color: var(--text); font-weight: 500; }
+.nav-pills .nav-link.active svg { color: var(--text); }
+
+/* Botão de fechar do Bootstrap visível no escuro */
+[data-theme="dark"] .btn-close { filter: invert(1) grayscale(1) brightness(1.8); }

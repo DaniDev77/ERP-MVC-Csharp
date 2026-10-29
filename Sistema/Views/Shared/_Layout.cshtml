@@ -1,7 +1,6 @@
-@* Casca do sistema: barra lateral com a navegação de cada função e o conteúdo à direita *@
+@* Casca do sistema: sidebar branca fixa (drawer no celular), topbar com busca, tema e usuário, e o conteúdo *@
 @using Microsoft.AspNetCore.Authorization
 @using Sistema.Authorization
-@using Sistema.Helpers
 @inject IAuthorizationService AuthorizationService
 @{
     // Políticas que decidem o que cada função enxerga no menu (ADM passa em todas as de venda e compra)
@@ -11,119 +10,160 @@
     var veMeuDesempenho = (await AuthorizationService.AuthorizeAsync(User, Politicas.SomenteVendedor)).Succeeded;
     var logado = User.Identity?.IsAuthenticated == true;
 
-    // Marca o item do menu da página atual (pelo nome do controller)
-    string Ativo(string controller) =>
-        string.Equals((string?)ViewContext.RouteData.Values["controller"], controller, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    // Marca a seção da página atual (pelo controller e, quando informada, pela action)
+    bool EhAtivo(string controller, string? action = null) =>
+        string.Equals((string?)ViewContext.RouteData.Values["controller"], controller, StringComparison.OrdinalIgnoreCase)
+        && (action == null || string.Equals((string?)ViewContext.RouteData.Values["action"], action, StringComparison.OrdinalIgnoreCase));
 
-    // Item de navegação: ícone, nome e marcação de página atual, sem repetir o markup
-    string Item(string controller, string action, string icone, string rotulo) =>
-        $"<a class=\"nav-app-link {Ativo(controller)}\" href=\"{Url.Action(action, controller)}\">{Icones.Get(icone)}<span>{rotulo}</span></a>";
+    // Item do menu: ícone + texto; a seção atual leva a classe "ativo" e aria-current
+    string Item(string controller, string action, string rotulo, string icone, bool porAction = false)
+    {
+        var ativo = EhAtivo(controller, porAction ? action : null) && (porAction || !EhAtivo("Produto", "EstoqueBaixo"));
+        return $"<a class=\"nav-item-x {(ativo ? "ativo" : "")}\" href=\"{Url.Action(action, controller, new { area = "" })}\" {(ativo ? "aria-current=\"page\"" : "")}>{Icones.Get(icone)}<span>{rotulo}</span></a>";
+    }
 }
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
     <title>@ViewData["Title"] · Sistema</title>
+    @* Aplica o tema salvo antes de pintar (arquivo próprio: a CSP não aceita script inline) *@
+    <script src="~/js/theme-init.js" asp-append-version="true"></script>
+    <link rel="icon" href="~/img/logo.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap" rel="stylesheet" />
+    @* Redesign: uma família só, IBM Plex Sans (texto, títulos e números) e IBM Plex Mono para códigos; mesmo domínio liberado na CSP *@
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @* Design system próprio, em camadas: tokens → base → componentes → casca → páginas *@
+    <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/base.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages.css" asp-append-version="true" />
 </head>
 <body>
     <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
-    <div class="app-shell">
-        <aside class="sidebar">
-            <a class="brand" asp-controller="Home" asp-action="Index" aria-label="Sistema, início">
-                @* Marca própria: três barras de estoque; a azul é o dado principal, a única cor da marca *@
-                <svg class="brand-mark" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
-                    <rect x="2.5" y="14" width="5" height="11.5" rx="1.5" fill="currentColor" />
-                    <rect x="11.5" y="8" width="5" height="17.5" rx="1.5" fill="currentColor" />
-                    <rect x="20.5" y="3" width="5" height="22.5" rx="1.5" fill="var(--chart)" />
-                </svg>
-                <span class="brand-name">Sistema<small>Vendas e estoque</small></span>
-            </a>
+    <div class="app">
+        @* ---------- Sidebar ---------- *@
+        <aside class="sidebar" id="menu" aria-label="Menu lateral">
+            <div class="d-flex align-items-center">
+                <a class="sidebar-marca" asp-area="" asp-controller="Home" asp-action="Index" aria-label="Sistema, ir para o início">
+                    <partial name="_Logo" />
+                </a>
+                <button type="button" class="icon-btn sidebar-fechar me-3" aria-label="Fechar menu" data-menu-fechar>@Html.Raw(Icones.Get("fechar"))</button>
+            </div>
 
-            <nav aria-label="Menu principal" class="sidebar-nav">
+            <nav class="sidebar-nav" aria-label="Menu principal">
                 @if (logado)
                 {
-                    <div class="nav-group">
-                        @Html.Raw(Item("Home", "Index", "inicio", "Início"))
-                    </div>
+                    @Html.Raw(Item("Home", "Index", "Início", "inicio"))
                 }
-
-                @* Operação: quem vende, quem compra e o desempenho do vendedor *@
-                @if (logado && (podeVender || podeComprar || veMeuDesempenho))
+                @* Operação: o que se faz no balcão todos os dias *@
+                @if (logado && (podeVender || podeComprar || veMeuDesempenho || podeAdmin))
                 {
-                    <div class="nav-group">
-                        <div class="nav-group-title">Operação</div>
-                        @if (podeVender)
-                        {
-                            @Html.Raw(Item("Venda", "Create", "venda", "Venda"))
-                        }
-                        @if (podeComprar)
-                        {
-                            @Html.Raw(Item("Compra", "Create", "compra", "Compra"))
-                        }
-                        @if (veMeuDesempenho)
-                        {
-                            @Html.Raw(Item("Desempenho", "Vendedor", "desempenho", "Meu desempenho"))
-                        }
-                    </div>
+                    <div class="nav-grupo">Operação</div>
+                    @if (podeVender)
+                    {
+                        @Html.Raw(Item("Venda", "Create", "Registrar venda", "venda"))
+                    }
+                    @if (podeComprar)
+                    {
+                        @Html.Raw(Item("Compra", "Create", "Registrar compra", "compra"))
+                    }
+                    @if (veMeuDesempenho)
+                    {
+                        @Html.Raw(Item("Desempenho", "Vendedor", "Meu desempenho", "desempenho", porAction: true))
+                    }
+                    @if (podeAdmin)
+                    {
+                        @Html.Raw(Item("Desempenho", "Index", "Desempenho", "desempenho", porAction: true))
+                        @await Component.InvokeAsync("EstoqueBaixo")
+                    }
                 }
-
-                @* Estoque e relatórios: só ADM. O aviso de estoque baixo aparece aqui sozinho *@
+                @* Cadastros e equipe: só o administrador *@
                 @if (podeAdmin)
                 {
-                    <div class="nav-group">
-                        <div class="nav-group-title">Gestão</div>
-                        @Html.Raw(Item("Desempenho", "Index", "desempenho", "Desempenho"))
-                        @Html.Raw(Item("Produto", "Index", "produtos", "Produtos"))
-                        @await Component.InvokeAsync("EstoqueBaixo")
-                    </div>
-                    <div class="nav-group">
-                        <div class="nav-group-title">Cadastros</div>
-                        @Html.Raw(Item("Fonecedor", "Index", "fornecedores", "Fornecedores"))
-                        @Html.Raw(Item("TipoProduto", "Index", "tipos", "Tipos de produto"))
-                        @Html.Raw(Item("Usuario", "Index", "usuarios", "Usuários"))
-                        @Html.Raw(Item("Funcao", "Index", "funcoes", "Funções"))
-                    </div>
+                    <div class="nav-grupo">Cadastros</div>
+                    @Html.Raw(Item("Produto", "Index", "Produtos", "produtos"))
+                    @Html.Raw(Item("Fonecedor", "Index", "Fornecedores", "fornecedores"))
+                    @Html.Raw(Item("TipoProduto", "Index", "Tipos de produto", "tipos"))
+                    <div class="nav-grupo">Equipe</div>
+                    @Html.Raw(Item("Usuario", "Index", "Usuários", "usuarios"))
+                    @Html.Raw(Item("Funcao", "Index", "Funções", "funcoes"))
+                }
+                @if (logado)
+                {
+                    <div class="nav-grupo">Conta</div>
+                    @Html.Raw(Item("Perfil", "Index", "Meu perfil", "perfil"))
+                }
+                @if (!logado)
+                {
+                    <a class="nav-item-x" asp-area="Identity" asp-page="/Account/Login">@Html.Raw(Icones.Get("perfil"))<span>Entrar</span></a>
                 }
             </nav>
 
-            <div class="sidebar-footer">
-                <partial name="_LoginPartial" />
-            </div>
+            @* Atalho para a ação mais frequente de quem está logado *@
+            @* Redesign: o card de "upsell" virou um botão principal simples, fora do <nav> (a busca global só indexa os links do nav) *@
+            @if (podeVender || podeComprar)
+            {
+                <div class="sidebar-rodape">
+                    <a class="btn btn-primary sidebar-acao" asp-area="" asp-controller="@(podeVender ? "Venda" : "Compra")" asp-action="Create">@Html.Raw(Icones.Get("mais"))<span>@(podeVender ? "Registrar venda" : "Registrar compra")</span></a>
+                </div>
+            }
         </aside>
 
-        <main class="main" id="conteudo" role="main" tabindex="-1">
-            <div class="content-enter">
-                @* Confirmação e erros vindos de um redirecionamento: aparecem uma vez, no topo da página *@
-                @if (TempData["Sucesso"] is string sucesso)
+        <div class="main-area">
+            @* ---------- Topbar ---------- *@
+            <header class="topbar">
+                <button type="button" class="icon-btn topbar-menu" aria-controls="menu" aria-expanded="false" aria-label="Abrir menu" data-menu-abrir>
+                    @Html.Raw(Icones.Get("menu"))
+                </button>
+
+                @if (logado)
                 {
-                    <div class="flash flash-ok" role="status">
-                        @Html.Raw(Icones.Get("check"))
-                        <span>@sucesso</span>
+                    @* Busca rápida: leva às telas do menu (site.js) *@
+                    <div class="topbar-busca input-icon position-relative" role="search">
+                        @Html.Raw(Icones.Get("buscar"))
+                        <input type="search" class="form-control" placeholder="Ir para… (ex.: produtos)" aria-label="Buscar uma tela do sistema"
+                               autocomplete="off" role="combobox" aria-expanded="false" aria-controls="buscaResultados" data-busca-global />
+                        <kbd aria-hidden="true">/</kbd>
+                        <div class="menu-acoes-lista" id="buscaResultados" role="listbox" hidden></div>
                     </div>
                 }
-                @if (TempData["Erro"] is string erro)
-                {
-                    <div class="flash flash-erro" role="alert">
-                        @Html.Raw(Icones.Get("alerta"))
-                        <span>@erro</span>
-                    </div>
-                }
-                @RenderBody()
+
+                <div class="topbar-direita">
+                    <button type="button" class="icon-btn" data-tema-alternar aria-pressed="false" aria-label="Usar tema escuro">
+                        <span class="icone-lua">@Html.Raw(Icones.Get("lua"))</span>
+                        <span class="icone-sol">@Html.Raw(Icones.Get("sol"))</span>
+                    </button>
+                    <partial name="_LoginPartial" />
+                </div>
+            </header>
+
+            @* Redesign: conteúdo e rodapé ficam numa "folha" branca sobre a moldura (ver .sheet no layout.css) *@
+            <div class="sheet">
+                <main class="content" id="conteudo" role="main" tabindex="-1">
+                    @RenderBody()
+                </main>
+
+                <footer class="app-footer">
+                    <span>Sistema · vendas e estoque</span>
+                    <time datetime="@DateTime.Today.ToString("yyyy-MM-dd")">@DateTime.Today.ToString("dddd, dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("pt-BR"))</time>
+                </footer>
             </div>
-            <footer class="site-footer">Sistema · vendas e estoque</footer>
-        </main>
+        </div>
     </div>
+
+    @* Mensagens de TempData como toasts *@
+    <partial name="_Toast" />
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <script src="~/js/site.js" asp-append-version="true"></script>
 </body>
 </html>

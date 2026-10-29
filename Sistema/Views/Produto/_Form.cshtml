@@ -1,44 +1,86 @@
 @model Sistema.Models.Produto
 
-@* Campos compartilhados por Criar e Editar; o estoque pode ser alterado aqui para repor o produto *@
-<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+@* Campos compartilhados por Criar e Editar, em seções; o estoque pode ser alterado aqui para repor o produto *@
+<div asp-validation-summary="ModelOnly" class="alert alert-danger m-4 mb-0" role="alert"></div>
 
-<div class="mb-3">
-    <label asp-for="Name" class="form-label"></label>
-    <input asp-for="Name" class="form-control" />
-    <span asp-validation-for="Name" class="text-danger"></span>
-</div>
+<section class="form-section">
+    <div class="form-section-head">
+        <h2><span class="bubble bubble-sm" aria-hidden="true">@Html.Raw(Icones.Get("etiqueta"))</span>Informações básicas</h2>
+        <p>Como o produto aparece nas listas e no PDV.</p>
+    </div>
+    <div class="form-grid">
+        <div>
+            <label asp-for="Name" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("produtos"))
+                <input asp-for="Name" class="form-control" placeholder="Ex.: Refrigerante cola 2 L" autofocus />
+            </div>
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div>
+            <label asp-for="Descricao" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("texto"))
+                <input asp-for="Descricao" class="form-control" placeholder="Ex.: Garrafa PET, sabor original" />
+            </div>
+            <span asp-validation-for="Descricao" class="text-danger"></span>
+        </div>
+    </div>
+</section>
 
-<div class="mb-3">
-    <label asp-for="Descricao" class="form-label"></label>
-    <input asp-for="Descricao" class="form-control" />
-    <span asp-validation-for="Descricao" class="text-danger"></span>
-</div>
+<section class="form-section">
+    <div class="form-section-head">
+        <h2><span class="bubble bubble-sm bubble-success" aria-hidden="true">@Html.Raw(Icones.Get("moeda"))</span>Preço e estoque</h2>
+        <p>Com @Sistema.Models.Produto.EstoqueMinimo unidades ou menos, o produto entra no alerta de estoque baixo.</p>
+    </div>
+    <div class="form-grid cols-2">
+        <div>
+            <label asp-for="Preco" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("moeda"))
+                <input asp-for="Preco" class="form-control" placeholder="0,00" inputmode="decimal" />
+            </div>
+            <span class="form-text">Valor de venda em reais.</span>
+            <span asp-validation-for="Preco" class="text-danger"></span>
+        </div>
+        <div>
+            <label asp-for="Estoque" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("caixa"))
+                <input asp-for="Estoque" class="form-control" placeholder="0" inputmode="numeric" />
+            </div>
+            <span class="form-text">Quantidade disponível agora.</span>
+            <span asp-validation-for="Estoque" class="text-danger"></span>
+        </div>
+    </div>
+</section>
 
-<div class="mb-3">
-    <label asp-for="Preco" class="form-label"></label>
-    <input asp-for="Preco" class="form-control" />
-    <span asp-validation-for="Preco" class="text-danger"></span>
-</div>
-
-<div class="mb-3">
-    <label asp-for="Estoque" class="form-label"></label>
-    <input asp-for="Estoque" class="form-control" />
-    <span asp-validation-for="Estoque" class="text-danger"></span>
-</div>
-
-<div class="mb-3">
-    <label asp-for="FornecedorId" class="form-label"></label>
-    <select asp-for="FornecedorId" class="form-select" asp-items="ViewBag.Fornecedores">
-        <option value="">-- selecione --</option>
-    </select>
-    <span asp-validation-for="FornecedorId" class="text-danger"></span>
-</div>
-
-<div class="mb-3">
-    <label asp-for="TipoProdutoId" class="form-label"></label>
-    <select asp-for="TipoProdutoId" class="form-select" asp-items="ViewBag.Tipos">
-        <option value="">-- selecione --</option>
-    </select>
-    <span asp-validation-for="TipoProdutoId" class="text-danger"></span>
-</div>
+<section class="form-section">
+    <div class="form-section-head">
+        @* Tom neutro (slate) no lugar do antigo violeta *@
+        <h2><span class="bubble bubble-sm bubble-slate" aria-hidden="true">@Html.Raw(Icones.Get("tipos"))</span>Classificação</h2>
+        <p>De quem vem e em qual categoria fica.</p>
+    </div>
+    <div class="form-grid cols-2">
+        <div>
+            <label asp-for="FornecedorId" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("fornecedores"))
+                <select asp-for="FornecedorId" class="form-select" asp-items="ViewBag.Fornecedores">
+                    <option value="">Selecione um fornecedor</option>
+                </select>
+            </div>
+            <span asp-validation-for="FornecedorId" class="text-danger"></span>
+        </div>
+        <div>
+            <label asp-for="TipoProdutoId" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("tipos"))
+                <select asp-for="TipoProdutoId" class="form-select" asp-items="ViewBag.Tipos">
+                    <option value="">Selecione um tipo</option>
+                </select>
+            </div>
+            <span asp-validation-for="TipoProdutoId" class="text-danger"></span>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,366 @@
+/* =========================================================================
+   pages.css · Estilos específicos de cada tela
+   Home (visão da loja), PDV de venda/compra, produtos, perfil, desempenho e erros
+   Redesign "moldura e folha": sai o hero; KPIs numa faixa única dividida por
+   linhas; o gráfico em 2/3 ao lado da reposição; o carrinho do PDV lido como cupom.
+   ========================================================================= */
+
+/* ===================== Classes do hero antigo (não usadas mais) ===================== */
+/* O hero saiu da Home; estas regras ficam neutras caso alguma tela antiga ainda as use */
+.hero { margin-bottom: var(--s-6); }
+.hero-acoes { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-4); }
+.hero-arte { display: none; }
+/* Botão claro sobre fundo escuro (usado na barra flutuante do carrinho) */
+.btn-on-brand {
+  color: var(--text);
+  background: var(--surface);
+  border-color: transparent;
+  box-shadow: none;
+}
+.btn-on-brand:hover { color: var(--text); background: var(--raised); }
+.btn-glass { color: var(--text); background: transparent; border-color: var(--control); }
+
+/* ===================== Home: KPIs e grade ===================== */
+/* Faixa única de KPIs: um container dividido por linhas de 1px (o gap de 1px mostra a borda por baixo) */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-bottom: var(--gap);
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  overflow: hidden;
+}
+.kpi-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* Cada KPI dentro da faixa perde a moldura própria */
+.kpi-grid > .ui-card { border: 0; border-radius: 0; }
+@media (max-width: 1199.98px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Celular: duas colunas; com três KPIs, o último ocupa a linha inteira (sem meia linha vazia) */
+@media (max-width: 575.98px) {
+  .kpi-grid, .kpi-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi-grid-3 > :last-child { grid-column: 1 / -1; }
+}
+
+/* Gráfico em 2/3 e reposição em 1/3, com o mesmo espaçamento de 24px */
+.dash-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--gap); }
+/* minmax(0, …): o canvas do gráfico não pode alargar a coluna no celular */
+@media (max-width: 1199.98px) { .dash-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Card do gráfico ocupa a altura da linha; o gráfico estica junto */
+.dash-grid > .ui-card:first-child { display: flex; flex-direction: column; }
+.dash-grid > .ui-card:first-child > .ui-card-body { flex: 1; display: flex; flex-direction: column; }
+
+/* Gráfico: barra chapada no lugar até o Chart.js desenhar (sem brilho animado) */
+.grafico { position: relative; flex: 1; min-height: 260px; }
+.grafico canvas { position: relative; z-index: 1; }
+.grafico-skeleton { position: absolute; inset: 0; border-radius: var(--r-control); }
+.grafico.pronto .grafico-skeleton { display: none; }
+html:not(.js) .grafico-skeleton { display: none; }
+/* Mês sem vendas: a linha do zero fica desenhada e uma frase aparece por cima, sem desfoque */
+.grafico-vazio {
+  position: absolute; inset: 0; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  text-align: center;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  border-radius: var(--r-control);
+}
+.grafico-vazio .bubble { display: none; }
+.grafico-vazio span:last-child { color: var(--muted); font-size: var(--fs-sm); }
+@media (max-width: 575.98px) { .grafico { min-height: 200px; } }
+
+/* Lista de reposição: nome e selo na linha de cima, régua de estoque embaixo */
+.estoque-lista { list-style: none; margin: 0; padding: var(--s-1) 0; }
+.estoque-lista li { display: flex; align-items: center; gap: var(--s-3); padding: 10px var(--s-5); border-top: 1px solid var(--rule); transition: background-color var(--t-fast) var(--ease); }
+.estoque-lista li:first-child { border-top: 0; }
+.estoque-lista li:hover { background: var(--raised); }
+.estoque-info { flex: 1; min-width: 0; }
+.estoque-linha { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); margin-bottom: 8px; }
+/* Barra antiga (ainda usada em outras telas): trilho fino e preenchimento chapado */
+.barra { height: 6px; border-radius: 3px; background: var(--active); overflow: hidden; }
+.barra span { display: block; height: 100%; border-radius: inherit; min-width: 2px; transition: width 400ms var(--ease); }
+.barra-success span { background: var(--muted); }
+.barra-warning span { background: var(--warning); }
+.barra-danger span { background: var(--negative); }
+
+/* Três números do estoque no pé do card, em peso 500 e algarismos tabulares */
+.mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); margin: 0; width: 100%; }
+.mini-stats dt { font-size: var(--fs-xs); font-weight: 400; color: var(--muted); }
+.mini-stats dd { margin: 0; font-family: var(--font-sans); font-size: var(--fs-md); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+/* Últimos pedidos: linhas de 56px, valor à direita */
+.pedidos-lista { list-style: none; margin: 0; padding: var(--s-1) 0; }
+.pedidos-lista li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 10px var(--s-5);
+  border-top: 1px solid var(--rule);
+  transition: background-color var(--t-fast) var(--ease);
+}
+.pedidos-lista li:first-child { border-top: 0; }
+.pedidos-lista li:hover { background: var(--raised); }
+.pedido-info { min-width: 0; }
+.pedido-info strong { display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pedido-info span { display: block; font-size: var(--fs-xs); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pedido-total { font-family: var(--font-sans); font-weight: 500; min-width: 104px; text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 575.98px) {
+  .pedidos-lista li { grid-template-columns: auto minmax(0, 1fr) auto; padding: 10px var(--s-4); }
+  .pedidos-lista .chip { display: none; }
+}
+
+/* Espaço entre os blocos da Home igual ao da grade (24px) */
+.dash-grid + .ui-card.mt-4 { margin-top: var(--gap) !important; }
+
+/* ===================== Formulários em card ===================== */
+.form-card { max-width: 1040px; }
+/* Botão que vai para a esquerda do rodapé do card (ex.: Excluir na edição) */
+.ui-card-footer .esquerda-btn { margin-right: auto; }
+.confirm-card { max-width: 760px; }
+@media (max-width: 575.98px) {
+  .form-section { padding: var(--s-5) var(--s-4); }
+  .ui-card-footer { padding: var(--s-4); }
+  .ui-card-footer .btn { flex: 1 1 auto; }
+  .ui-card-footer .esquerda-btn { flex: 0 0 auto; }
+  .object-header { padding: var(--s-4); }
+}
+
+/* ===================== PDV (venda e compra) ===================== */
+/* Catálogo à esquerda e o cupom à direita, com o espaçamento único de 24px */
+.pdv { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: var(--gap); align-items: start; }
+.pdv-erros { grid-column: 1 / -1; margin: 0; }
+.pdv-busca { width: 260px; }
+.pdv-busca .form-control { min-height: 32px; padding-top: 4px; padding-bottom: 4px; }
+
+.pdv-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5) var(--s-5);
+}
+/* Card de produto plano: borda de 1px e raio 8; no hover só a borda escurece */
+.pdv-produto {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  transition: border-color var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
+}
+.pdv-produto[hidden] { display: none; }
+.pdv-produto:hover { border-color: var(--control); }
+/* Produto que já está no cupom: borda no verde-petróleo */
+.pdv-produto.no-carrinho { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+/* Confirmação do "adicionar": um leve aperto no card (transform apenas) */
+.pdv-produto.adicionado { animation: pulo 260ms var(--ease); }
+@keyframes pulo { 40% { transform: scale(.98); } }
+.pdv-produto-img { position: relative; padding: 6px 6px 0; }
+.pdv-produto-img .thumb-card { border-radius: var(--r-sm); }
+/* Selo "N no carrinho" sobre a miniatura, na folha (sem sombra) */
+.pdv-no-carrinho { position: absolute; left: 12px; top: 12px; background: var(--surface); }
+.pdv-produto-corpo { display: flex; flex-direction: column; flex: 1; padding: var(--s-3); }
+.pdv-produto-nome { font-family: var(--font-sans); font-size: var(--fs-base); font-weight: 500; letter-spacing: 0; line-height: 1.3; }
+.pdv-produto-desc { font-size: var(--fs-xs); color: var(--muted); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.pdv-produto-rodape { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s-2); margin-top: auto; padding-top: var(--s-3); }
+/* Preço em 16/600 com algarismos tabulares */
+.pdv-preco { display: block; font-family: var(--font-sans); font-size: var(--fs-md); font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.pdv-estoque { font-size: var(--fs-xs); color: var(--muted); }
+.pdv-estoque.baixo { color: var(--warning); font-weight: 500; }
+/* Botão de adicionar: 36px; no hover vira o botão principal */
+.pdv-add { --btn-h: 36px; border-radius: var(--r-control); }
+.pdv-add:not(:disabled):hover { background: var(--primary-fill); border-color: var(--primary-fill); color: var(--on-primary-fill); }
+
+/* Cupom fixo ao rolar, abaixo da topbar */
+.pdv-carrinho { position: sticky; top: calc(var(--topbar-h) + var(--s-4)); display: flex; flex-direction: column; max-height: calc(100vh - var(--topbar-h) - var(--s-8)); }
+.pdv-cliente { padding: var(--s-4) var(--s-5); border-bottom: 1px solid var(--rule); background: var(--raised); }
+.pdv-linhas { flex: 1; overflow-y: auto; padding: var(--s-1) 0; min-height: 120px; }
+
+/* Linha do cupom: miniatura, nome e preço, quantidade e subtotal à direita */
+.pedido-linha {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "thumb info fim" "thumb qtd fim";
+  align-items: center;
+  column-gap: var(--s-3);
+  row-gap: 6px;
+  padding: var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--rule);
+  animation: linha-entra 160ms var(--ease);
+}
+@keyframes linha-entra { from { opacity: 0; } to { opacity: 1; } }
+.pdv-linha-thumb { grid-area: thumb; align-self: start; }
+.pdv-linha-info { grid-area: info; min-width: 0; }
+.pdv-linha-info strong { display: block; font-weight: 500; font-size: var(--fs-base); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pdv-linha-info > span { display: block; font-size: var(--fs-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
+/* Contador de quantidade com borda de controle */
+.qtd-stepper { grid-area: qtd; display: inline-flex; align-items: center; width: max-content; border: 1px solid var(--control); border-radius: var(--r-control); background: var(--surface); overflow: hidden; }
+.qtd-btn {
+  display: inline-grid; place-items: center;
+  width: 32px; height: 32px;
+  border: 0; background: transparent; color: var(--muted);
+  cursor: pointer;
+  transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.qtd-btn:hover:not(:disabled) { background: var(--active); color: var(--text); }
+.qtd-btn:disabled { opacity: .35; cursor: not-allowed; }
+.qtd-btn svg { width: 14px; height: 14px; }
+.qtd-input.form-control {
+  width: 44px; min-height: 32px; height: 32px; padding: 0 4px;
+  border: 0; border-radius: 0; box-shadow: none;
+  text-align: center; font-weight: 500; font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+}
+.qtd-input::-webkit-outer-spin-button, .qtd-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.qtd-input.form-control:focus { box-shadow: inset 0 0 0 2px var(--accent); }
+/* Quantidade acima do estoque (site.js põe .is-invalid) */
+.qtd-input.is-invalid { color: var(--pill-negative-ink); background: var(--pill-negative-bg); }
+.pdv-linha-fim { grid-area: fim; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.pdv-subtotal { font-weight: 500; font-size: var(--fs-base); font-variant-numeric: tabular-nums; }
+
+/* Com JS: o select fica escondido (o produto vem do card) e as linhas livres somem */
+html.js .pdv-select { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+html.js .pedido-linha.livre { display: none; }
+/* Sem JS: some o que depende de script (miniatura, +/−, remover, estado vazio) e o select aparece */
+html:not(.js) .pdv-linha-thumb, html:not(.js) .qtd-btn, html:not(.js) .pdv-remover, html:not(.js) .carrinho-vazio,
+html:not(.js) .pdv-add, html:not(.js) [data-linha-nome], html:not(.js) [data-linha-preco] { display: none; }
+html:not(.js) .pedido-linha { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "info info" "qtd fim"; }
+
+.carrinho-vazio { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: var(--s-6) var(--s-5); color: var(--muted); font-size: var(--fs-sm); }
+.carrinho-vazio[hidden] { display: none; }
+.carrinho-vazio img { width: 96px; height: auto; margin-bottom: var(--s-2); }
+.carrinho-vazio strong { color: var(--text); font-size: var(--fs-base); font-weight: 500; }
+
+/* Pé do cupom: linha forte em tinta (como o "total" de um cupom) e o valor grande */
+.pdv-resumo { padding: var(--s-4) var(--s-5) var(--s-5); border-top: 1px solid var(--rule); background: var(--surface); border-radius: 0 0 var(--r-card) var(--r-card); }
+.pdv-total {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3);
+  margin-bottom: var(--s-4);
+  padding: var(--s-3) 0 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  border-top: 2px solid var(--text);
+}
+.pdv-total span { font-weight: 500; color: var(--text); }
+/* Total em 28/500, a maior figura da tela, em tinta */
+.pdv-total strong { font-family: var(--font-sans); font-size: var(--fs-kpi); font-weight: 500; letter-spacing: -0.01em; color: var(--text); font-variant-numeric: tabular-nums; }
+.pdv-nota { display: flex; gap: 6px; margin: var(--s-3) 0 0; font-size: var(--fs-xs); color: var(--muted); }
+.pdv-nota svg { width: 14px; height: 14px; flex: none; margin-top: 2px; }
+
+@media (max-width: 1199.98px) {
+  .pdv { grid-template-columns: minmax(0, 1fr) 340px; }
+}
+
+/* Barra flutuante do carrinho: só no tablet/celular; fundo do botão principal (flutua: sombra permitida) */
+.pdv-barra { display: none; }
+@media (max-width: 991.98px) {
+  .pdv-barra:not([hidden]) {
+    position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 1020;
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+    padding: 8px 8px 8px var(--s-4);
+    border-radius: var(--r-card);
+    background: var(--primary-fill);
+    color: var(--on-primary-fill);
+    border: 0;
+    box-shadow: var(--shadow-lg);
+    animation: toast-entra 200ms var(--ease);
+  }
+  .pdv-barra:hover { color: var(--on-primary-fill); }
+  .pdv-barra-info { display: flex; flex-direction: column; line-height: 1.2; }
+  .pdv-barra-info span { font-size: var(--fs-xs); opacity: .8; }
+  .pdv-barra-info strong { font-family: var(--font-sans); font-size: var(--fs-md); font-weight: 600; font-variant-numeric: tabular-nums; }
+  /* Espaço no fim da página para a barra não cobrir o botão de finalizar */
+  .pdv { padding-bottom: 72px; }
+  .pdv-carrinho { scroll-margin-top: calc(var(--topbar-h) + 12px); }
+}
+@media (max-width: 991.98px) {
+  .pdv { grid-template-columns: 1fr; }
+  .pdv-carrinho { position: static; max-height: none; }
+  .pdv-linhas { overflow: visible; }
+}
+@media (max-width: 575.98px) {
+  .pdv-catalogo .ui-card-header { flex-wrap: wrap; padding: var(--s-4); }
+  .pdv-busca { width: 100%; }
+  .pdv-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); padding: var(--s-3); }
+  .pdv-produto-img .thumb-card { font-size: 22px; }
+  .pedido-linha { padding: var(--s-3) var(--s-4); }
+  .pdv-cliente, .pdv-resumo { padding: var(--s-4); }
+}
+
+/* ===================== Configurações da conta (Identity Manage) ===================== */
+/* Páginas do Manage que não foram redesenhadas (2FA, dados pessoais) ganham respiro dentro do card */
+.manage-card:not(:has(> .ui-card-header)) { padding: var(--s-5); }
+.manage-card > h3 { font-size: var(--fs-md); margin-bottom: var(--s-4); }
+
+/* ===================== Páginas de status (erro, 404, acesso negado) ===================== */
+/* Bloco centralizado na folha, sem caixa nem sombra */
+.status-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 520px;
+  margin: var(--s-8) auto;
+  padding: var(--s-8) var(--s-6);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.status-page img { width: 220px; max-width: 70%; height: auto; margin-bottom: var(--s-4); }
+.status-page h1 { font-size: var(--fs-2xl); margin: var(--s-2) 0 var(--s-2); }
+.status-page p { color: var(--muted); font-size: var(--fs-md); }
+.status-acoes { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s-2); margin-top: var(--s-4); }
+.status-detalhe { margin-top: var(--s-6); padding: var(--s-3) var(--s-4); border-radius: var(--r-control); background: var(--raised); font-size: var(--fs-xs); color: var(--muted); }
+@media (max-width: 575.98px) {
+  .status-page { margin: var(--s-4) 0; padding: var(--s-6) var(--s-2); }
+  .status-acoes .btn { width: 100%; }
+}
+
+/* ===================== Desempenho ===================== */
+/* Período em abas sublinhadas à esquerda e as datas em cinza à direita, sobre a mesma linha */
+.periodo-barra { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--gap); border-bottom: 1px solid var(--border); }
+.periodo-barra .segmented { border-bottom: 0; }
+.periodo-datas { height: 40px; padding: 0; background: transparent; border: 0; color: var(--muted); font-size: var(--fs-sm); font-weight: 400; font-variant-numeric: tabular-nums; }
+.periodo-datas svg { width: 14px; height: 14px; }
+@media (max-width: 575.98px) {
+  .periodo-barra { border-bottom: 0; }
+  .periodo-barra .segmented { width: 100%; border-bottom: 1px solid var(--border); }
+  .periodo-datas { height: auto; }
+}
+
+/* Ranking de vendedores: posição como número simples, nome e valor, e a barra no verde-petróleo */
+.ranking { list-style: none; margin: 0; padding: var(--s-1) 0; }
+.ranking li { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5); border-top: 1px solid var(--rule); }
+.ranking li:first-child { border-top: 0; }
+.ranking-pos {
+  display: inline-grid; place-items: center; flex: none;
+  width: 20px; height: 28px;
+  font-family: var(--font-sans); font-size: var(--fs-base); font-weight: 500;
+  color: var(--muted); background: transparent;
+  font-variant-numeric: tabular-nums;
+}
+/* Sem pódio colorido: a posição já é o dado */
+.ranking-pos.top1, .ranking-pos.top2, .ranking-pos.top3 { color: var(--text); background: transparent; }
+.ranking-info { flex: 1; min-width: 0; }
+.ranking-linha { display: flex; justify-content: space-between; gap: var(--s-3); margin-bottom: 6px; }
+.ranking-linha strong { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ranking-valor { font-family: var(--font-sans); font-weight: 500; font-variant-numeric: tabular-nums; }
+.ranking .cell-sub { margin-top: 6px; }
+/* A barra do ranking é o dado principal da tela: leva a cor de destaque */
+.barra-brand span { background: var(--accent); }
+@media (max-width: 575.98px) { .ranking li { padding: var(--s-3) var(--s-4); } .ranking .avatar { display: none; } }
+
+/* ===================== Perfil ===================== */
+.perfil-card { overflow: hidden; }
+/* Capa do perfil: faixa baixa na cor da moldura (sem marinho) */
+.perfil-capa { height: 72px; background: var(--frame); position: relative; border-bottom: 1px solid var(--rule); }
+.perfil-identidade { display: flex; align-items: flex-end; flex-wrap: wrap; gap: var(--s-4); padding: 0 var(--s-5) var(--s-5); margin-top: -40px; position: relative; }
+.perfil-nome { padding-bottom: 4px; min-width: 0; }
+.perfil-nome h2 { font-size: var(--fs-xl); font-weight: 600; }
+@media (max-width: 575.98px) { .perfil-identidade { padding: 0 var(--s-4) var(--s-4); } }
+
+/* Telas de acesso: link "voltar" acima do título */
+.auth-form-box .voltar { margin-bottom: var(--s-5); }

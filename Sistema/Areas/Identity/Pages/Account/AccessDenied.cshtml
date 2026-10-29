@@ -1,10 +1,17 @@
 @page
 @model AccessDeniedModel
 @{
-    ViewData["Title"] = "Access denied";
+    ViewData["Title"] = "Acesso negado";
 }
 
-<header>
-    <h1 class="text-danger">@ViewData["Title"]</h1>
-    <p class="text-danger">You do not have access to this resource.</p>
-</header>
+@* Acesso negado: ilustração, explicação e caminhos de volta (dentro da casca do sistema) *@
+<section class="status-page">
+    <img src="~/img/acesso-negado.svg" alt="" width="320" height="220" />
+    <span class="chip chip-danger">Erro 403</span>
+    <h1>Você não tem acesso a esta página</h1>
+    <p>Sua função não permite abrir esta tela. Se você acha que deveria ter acesso, peça para um administrador revisar a sua função.</p>
+    <div class="status-acoes">
+        <a class="btn btn-primary" href="~/">@Html.Raw(Icones.Get("inicio"))<span>Ir para o início</span></a>
+        <a class="btn btn-secondary" asp-area="" asp-controller="Perfil" asp-action="Index">@Html.Raw(Icones.Get("perfil"))<span>Ver minha função</span></a>
+    </div>
+</section>

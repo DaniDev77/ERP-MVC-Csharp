@@ -1,47 +1,44 @@
 @model Sistema.Models.DesempenhoViewModel
 
-@* Filtro de período e totais, compartilhados pelas páginas de desempenho *@
+@* Filtro de período e KPIs, compartilhados pelas páginas de desempenho *@
 @{
     // Períodos aceitos pela CalcularPeriodo do DesempenhoController
     var periodos = new (string Valor, string Texto)[]
     {
         ("semana", "Semana"), ("mes", "Mês"), ("bimestre", "Bimestre"), ("semestre", "Semestre"), ("ano", "Ano")
     };
-    var moeda = new System.Globalization.CultureInfo("pt-BR");
+    var pt = new System.Globalization.CultureInfo("pt-BR");
+    var mostrarCompras = ViewBag.MostrarCompras == true;
+    var ticket = Model.QtdVendas > 0 ? (Model.ValorVendas / Model.QtdVendas).ToString("C2", pt) : "—";
 }
 
-<div class="segmented" role="tablist" aria-label="Período">
-    @foreach (var (valor, texto) in periodos)
-    {
-        <a class="@(Model.Periodo == valor ? "active" : "")" asp-action="@ViewBag.Acao" asp-route-periodo="@valor">@texto</a>
-    }
+<div class="periodo-barra">
+    <nav class="segmented" aria-label="Período">
+        @foreach (var (valor, texto) in periodos)
+        {
+            <a class="@(Model.Periodo == valor ? "ativo" : "")" asp-action="@ViewBag.Acao" asp-route-periodo="@valor" aria-current="@(Model.Periodo == valor ? "page" : null)">@texto</a>
+        }
+    </nav>
+    <span class="chip sem-ponto periodo-datas">
+        @Html.Raw(Icones.Get("calendario"))
+        @Model.Inicio.ToString("dd/MM/yyyy") — @Model.Fim.AddDays(-1).ToString("dd/MM/yyyy")
+    </span>
 </div>
 
-<p class="text-muted mb-3" style="font-size: 13px;">
-    De @Model.Inicio.ToString("dd/MM/yyyy") até @Model.Fim.AddDays(-1).ToString("dd/MM/yyyy")
-</p>
-
-<div class="faixa-numeros">
+<section class="kpi-grid @(mostrarCompras ? "" : "kpi-grid-3")" aria-label="Totais do período">
+    <partial name="_KpiCard" model='new KpiCard {
+        Rotulo = "Valor em vendas", Valor = Model.ValorVendas.ToString("C2", pt), Icone = "venda", Tom = "brand",
+        Selo = $"{Model.QtdVendas} {(Model.QtdVendas == 1 ? "venda" : "vendas")}", Rodape = "no período" }' />
+    @* Tom neutro (slate) no lugar do antigo violeta *@
+    <partial name="_KpiCard" model='new KpiCard {
+        Rotulo = "Ticket médio", Valor = ticket, Icone = "tendencia", Tom = "slate", Rodape = "valor médio por venda" }' />
+    <partial name="_KpiCard" model='new KpiCard {
+        Rotulo = "Quantidade de vendas", Valor = Model.QtdVendas.ToString(), Icone = "recibo", Tom = "success", Rodape = "pedidos registrados" }' />
     @* Compras só aparecem na página do ADM *@
-    @if (ViewBag.MostrarCompras == true)
+    @if (mostrarCompras)
     {
-        <div class="numero">
-            <div class="numero-rotulo">Valor em compras</div>
-            <div class="numero-valor num">@Model.ValorCompras.ToString("C2", moeda)</div>
-            <div class="numero-sub">@Model.QtdCompras compra(s)</div>
-        </div>
+        <partial name="_KpiCard" model='new KpiCard {
+            Rotulo = "Valor em compras", Valor = Model.ValorCompras.ToString("C2", pt), Icone = "compra", Tom = "info",
+            Selo = $"{Model.QtdCompras} {(Model.QtdCompras == 1 ? "compra" : "compras")}", SeloTom = "info", Rodape = "no período" }' />
     }
-    <div class="numero">
-        <div class="numero-rotulo">Valor em vendas</div>
-        <div class="numero-valor num">@Model.ValorVendas.ToString("C2", moeda)</div>
-        <div class="numero-sub">@Model.QtdVendas venda(s)</div>
-    </div>
-    @if (ViewBag.MostrarCompras == true && Model.QtdVendas + Model.QtdCompras > 0)
-    {
-        <div class="numero">
-            <div class="numero-rotulo">Ticket médio de venda</div>
-            <div class="numero-valor num">@(Model.QtdVendas > 0 ? (Model.ValorVendas / Model.QtdVendas).ToString("C2", moeda) : "—")</div>
-            <div class="numero-sub">valor por venda no período</div>
-        </div>
-    }
-</div>
+</section>

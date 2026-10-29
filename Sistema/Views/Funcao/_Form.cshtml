@@ -1,0 +1,29 @@
+@model Sistema.Models.Funcao
+
+@* Campos da função, compartilhados por Criar e Editar *@
+<div asp-validation-summary="ModelOnly" class="alert alert-danger m-4 mb-0" role="alert"></div>
+
+<section class="form-section">
+    <div class="form-section-head">
+        <h2><span class="bubble bubble-sm" aria-hidden="true">@Html.Raw(Icones.Get("funcoes"))</span>Função</h2>
+        <p>Função define o que cada pessoa pode fazer no sistema.</p>
+    </div>
+    <div class="form-grid">
+        <div>
+            <label asp-for="Name" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("etiqueta"))
+                <input asp-for="Name" class="form-control" placeholder="Ex.: Vendedor" autofocus />
+            </div>
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div>
+            <label asp-for="Descricao" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("texto"))
+                <input asp-for="Descricao" class="form-control" placeholder="Ex.: Registra vendas e acompanha o próprio desempenho" />
+            </div>
+            <span asp-validation-for="Descricao" class="text-danger"></span>
+        </div>
+    </div>
+</section>

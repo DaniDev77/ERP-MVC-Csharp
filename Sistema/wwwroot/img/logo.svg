@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Redesign: marca em verde-petróleo chapado (a etiqueta de gôndola) com três barras de estoque numa prateleira, igual ao _Logo.cshtml -->
+  <rect width="32" height="32" rx="7" fill="#1B6C80"/>
+  <rect x="7" y="15" width="4.5" height="9" rx="1" fill="#fff" opacity=".7"/>
+  <rect x="13.75" y="10.5" width="4.5" height="13.5" rx="1" fill="#fff" opacity=".85"/>
+  <rect x="20.5" y="6" width="4.5" height="18" rx="1" fill="#fff"/>
+  <rect x="5" y="25.5" width="22" height="2" rx="1" fill="#fff"/>
+</svg>

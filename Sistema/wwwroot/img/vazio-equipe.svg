@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 170" fill="none">
+  <!-- Redesign: paleta trocada do azul-marinho para o verde-petróleo da etiqueta de gôndola e neutros -->
+  <!-- Equipe vazia: três silhuetas em azul e cinza-azulado, selo de adicionar sóbrio, sem brilhos -->
+  <rect x="24" y="16" width="192" height="140" rx="14" fill="#2A8199" opacity=".07"/>
+  <ellipse cx="120" cy="152" rx="72" ry="5" fill="#1D3A42" opacity=".10"/>
+  <!-- Duas pessoas ao fundo -->
+  <circle cx="78" cy="74" r="16" fill="#C7DDE2"/>
+  <path d="M48 140 c2 -26 14 -40 30 -40 s28 14 30 40z" fill="#9CC4CE"/>
+  <circle cx="162" cy="74" r="16" fill="#CDCED1"/>
+  <path d="M132 140 c2 -26 14 -40 30 -40 s28 14 30 40z" fill="#8A8D90"/>
+  <!-- Pessoa da frente -->
+  <circle cx="120" cy="66" r="19" fill="#fff" stroke="#1B6C80" stroke-width="4"/>
+  <path d="M84 148 c3 -32 18 -48 36 -48 s33 16 36 48z" fill="#1B6C80"/>
+  <!-- Selo de adicionar -->
+  <circle cx="180" cy="38" r="13" fill="#1E7B4F"/>
+  <path d="M180 32 v12 M174 38 h12" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+</svg>

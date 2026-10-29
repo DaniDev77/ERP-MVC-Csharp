@@ -1,62 +1,162 @@
 @model Sistema.Models.NovoPedidoViewModel
 @using System.Globalization
 @{
-    var moeda = new CultureInfo("pt-BR");
+    var pt = new CultureInfo("pt-BR");
     var produtos = (List<Sistema.Models.Produto>)ViewBag.Produtos;
     var venda = ViewBag.ExigeComprador == true;
+    var minimo = Sistema.Models.Produto.EstoqueMinimo;
 }
 
-@* Formulário compartilhado por Venda e Compra: escolhe produtos e quantidades (até 8 linhas).
-   O total e o subtotal de cada linha são calculados na tela (site.js); o servidor recalcula ao salvar. *@
-<form asp-action="Create" method="post" class="pedido" id="formPedido">
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4" role="alert"></div>
+@* Tela de PDV compartilhada por Venda e Compra: catálogo de produtos em cards à esquerda e o carrinho à direita.
+   O carrinho usa as mesmas 8 linhas fixas do formulário (Linhas[i].ProdutoId / Linhas[i].Quantidade);
+   o site.js preenche essas linhas ao clicar em "Adicionar". Sem JS, as linhas aparecem com os selects de sempre.
+   O total é só uma prévia: o servidor recalcula ao salvar. *@
+<form asp-action="Create" method="post" class="pdv" id="formPedido">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger pdv-erros" role="alert"></div>
 
-    @if (venda)
-    {
-        <div class="pedido-comprador">
-            <label asp-for="Comprador" class="form-label">Quem está comprando</label>
-            <input asp-for="Comprador" class="form-control" placeholder="CPF ou código do cliente" autocomplete="off" autofocus />
-            <div class="form-text">Só clientes com a função Padrão podem comprar. Use o CPF ou o código que aparece na lista de usuários.</div>
-            <span asp-validation-for="Comprador" class="text-danger"></span>
+    @* ---------- Catálogo ---------- *@
+    <section class="ui-card pdv-catalogo" aria-labelledby="titulo-catalogo">
+        <div class="ui-card-header">
+            <div>
+                <h2 class="ui-card-title" id="titulo-catalogo">Produtos</h2>
+                <p class="ui-card-sub">@produtos.Count @(produtos.Count == 1 ? "produto disponível" : "produtos disponíveis")</p>
+            </div>
+            @if (produtos.Any())
+            {
+                <div class="busca input-icon pdv-busca">
+                    @Html.Raw(Icones.Get("buscar"))
+                    <input type="search" class="form-control" placeholder="Buscar produto" aria-label="Buscar produto no catálogo"
+                           data-pdv-busca data-filtro-alvo="#pdvGrade" data-filtro-vazio="#pdvSemResultado" />
+                </div>
+            }
         </div>
-    }
 
-    <div class="pedido-linhas" role="group" aria-label="Itens do pedido">
-        <div class="pedido-cabecalho" aria-hidden="true">
-            <span>Produto</span>
-            <span class="num">Quantidade</span>
-            <span class="num">Subtotal</span>
-        </div>
-
-        @for (var i = 0; i < Model.Linhas.Count; i++)
+        @if (!produtos.Any())
         {
-            <div class="pedido-linha" data-linha>
-                <div class="pedido-produto">
-                    <select asp-for="@Model.Linhas[i].ProdutoId" class="form-select" data-produto aria-label="Produto @(i + 1)">
-                        <option value="0">Escolha um produto</option>
-                        @foreach (var p in produtos)
-                        {
-                            <option value="@p.ProdutoId" data-preco="@p.Preco.ToString(CultureInfo.InvariantCulture)" data-estoque="@p.Estoque">
-                                @p.Name · @p.Preco.ToString("C2", moeda) · @p.Estoque em estoque
-                            </option>
-                        }
-                    </select>
-                </div>
-                <div class="pedido-quantidade">
-                    @* Linha vazia mostra o campo em branco, não um "0" repetido em cada linha *@
-                    <input name="Linhas[@i].Quantidade" id="Linhas_@(i)__Quantidade" class="form-control text-end" type="number" min="0" step="1" inputmode="numeric" placeholder="0" value="@(Model.Linhas[i].Quantidade is > 0 ? Model.Linhas[i].Quantidade.ToString() : "")" data-quantidade aria-label="Quantidade do produto @(i + 1)" />
-                </div>
-                <div class="pedido-subtotal num" data-subtotal>—</div>
+            <partial name="_EmptyState" model='new EmptyState {
+                Imagem = "~/img/vazio-caixas.svg", Titulo = "Nenhum produto com estoque",
+                Texto = "Produtos sem estoque não aparecem aqui. Peça a reposição para um administrador.", Compacto = true }' />
+        }
+        else
+        {
+            <div class="pdv-grade" id="pdvGrade">
+                @foreach (var p in produtos)
+                {
+                    var baixo = p.Estoque <= minimo;
+                    <article class="pdv-produto" data-pdv-produto data-id="@p.ProdutoId" data-nome="@p.Name"
+                             data-preco="@p.Preco.ToString(CultureInfo.InvariantCulture)" data-estoque="@p.Estoque"
+                             data-matiz="@Visual.Matiz(p.Name)" data-iniciais="@Visual.Iniciais(p.Name)" data-filtro="@p.Name @p.Descricao">
+                        <div class="pdv-produto-img">
+                            <partial name="_ProdutoThumb" model='new ProdutoThumb { Nome = p.Name, Tamanho = "thumb-card" }' />
+                            <span class="chip chip-brand pdv-no-carrinho" data-pdv-no-carrinho hidden></span>
+                        </div>
+                        <div class="pdv-produto-corpo">
+                            <h3 class="pdv-produto-nome">@p.Name</h3>
+                            <span class="pdv-produto-desc">@p.Descricao</span>
+                            <div class="pdv-produto-rodape">
+                                <div>
+                                    <strong class="pdv-preco num">@p.Preco.ToString("C2", pt)</strong>
+                                    <span class="pdv-estoque @(baixo ? "baixo" : "")">@p.Estoque em estoque</span>
+                                </div>
+                                <button type="button" class="btn btn-soft btn-icon pdv-add" data-pdv-add aria-label="Adicionar @p.Name ao carrinho" title="Adicionar">
+                                    @Html.Raw(Icones.Get("mais"))
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+            <div class="sem-resultado" id="pdvSemResultado" hidden>
+                <img src="~/img/vazio-busca.svg" alt="" width="120" height="85" />
+                Nenhum produto encontrado para essa busca.
             </div>
         }
-    </div>
+    </section>
 
-    <div class="pedido-rodape">
-        <div>
-            <div class="pedido-total-rotulo">Total</div>
-            <div class="pedido-total num" id="pedidoTotal" aria-live="polite">R$ 0,00</div>
-            <div class="form-text">Produtos sem estoque não aparecem na lista. Linhas em branco são ignoradas.</div>
+    @* ---------- Carrinho ---------- *@
+    <aside class="ui-card pdv-carrinho" id="carrinho" aria-labelledby="titulo-carrinho" tabindex="-1">
+        <div class="ui-card-header">
+            @* Redesign: o carrinho é lido como um cupom (itens em linhas, total no pé); sai a bolha preta do título *@
+            <h2 class="ui-card-title" id="titulo-carrinho">
+                @Html.Raw(Icones.Get("recibo"))
+                @(venda ? "Cupom da venda" : "Cupom da compra")
+            </h2>
+            @* Redesign: contagem de itens em selo neutro *@
+            <span class="chip sem-ponto" data-carrinho-qtd aria-live="polite">0 itens</span>
         </div>
-        <button type="submit" class="btn btn-primary btn-lg">@(venda ? "Registrar venda" : "Registrar compra")</button>
-    </div>
+
+        @if (venda)
+        {
+            @* Cliente que recebe os produtos (só na venda) *@
+            <div class="pdv-cliente">
+                <label asp-for="Comprador" class="form-label">Cliente</label>
+                <div class="input-icon">
+                    @Html.Raw(Icones.Get("id"))
+                    <input asp-for="Comprador" class="form-control" placeholder="CPF ou código do cliente" autocomplete="off" autofocus aria-describedby="dicaComprador" />
+                </div>
+                <span class="form-text" id="dicaComprador">Só clientes com a função Padrão podem comprar. Use o CPF ou o código da lista de usuários.</span>
+                <span asp-validation-for="Comprador" class="text-danger"></span>
+            </div>
+        }
+
+        <div class="pdv-linhas" role="group" aria-label="Itens do pedido">
+            @for (var i = 0; i < Model.Linhas.Count; i++)
+            {
+                <div class="pedido-linha" data-linha>
+                    <span class="thumb thumb-sm pdv-linha-thumb" data-linha-thumb aria-hidden="true">@Html.Raw(Icones.Get("caixa"))<span></span></span>
+                    <div class="pdv-linha-info">
+                        <strong data-linha-nome></strong>
+                        <span data-linha-preco></span>
+                        <select asp-for="@Model.Linhas[i].ProdutoId" class="form-select pdv-select" data-produto aria-label="Produto @(i + 1)">
+                            <option value="0">Escolha um produto</option>
+                            @foreach (var p in produtos)
+                            {
+                                <option value="@p.ProdutoId" data-preco="@p.Preco.ToString(CultureInfo.InvariantCulture)" data-estoque="@p.Estoque">
+                                    @p.Name · @p.Preco.ToString("C2", pt) · @p.Estoque em estoque
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="qtd-stepper">
+                        <button type="button" class="qtd-btn" data-qtd-menos aria-label="Diminuir quantidade do item @(i + 1)">@Html.Raw(Icones.Get("menos"))</button>
+                        @* Linha vazia mostra o campo em branco, não um "0" repetido em cada linha *@
+                        <input name="Linhas[@i].Quantidade" id="Linhas_@(i)__Quantidade" class="form-control qtd-input" type="number" min="0" step="1" inputmode="numeric" placeholder="0"
+                               value="@(Model.Linhas[i].Quantidade is > 0 ? Model.Linhas[i].Quantidade.ToString() : "")" data-quantidade aria-label="Quantidade do item @(i + 1)" />
+                        <button type="button" class="qtd-btn" data-qtd-mais aria-label="Aumentar quantidade do item @(i + 1)">@Html.Raw(Icones.Get("mais"))</button>
+                    </div>
+                    <div class="pdv-linha-fim">
+                        <span class="pdv-subtotal num" data-subtotal>—</span>
+                        <button type="button" class="btn btn-ghost-danger btn-icon btn-sm pdv-remover" data-linha-remover aria-label="Remover item @(i + 1) do carrinho">@Html.Raw(Icones.Get("excluir"))</button>
+                    </div>
+                </div>
+            }
+
+            @* Carrinho vazio (controlado pelo site.js) *@
+            <div class="carrinho-vazio" data-carrinho-vazio>
+                <img src="~/img/vazio-carrinho.svg" alt="" width="140" height="99" />
+                <strong>O carrinho está vazio</strong>
+                <span>Toque em <b>+</b> num produto para adicioná-lo.</span>
+            </div>
+        </div>
+
+        <div class="pdv-resumo">
+            <div class="pdv-total">
+                <span>Total</span>
+                <strong class="num" id="pedidoTotal" aria-live="polite">R$ 0,00</strong>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100" data-pedido-enviar>
+                @Html.Raw(Icones.Get("ok"))<span>@(venda ? "Finalizar venda" : "Finalizar compra")</span>
+            </button>
+            <p class="pdv-nota">@Html.Raw(Icones.Get("info"))O estoque é baixado ao salvar. Até @Model.Linhas.Count produtos diferentes por pedido.</p>
+        </div>
+    </aside>
+
+    @* Celular: barra flutuante com o total que leva ao carrinho (aparece quando há itens; site.js) *@
+    <a class="pdv-barra" href="#carrinho" data-pdv-barra hidden>
+        <span class="pdv-barra-info">
+            <span data-pdv-barra-qtd>0 itens</span>
+            <strong class="num" data-pdv-barra-total>R$ 0,00</strong>
+        </span>
+        <span class="btn btn-on-brand btn-sm">@Html.Raw(Icones.Get("carrinho"))<span>Ver carrinho</span></span>
+    </a>
 </form>

@@ -1,47 +1,55 @@
-@using Sistema.Helpers
 @model Sistema.Models.Usuario
 
 @{
     ViewData["Title"] = "Ficha do usuário";
 }
 
-<div class="page-header">
-    <div>
-        <h1>@Model.Name</h1>
-        <p class="page-sub">@Html.Raw(Pilulas.Funcao(Model.FuncaoId, Model.Funcao?.Name))</p>
-    </div>
-    <div class="d-flex gap-2">
-        <a asp-action="Edit" asp-route-usuarioid="@Model.UsuarioId" class="btn btn-primary">Editar</a>
-        <a asp-action="Index" class="btn btn-outline-secondary">Voltar para a lista</a>
-    </div>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Ficha do usuário", VoltarTexto = "Usuários", VoltarUrl = Url.Action("Index") }' />
 
-<div class="layout-form">
-    <section class="panel">
-        <h2 class="panel-title">Dados do cadastro</h2>
-        <dl class="detail-list mb-0">
-            <dt>Código</dt>
-            <dd class="mono">@Model.UsuarioId</dd>
-            <dt>E-mail</dt>
-            <dd>@Model.Email</dd>
-            <dt>Telefone</dt>
-            <dd>@(string.IsNullOrWhiteSpace(Model.Phone) ? "—" : Model.Phone)</dd>
-            <dt>CPF</dt>
-            <dd class="mono">@Model.CPF</dd>
-            <dt>Função</dt>
-            <dd>@(Model.Funcao?.Name ?? "Aguardando liberação")</dd>
-        </dl>
-    </section>
+<div class="row g-4 align-items-start">
+    <div class="col-xl-8">
+        <section class="ui-card">
+            @* Cabeçalho do objeto: avatar grande, nome, função e e-mail *@
+            <div class="object-header">
+                <span class="avatar avatar-xl" style="--h: @Visual.Matiz(Model.Name)" aria-hidden="true">@Visual.Iniciais(Model.Name)</span>
+                <div class="object-header-texto">
+                    <h1>@Model.Name</h1>
+                    <div class="object-header-meta">
+                        @Html.Raw(Pilulas.Funcao(Model.FuncaoId, Model.Funcao?.Name))
+                        <span>@Html.Raw(Icones.Get("email"))@Model.Email</span>
+                    </div>
+                </div>
+            </div>
+            <dl class="detail-grid">
+                <div><dt>@Html.Raw(Icones.Get("id"))Código</dt><dd class="mono">@Model.UsuarioId</dd></div>
+                <div><dt>@Html.Raw(Icones.Get("email"))E-mail</dt><dd>@Model.Email</dd></div>
+                <div><dt>@Html.Raw(Icones.Get("telefone"))Telefone</dt><dd>@(string.IsNullOrWhiteSpace(Model.Phone) ? "—" : Model.Phone)</dd></div>
+                <div><dt>@Html.Raw(Icones.Get("documento"))CPF</dt><dd class="mono">@Model.CPF</dd></div>
+                <div><dt>@Html.Raw(Icones.Get("funcoes"))Função</dt><dd>@(Model.Funcao?.Name != null ? Visual.NomeFuncao(Model.Funcao.Name) : "Aguardando liberação")</dd></div>
+            </dl>
+            <div class="ui-card-footer">
+                <a asp-action="Delete" asp-route-usuarioid="@Model.UsuarioId" class="btn btn-ghost-danger esquerda-btn">@Html.Raw(Icones.Get("excluir"))<span>Excluir</span></a>
+                <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+                <a asp-action="Edit" asp-route-usuarioid="@Model.UsuarioId" class="btn btn-primary">@Html.Raw(Icones.Get("editar"))<span>Editar</span></a>
+            </div>
+        </section>
+    </div>
 
-    <aside class="panel">
-        <h2 class="panel-title">Acesso</h2>
-        @if (Model.AppUserId == null)
-        {
-            <p class="text-muted mb-0">Esta pessoa ainda não tem conta de acesso vinculada. Vincule pela edição, usando o e-mail da conta.</p>
-        }
-        else
-        {
-            <p class="mb-0">Conta de acesso vinculada. A pessoa entra com o e-mail da conta dela.</p>
-        }
-    </aside>
+    <div class="col-xl-4">
+        <aside class="ui-card">
+            <div class="ui-card-body">
+                <span class="bubble @(Model.AppUserId == null ? "bubble-warning" : "bubble-success") mb-3" aria-hidden="true">@Html.Raw(Icones.Get(Model.AppUserId == null ? "espera" : "link"))</span>
+                <h2 class="ui-card-title mb-2">Acesso</h2>
+                @if (Model.AppUserId == null)
+                {
+                    <p class="text-2 mb-0">Esta pessoa ainda não tem conta de acesso vinculada. Vincule pela edição, usando o e-mail da conta.</p>
+                }
+                else
+                {
+                    <p class="text-2 mb-0">Conta de acesso vinculada. A pessoa entra com o e-mail da conta dela.</p>
+                }
+            </div>
+        </aside>
+    </div>
 </div>

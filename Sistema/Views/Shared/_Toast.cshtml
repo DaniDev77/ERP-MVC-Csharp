@@ -1,0 +1,41 @@
+@* Toasts das mensagens de TempData (Sucesso/Erro). O site.js fecha sozinho após 5s;
+   sem JS, eles continuam visíveis e podem ser fechados pelo botão *@
+@{
+    var sucesso = TempData["Sucesso"] as string;
+    var erro = TempData["Erro"] as string;
+}
+<div class="toast-stack" id="toasts" aria-live="polite" aria-atomic="false">
+    @if (sucesso != null)
+    {
+        <div class="toast-x toast-sucesso" role="status" data-toast>
+            <span class="bubble bubble-success" aria-hidden="true">@Html.Raw(Icones.Get("check"))</span>
+            <div class="toast-x-corpo">
+                <strong class="toast-x-titulo">Tudo certo</strong>
+                <span class="toast-x-texto">@sucesso</span>
+            </div>
+            <button type="button" class="toast-x-fechar" aria-label="Fechar aviso" data-toast-fechar>@Html.Raw(Icones.Get("fechar"))</button>
+        </div>
+    }
+    @if (erro != null)
+    {
+        <div class="toast-x toast-erro" role="alert" data-toast>
+            <span class="bubble bubble-danger" aria-hidden="true">@Html.Raw(Icones.Get("alerta"))</span>
+            <div class="toast-x-corpo">
+                <strong class="toast-x-titulo">Algo deu errado</strong>
+                <span class="toast-x-texto">@erro</span>
+            </div>
+            <button type="button" class="toast-x-fechar" aria-label="Fechar aviso" data-toast-fechar>@Html.Raw(Icones.Get("fechar"))</button>
+        </div>
+    }
+</div>
+@* Modelo usado pelo site.js para criar toasts na hora (ex.: limite do carrinho) *@
+<template id="toast-modelo">
+    <div class="toast-x" role="status" data-toast>
+        <span class="bubble" aria-hidden="true"></span>
+        <div class="toast-x-corpo">
+            <strong class="toast-x-titulo"></strong>
+            <span class="toast-x-texto"></span>
+        </div>
+        <button type="button" class="toast-x-fechar" aria-label="Fechar aviso" data-toast-fechar>@Html.Raw(Icones.Get("fechar"))</button>
+    </div>
+</template>

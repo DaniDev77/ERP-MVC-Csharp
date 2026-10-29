@@ -1,0 +1,62 @@
+@model Sistema.Models.Fonecedor
+
+@* Campos do fornecedor, compartilhados por Criar e Editar, em duas seções *@
+<div asp-validation-summary="ModelOnly" class="alert alert-danger m-4 mb-0" role="alert"></div>
+
+<section class="form-section">
+    <div class="form-section-head">
+        <h2><span class="bubble bubble-sm" aria-hidden="true">@Html.Raw(Icones.Get("predio"))</span>Empresa</h2>
+        <p>Nome, o que fornece e o CNPJ.</p>
+    </div>
+    <div class="form-grid">
+        <div>
+            <label asp-for="FonecedorNome" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("predio"))
+                <input asp-for="FonecedorNome" class="form-control" placeholder="Ex.: Distribuidora Central" autocomplete="organization" autofocus />
+            </div>
+            <span asp-validation-for="FonecedorNome" class="text-danger"></span>
+        </div>
+        <div>
+            <label asp-for="FonecedorDescricao" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("texto"))
+                <input asp-for="FonecedorDescricao" class="form-control" placeholder="Ex.: Bebidas e produtos de limpeza" />
+            </div>
+            <span asp-validation-for="FonecedorDescricao" class="text-danger"></span>
+        </div>
+        <div>
+            <label asp-for="CNPJ" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("documento"))
+                <input asp-for="CNPJ" class="form-control mono" placeholder="00.000.000/0000-00" inputmode="numeric" autocomplete="off" />
+            </div>
+            <span asp-validation-for="CNPJ" class="text-danger"></span>
+        </div>
+    </div>
+</section>
+
+<section class="form-section">
+    <div class="form-section-head">
+        <h2><span class="bubble bubble-sm bubble-info" aria-hidden="true">@Html.Raw(Icones.Get("telefone"))</span>Contato</h2>
+        <p>Como falar com o fornecedor.</p>
+    </div>
+    <div class="form-grid cols-2">
+        <div>
+            <label asp-for="FonecedorTelefone" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("telefone"))
+                <input asp-for="FonecedorTelefone" class="form-control" placeholder="(00) 00000-0000" type="tel" autocomplete="tel" />
+            </div>
+            <span asp-validation-for="FonecedorTelefone" class="text-danger"></span>
+        </div>
+        <div>
+            <label asp-for="FonecedorEmail" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("email"))
+                <input asp-for="FonecedorEmail" class="form-control" placeholder="contato@fornecedor.com.br" type="email" autocomplete="email" />
+            </div>
+            <span asp-validation-for="FonecedorEmail" class="text-danger"></span>
+        </div>
+    </div>
+</section>

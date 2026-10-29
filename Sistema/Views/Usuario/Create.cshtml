@@ -5,87 +5,59 @@
     ViewData["Title"] = admin ? "Novo usuário" : "Completar cadastro";
 }
 
-<div class="page-header">
-    <div>
-        <h1>@ViewData["Title"]</h1>
-        <p class="page-sub">
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = (string)ViewData["Title"]!,
+    Descricao = admin ? "Cadastre a pessoa e defina a função dela. A conta de acesso pode ser vinculada depois, pelo e-mail."
+                      : "Preencha seus dados. Depois um administrador libera a sua função.",
+    VoltarTexto = admin ? "Usuários" : "Meu perfil",
+    VoltarUrl = admin ? Url.Action("Index") : Url.Action("Index", "Perfil") }' />
+
+<form asp-action="Create" class="ui-card form-card">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger m-4 mb-0" role="alert"></div>
+
+    <partial name="_DadosPessoais" model="Model" />
+
+    <section class="form-section">
+        <div class="form-section-head">
+            @* Tom neutro (slate) no lugar do antigo violeta *@
+            <h2><span class="bubble bubble-sm bubble-slate" aria-hidden="true">@Html.Raw(Icones.Get("funcoes"))</span>Acesso ao sistema</h2>
+            <p>A função define o que a pessoa pode fazer.</p>
+        </div>
+        <div>
             @if (admin)
             {
-                <span>Cadastre a pessoa e defina a função dela. A conta de acesso pode ser vinculada depois, pelo e-mail.</span>
-            }
-            else
-            {
-                <span>Preencha seus dados. Depois um administrador libera a sua função.</span>
-            }
-        </p>
-    </div>
-</div>
-
-<div class="layout-form">
-    <form asp-action="Create" class="panel form-stack">
-        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-
-        <fieldset class="campos">
-            <legend>Dados pessoais</legend>
-            <div class="campo">
-                <label asp-for="Name" class="form-label"></label>
-                <input asp-for="Name" class="form-control" autocomplete="name" autofocus />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="campo-linha">
-                <div class="campo">
-                    <label asp-for="CPF" class="form-label"></label>
-                    <input asp-for="CPF" class="form-control" inputmode="numeric" placeholder="Somente números" />
-                    <span asp-validation-for="CPF" class="text-danger"></span>
-                </div>
-                <div class="campo">
-                    <label asp-for="Phone" class="form-label"></label>
-                    <input asp-for="Phone" class="form-control" autocomplete="tel" placeholder="(11) 99999-9999" />
-                    <span asp-validation-for="Phone" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="campo">
-                <label asp-for="Email" class="form-label"></label>
-                <input asp-for="Email" class="form-control" autocomplete="email" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-        </fieldset>
-
-        <fieldset class="campos">
-            <legend>Acesso ao sistema</legend>
-            @if (admin)
-            {
-                <div class="campo">
-                    <label asp-for="FuncaoId" class="form-label">Função</label>
+                <label asp-for="FuncaoId" class="form-label">Função</label>
+                <div class="input-icon">
+                    @Html.Raw(Icones.Get("funcoes"))
                     <select asp-for="FuncaoId" class="form-select" asp-items="ViewBag.FuncaoId">
                         <option value="">Escolha uma função</option>
                     </select>
-                    <div class="form-text">Vendedor registra vendas. Padrão compra produtos. ADM controla o sistema.</div>
-                    <span asp-validation-for="FuncaoId" class="text-danger"></span>
                 </div>
+                <span class="form-text">Vendedor registra vendas. Padrão compra produtos. ADM controla o sistema.</span>
+                <span asp-validation-for="FuncaoId" class="text-danger"></span>
             }
             else
             {
-                <div class="aviso aviso-neutro">
-                    @Html.Raw(Sistema.Helpers.Icones.Get("espera"))
+                <div class="alert alert-info mb-0">
+                    @Html.Raw(Icones.Get("espera"))
                     <div>
                         <strong>Sua função será definida por um administrador.</strong>
-                        <span>Até lá você pode entrar, mas não consegue vender nem comprar.</span>
+                        <span class="alert-texto">Até lá você pode entrar, mas não consegue vender nem comprar.</span>
                     </div>
                 </div>
             }
-        </fieldset>
-
-        <div class="acoes">
-            <button type="submit" class="btn btn-primary">@(admin ? "Cadastrar usuário" : "Enviar cadastro")</button>
-            @if (admin)
-            {
-                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
-            }
-            else
-            {
-                <a asp-controller="Perfil" asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
-            }
         </div>
-    </form>
-</div>
+    </section>
+
+    <div class="ui-card-footer">
+        @if (admin)
+        {
+            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        }
+        else
+        {
+            <a asp-controller="Perfil" asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        }
+        <button type="submit" class="btn btn-primary">@Html.Raw(Icones.Get("ok"))<span>@(admin ? "Cadastrar usuário" : "Enviar cadastro")</span></button>
+    </div>
+</form>

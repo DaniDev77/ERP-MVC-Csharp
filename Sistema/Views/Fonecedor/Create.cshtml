@@ -1,54 +1,21 @@
 @model Sistema.Models.Fonecedor
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Novo fornecedor";
 }
 
-<h1>Novo fornecedor</h1>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Novo fornecedor", Descricao = "Cadastre quem abastece a loja com produtos.",
+    VoltarTexto = "Fornecedores", VoltarUrl = Url.Action("Index") }' />
 
-<h4>Fonecedor</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group">
-                <label asp-for="FonecedorNome" class="control-label"></label>
-                <input asp-for="FonecedorNome" class="form-control" />
-                <span asp-validation-for="FonecedorNome" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="FonecedorDescricao" class="control-label"></label>
-                <input asp-for="FonecedorDescricao" class="form-control" />
-                <span asp-validation-for="FonecedorDescricao" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="CNPJ" class="control-label"></label>
-                <input asp-for="CNPJ" class="form-control" />
-                <span asp-validation-for="CNPJ" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="FonecedorTelefone" class="control-label"></label>
-                <input asp-for="FonecedorTelefone" class="form-control" />
-                <span asp-validation-for="FonecedorTelefone" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="FonecedorEmail" class="control-label"></label>
-                <input asp-for="FonecedorEmail" class="form-control" />
-                <span asp-validation-for="FonecedorEmail" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Salvar" class="btn btn-primary" />
-            </div>
-        </form>
+<form asp-action="Create" class="ui-card form-card">
+    <partial name="_Form" model="Model" />
+    <div class="ui-card-footer">
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">@Html.Raw(Icones.Get("ok"))<span>Salvar fornecedor</span></button>
     </div>
-</div>
+</form>
 
-<div>
-    <a asp-action="Index">Voltar para a lista</a>
-</div>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,6 +1,11 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Privacidade";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<partial name="_PageHeader" model='new PageHeader { Titulo = "Privacidade", Descricao = "Como o sistema trata os seus dados.", Icone = "funcoes" }' />
+
+<section class="ui-card confirm-card">
+    <div class="ui-card-body">
+        <p class="text-2">Use esta página para descrever a política de privacidade da loja.</p>
+    </div>
+</section>

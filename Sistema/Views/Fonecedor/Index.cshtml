@@ -2,53 +2,76 @@
 
 @{
     ViewData["Title"] = "Fornecedores";
+    var total = Model.Count();
 }
 
-<div class="page-header">
-    <div>
-        <h1>Fornecedores</h1>
-        <p class="page-sub">Quem abastece a loja com produtos.</p>
-    </div>
-    <a asp-action="Create" class="btn btn-primary">Novo fornecedor</a>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Fornecedores", Descricao = "Quem abastece a loja com produtos.", Icone = "fornecedores",
+    AcaoTexto = "Novo fornecedor", AcaoUrl = Url.Action("Create") }' />
 
-@if (!Model.Any())
-{
-    <div class="panel"><p class="mb-0 text-muted">Nenhum fornecedor cadastrado.</p></div>
-}
-else
-{
-    <div class="table-wrap">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>@Html.DisplayNameFor(m => m.FonecedorNome)</th>
-                    <th>@Html.DisplayNameFor(m => m.FonecedorDescricao)</th>
-                    <th>@Html.DisplayNameFor(m => m.CNPJ)</th>
-                    <th>@Html.DisplayNameFor(m => m.FonecedorTelefone)</th>
-                    <th>@Html.DisplayNameFor(m => m.FonecedorEmail)</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
+<div class="ui-card table-card">
+    @if (!Model.Any())
+    {
+        @* Lista vazia: explica a tela e leva direto ao cadastro *@
+        <partial name="_EmptyState" model='new EmptyState {
+            Imagem = "~/img/vazio-caixas.svg", Titulo = "Nenhum fornecedor cadastrado",
+            Texto = "Cadastre o primeiro fornecedor para depois vincular os produtos a ele.",
+            AcaoTexto = "Cadastrar primeiro fornecedor", AcaoUrl = Url.Action("Create") }' />
+    }
+    else
+    {
+        <div class="toolbar">
+            <div class="busca input-icon">
+                @Html.Raw(Icones.Get("buscar"))
+                <input type="search" class="form-control" placeholder="Buscar por nome, CNPJ ou e-mail" aria-label="Buscar fornecedores"
+                       data-filtro-alvo="#tabelaFornecedores" data-filtro-vazio="#semFornecedores" data-filtro-contagem="#contagemFornecedores" />
+            </div>
+            <span class="toolbar-info" id="contagemFornecedores" data-singular="fornecedor" data-plural="fornecedores" aria-live="polite">@total @(total == 1 ? "fornecedor" : "fornecedores")</span>
+        </div>
+
+        <div class="table-wrap">
+            <table class="table-ui table-stack" id="tabelaFornecedores">
+                <thead>
                     <tr>
-                        <td>@item.FonecedorNome</td>
-                        <td>@item.FonecedorDescricao</td>
-                        <td>@item.CNPJ</td>
-                        <td>@item.FonecedorTelefone</td>
-                        <td>@item.FonecedorEmail</td>
-                        <td class="text-end row-actions">
-                            <a asp-action="Edit" asp-route-fonecedorid="@item.FonecedorId">Editar</a>
-                            <span class="text-muted mx-1">·</span>
-                            <a asp-action="Details" asp-route-fonecedorid="@item.FonecedorId">Detalhes</a>
-                            <span class="text-muted mx-1">·</span>
-                            <a asp-action="Delete" asp-route-fonecedorid="@item.FonecedorId">Excluir</a>
-                        </td>
+                        <th scope="col">Fornecedor</th>
+                        <th scope="col">CNPJ</th>
+                        <th scope="col">Contato</th>
+                        <th scope="col" class="acoes-col"><span class="visually-hidden">Ações</span></th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-}
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr data-filtro="@item.FonecedorNome @item.CNPJ @item.FonecedorEmail @item.FonecedorDescricao">
+                            <td class="cell-head">
+                                <div class="cell-main">
+                                    <span class="avatar" style="--h: @Visual.Matiz(item.FonecedorNome)" aria-hidden="true">@Visual.Iniciais(item.FonecedorNome)</span>
+                                    <div>
+                                        <a asp-action="Details" asp-route-fonecedorid="@item.FonecedorId" class="cell-title">@item.FonecedorNome</a>
+                                        <span class="cell-sub">@item.FonecedorDescricao</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td data-label="CNPJ" class="mono">@item.CNPJ</td>
+                            <td data-label="Contato">
+                                <span class="d-block">@item.FonecedorEmail</span>
+                                <span class="cell-sub">@item.FonecedorTelefone</span>
+                            </td>
+                            <td class="acoes-col">
+                                <div class="row-actions">
+                                    <a asp-action="Details" asp-route-fonecedorid="@item.FonecedorId" class="btn btn-ghost btn-icon btn-sm" aria-label="Ver @item.FonecedorNome" title="Ver detalhes">@Html.Raw(Icones.Get("olho"))</a>
+                                    <a asp-action="Edit" asp-route-fonecedorid="@item.FonecedorId" class="btn btn-ghost btn-icon btn-sm" aria-label="Editar @item.FonecedorNome" title="Editar">@Html.Raw(Icones.Get("editar"))</a>
+                                    <a asp-action="Delete" asp-route-fonecedorid="@item.FonecedorId" class="btn btn-ghost-danger btn-icon btn-sm" aria-label="Excluir @item.FonecedorNome" title="Excluir">@Html.Raw(Icones.Get("excluir"))</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="sem-resultado" id="semFornecedores" hidden>
+                <img src="~/img/vazio-busca.svg" alt="" width="120" height="85" />
+                Nenhum fornecedor encontrado para essa busca.
+            </div>
+        </div>
+    }
+</div>

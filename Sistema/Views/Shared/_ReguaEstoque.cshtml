@@ -1,0 +1,15 @@
+@model int
+@* Redesign: régua de estoque, o elemento próprio do Sistema. Trilho fino com o estoque preenchido
+   e um tique no mínimo (Produto.EstoqueMinimo). Escala até o dobro do mínimo (ou o estoque, se maior).
+   Percentuais inteiros e limitados a 0–100; é só desenho (aria-hidden): o número continua em texto ao lado *@
+@{
+    var minimo = Sistema.Models.Produto.EstoqueMinimo;
+    var estoque = Math.Max(0, Model);
+    var escala = Math.Max(estoque, minimo * 2);
+    var preenchido = escala == 0 ? 0 : Math.Clamp((int)Math.Round(estoque * 100.0 / escala), 0, 100);
+    var marco = escala == 0 ? 0 : Math.Clamp((int)Math.Round(minimo * 100.0 / escala), 0, 100);
+}
+<span class="regua @(estoque <= minimo ? "regua-baixo" : "")" aria-hidden="true">
+    <span class="regua-fill" style="width: @(preenchido)%"></span>
+    <span class="regua-marco" style="left: @(marco)%"></span>
+</span>

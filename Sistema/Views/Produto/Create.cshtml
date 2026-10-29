@@ -4,19 +4,15 @@
     ViewData["Title"] = "Novo produto";
 }
 
-<div class="page-header">
-    <div>
-        <h1>Novo produto</h1>
-        <p class="page-sub">Preencha os dados e a quantidade inicial em estoque.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Novo produto", Descricao = "Preencha os dados e a quantidade inicial em estoque.",
+    VoltarTexto = "Produtos", VoltarUrl = Url.Action("Index") }' />
 
-<div class="panel form-card">
-    <form asp-action="Create">
-        @await Html.PartialAsync("_Form", Model)
-        <div class="d-flex gap-2 mt-3">
-            <button type="submit" class="btn btn-primary">Salvar produto</button>
-            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
-        </div>
-    </form>
-</div>
+@* Formulário em card com seções; ações no rodapé do card *@
+<form asp-action="Create" class="ui-card form-card">
+    @await Html.PartialAsync("_Form", Model)
+    <div class="ui-card-footer">
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">@Html.Raw(Icones.Get("ok"))<span>Salvar produto</span></button>
+    </div>
+</form>

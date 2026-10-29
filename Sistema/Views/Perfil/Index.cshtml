@@ -3,15 +3,6 @@
 @{
     ViewData["Title"] = "Meu perfil";
 
-    // Iniciais para o avatar: primeira letra do primeiro e do último nome
-    string Iniciais(string nome)
-    {
-        var partes = nome.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (partes.Length == 0) return "?";
-        if (partes.Length == 1) return partes[0][..1].ToUpperInvariant();
-        return (partes[0][..1] + partes[^1][..1]).ToUpperInvariant();
-    }
-
     // CPF mostrado parcialmente: só os dois últimos dígitos, para quem olha a tela não ver o número inteiro
     string CpfMascarado(string? cpf)
     {
@@ -20,64 +11,73 @@
     }
 }
 
-<div class="page-header">
-    <div>
-        <h1>Meu perfil</h1>
-        <p class="page-sub">Seus dados de cadastro e o acesso à conta</p>
-    </div>
-</div>
+<partial name="_PageHeader" model='new PageHeader { Titulo = "Meu perfil", Descricao = "Seus dados de cadastro e o acesso à conta." }' />
 
 @if (Model == null)
 {
-    // Conta criada, mas sem cadastro de usuário: o perfil convida a completar
-    <div class="panel profile-empty">
-        <h2 class="panel-title">Falta completar o cadastro</h2>
-        <p class="text-muted mb-3">Sua conta já existe, mas ainda não tem dados de usuário no sistema. Complete o cadastro para vender ou comprar.</p>
-        <a class="btn btn-primary" asp-controller="Usuario" asp-action="Create">Completar cadastro</a>
+    @* Conta criada, mas sem cadastro de usuário: o perfil convida a completar *@
+    <div class="ui-card confirm-card">
+        <partial name="_EmptyState" model='new EmptyState {
+            Imagem = "~/img/vazio-equipe.svg", Titulo = "Falta completar o cadastro",
+            Texto = "Sua conta já existe, mas ainda não tem dados de usuário no sistema. Complete o cadastro para vender ou comprar.",
+            AcaoTexto = "Completar cadastro", AcaoUrl = Url.Action("Create", "Usuario"), AcaoIcone = "id" }' />
     </div>
 }
 else
 {
-    <div class="profile">
-        <section class="panel profile-card">
-            <div class="avatar avatar-lg" aria-hidden="true">@Iniciais(Model.Name)</div>
-            <div class="profile-id">
-                <div class="profile-name">@Model.Name</div>
-                <div class="text-muted">@Model.Email</div>
-                <div class="mt-2">@Html.Raw(Sistema.Helpers.Pilulas.Funcao(Model.FuncaoId, Model.Funcao?.Name))</div>
+    @* Capa com gradiente e o avatar sobreposto *@
+    <section class="ui-card perfil-card">
+        <div class="perfil-capa" aria-hidden="true"></div>
+        <div class="perfil-identidade">
+            <span class="avatar avatar-xl" style="--h: @Visual.Matiz(Model.Name)" aria-hidden="true">@Visual.Iniciais(Model.Name)</span>
+            <div class="perfil-nome">
+                <h2>@Model.Name</h2>
+                <div class="object-header-meta">
+                    @Html.Raw(Pilulas.Funcao(Model.FuncaoId, Model.Funcao?.Name))
+                    <span>@Html.Raw(Icones.Get("email"))@Model.Email</span>
+                </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        @if (Model.FuncaoId == null)
-        {
-            <section class="aviso aviso-neutro">
-                @Html.Raw(Sistema.Helpers.Icones.Get("espera"))
-                <div>
-                    <strong>Sua função ainda não foi liberada.</strong>
-                    <span>Um administrador define se você é vendedor ou comprador. Até lá, venda e compra ficam bloqueadas.</span>
+    @if (Model.FuncaoId == null)
+    {
+        <div class="alert alert-warning mt-4" role="status">
+            @Html.Raw(Icones.Get("espera"))
+            <div>
+                <strong>Sua função ainda não foi liberada.</strong>
+                <span class="alert-texto">Um administrador define se você é vendedor ou comprador. Até lá, venda e compra ficam bloqueadas.</span>
+            </div>
+        </div>
+    }
+
+    <div class="row g-4 mt-0">
+        <div class="col-lg-7">
+            <section class="ui-card h-100">
+                <div class="ui-card-header">
+                    <h2 class="ui-card-title"><span class="bubble bubble-sm" aria-hidden="true">@Html.Raw(Icones.Get("id"))</span>Dados do cadastro</h2>
+                </div>
+                <dl class="detail-grid">
+                    <div><dt>@Html.Raw(Icones.Get("telefone"))Telefone</dt><dd>@(string.IsNullOrWhiteSpace(Model.Phone) ? "—" : Model.Phone)</dd></div>
+                    <div><dt>@Html.Raw(Icones.Get("documento"))CPF</dt><dd class="mono">@CpfMascarado(Model.CPF)</dd></div>
+                    <div><dt>@Html.Raw(Icones.Get("etiqueta"))Código</dt><dd class="mono">@Model.UsuarioId</dd></div>
+                </dl>
+            </section>
+        </div>
+        <div class="col-lg-5">
+            <section class="ui-card h-100">
+                <div class="ui-card-header">
+                    @* Tom neutro (slate) no lugar do antigo violeta *@
+                    <h2 class="ui-card-title"><span class="bubble bubble-sm bubble-slate" aria-hidden="true">@Html.Raw(Icones.Get("cadeado"))</span>Acesso à conta</h2>
+                </div>
+                <div class="ui-card-body">
+                    <p class="text-2">Troque o e-mail ou a senha de login. A senha é guardada de forma protegida pelo sistema de acesso.</p>
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-secondary justify-content-start" asp-area="Identity" asp-page="/Account/Manage/Index">@Html.Raw(Icones.Get("perfil"))<span>Dados da conta</span></a>
+                        <a class="btn btn-secondary justify-content-start" asp-area="Identity" asp-page="/Account/Manage/ChangePassword">@Html.Raw(Icones.Get("chave"))<span>Alterar senha</span></a>
+                    </div>
                 </div>
             </section>
-        }
-
-        <section class="panel">
-            <h2 class="panel-title">Dados do cadastro</h2>
-            <dl class="detail-list mb-0">
-                <dt>Telefone</dt>
-                <dd>@(string.IsNullOrWhiteSpace(Model.Phone) ? "—" : Model.Phone)</dd>
-                <dt>CPF</dt>
-                <dd class="mono">@CpfMascarado(Model.CPF)</dd>
-                <dt>Código</dt>
-                <dd class="mono">@Model.UsuarioId</dd>
-            </dl>
-        </section>
-
-        <section class="panel">
-            <h2 class="panel-title">Acesso à conta</h2>
-            <p class="text-muted">Troque o e-mail ou a senha de login. A senha é guardada de forma protegida pelo sistema de acesso.</p>
-            <div class="d-flex flex-wrap gap-2">
-                <a class="btn btn-outline-secondary" asp-area="Identity" asp-page="/Account/Manage/Index">Dados da conta</a>
-                <a class="btn btn-outline-secondary" asp-area="Identity" asp-page="/Account/Manage/ChangePassword">Alterar senha</a>
-            </div>
-        </section>
+        </div>
     </div>
 }

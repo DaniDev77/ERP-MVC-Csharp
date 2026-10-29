@@ -1,72 +1,120 @@
+@using System.Globalization
 @model IEnumerable<Sistema.Models.Produto>
 
 @{
     ViewData["Title"] = "Produtos";
     var filtro = (string?)ViewBag.Filtro;
+    var pt = new CultureInfo("pt-BR");
+    var minimo = Sistema.Models.Produto.EstoqueMinimo;
+    var total = Model.Count();
 }
 
-<div class="page-header">
-    <div>
-        <h1>Produtos</h1>
-        <p class="page-sub">Cadastro, preço e estoque. Repor o estoque é editar a quantidade.</p>
-    </div>
-    <a asp-action="Create" class="btn btn-primary">Novo produto</a>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Produtos", Descricao = "Catálogo com preço e estoque. Para repor, é só editar a quantidade.", Icone = "produtos",
+    AcaoTexto = "Novo produto", AcaoUrl = Url.Action("Create") }' />
 
-@* Cartões de contagem que funcionam como filtro da lista *@
-<div class="count-filters">
-    <a class="count-card @(string.IsNullOrEmpty(filtro) ? "selecionado" : "")" asp-action="Index">
-        <div class="label">Todos os produtos</div>
-        <div class="value">@ViewBag.Total</div>
+@* Abas de filtro por situação do estoque (filtro feito no servidor, pela rota) *@
+<nav class="segmented mb-4" aria-label="Filtrar produtos por estoque">
+    <a class="@(string.IsNullOrEmpty(filtro) ? "ativo" : "")" asp-action="Index" aria-current="@(string.IsNullOrEmpty(filtro) ? "page" : null)">
+        Todos <span class="contador">@ViewBag.Total</span>
     </a>
-    <a class="count-card @(filtro == "baixo" ? "selecionado" : "")" asp-action="Index" asp-route-filtro="baixo">
-        <div class="label">Estoque baixo (até @Sistema.Models.Produto.EstoqueMinimo)</div>
-        <div class="value">@ViewBag.Baixos</div>
+    <a class="@(filtro == "baixo" ? "ativo" : "")" asp-action="Index" asp-route-filtro="baixo" aria-current="@(filtro == "baixo" ? "page" : null)" title="De 1 a @minimo unidades">
+        Estoque baixo <span class="contador">@ViewBag.Baixos</span>
     </a>
-    <a class="count-card @(filtro == "zerado" ? "selecionado" : "")" asp-action="Index" asp-route-filtro="zerado">
-        <div class="label">Sem estoque</div>
-        <div class="value">@ViewBag.Zerados</div>
+    <a class="@(filtro == "zerado" ? "ativo" : "")" asp-action="Index" asp-route-filtro="zerado" aria-current="@(filtro == "zerado" ? "page" : null)">
+        Sem estoque <span class="contador">@ViewBag.Zerados</span>
     </a>
-</div>
+</nav>
 
-@if (!Model.Any())
-{
-    <div class="panel">
-        <p class="mb-0 text-muted">Nenhum produto nesta lista.</p>
-    </div>
-}
-else
-{
-    <div class="table-wrap">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Produto</th>
-                    <th>Tipo</th>
-                    <th>Fornecedor</th>
-                    <th class="num">Preço</th>
-                    <th class="num">Estoque</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
+<div class="ui-card table-card">
+    @if (!Model.Any())
+    {
+        @* Lista vazia: diferencia "nenhum produto" de "nenhum produto neste filtro" *@
+        if (string.IsNullOrEmpty(filtro))
+        {
+            <partial name="_EmptyState" model='new EmptyState {
+                Imagem = "~/img/vazio-caixas.svg", Titulo = "Nenhum produto cadastrado",
+                Texto = "Cadastre o primeiro produto, com preço e quantidade em estoque, para começar a vender.",
+                AcaoTexto = "Cadastrar primeiro produto", AcaoUrl = Url.Action("Create") }' />
+        }
+        else
+        {
+            <partial name="_EmptyState" model='new EmptyState {
+                Imagem = "~/img/tudo-certo.svg", Titulo = "Nada por aqui",
+                Texto = "Nenhum produto está nessa situação de estoque agora.",
+                SecundariaTexto = "Ver todos os produtos", SecundariaUrl = Url.Action("Index") }' />
+        }
+    }
+    else
+    {
+        @* Busca instantânea no cliente (site.js) + contagem *@
+        <div class="toolbar">
+            <div class="busca input-icon">
+                @Html.Raw(Icones.Get("buscar"))
+                <input type="search" class="form-control" placeholder="Buscar por produto, tipo ou fornecedor" aria-label="Buscar produtos"
+                       data-filtro-alvo="#tabelaProdutos" data-filtro-vazio="#semProdutos" data-filtro-contagem="#contagemProdutos" />
+            </div>
+            <span class="toolbar-info" id="contagemProdutos" data-singular="produto" data-plural="produtos" aria-live="polite">@total @(total == 1 ? "produto" : "produtos")</span>
+        </div>
+
+        <div class="table-wrap">
+            <table class="table-ui table-stack" id="tabelaProdutos">
+                <thead>
                     <tr>
-                        <td>@item.Name</td>
-                        <td>@item.TipoProduto?.TipoNome</td>
-                        <td>@item.Fornecedor?.FonecedorNome</td>
-                        <td class="num">@item.Preco.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</td>
-                        @* Estoque em vermelho quando está no nível de reposição (ou zerado) *@
-                        <td class="num @(item.Estoque <= Sistema.Models.Produto.EstoqueMinimo ? "num-alerta" : "")">@item.Estoque</td>
-                        <td class="text-end row-actions">
-                            <a asp-action="Edit" asp-route-id="@item.ProdutoId">Editar</a>
-                            <span class="text-muted mx-1">·</span>
-                            <a asp-action="Delete" asp-route-id="@item.ProdutoId">Excluir</a>
-                        </td>
+                        <th scope="col">Produto</th>
+                        <th scope="col">Fornecedor</th>
+                        <th scope="col" class="num">Preço</th>
+                        <th scope="col">Estoque</th>
+                        <th scope="col" class="acoes-col"><span class="visually-hidden">Ações</span></th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-}
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr data-filtro="@item.Name @item.TipoProduto?.TipoNome @item.Fornecedor?.FonecedorNome">
+                            <td class="cell-head">
+                                <div class="cell-main">
+                                    <partial name="_ProdutoThumb" model='new ProdutoThumb { Nome = item.Name }' />
+                                    <div>
+                                        <a class="cell-title" asp-action="Edit" asp-route-id="@item.ProdutoId">@item.Name</a>
+                                        <span class="cell-sub">@(item.TipoProduto?.TipoNome ?? "Sem tipo")</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td data-label="Fornecedor" class="@(item.Fornecedor == null ? "text-3" : "")">@(item.Fornecedor?.FonecedorNome ?? "—")</td>
+                            <td data-label="Preço" class="num fw-semibold">@item.Preco.ToString("C2", pt)</td>
+                            @* Redesign: régua de estoque (tique no mínimo) ao lado do número; estoque normal em texto, cor só em baixo/zerado *@
+                            <td data-label="Estoque">
+                                <div class="estoque-cel">
+                                    <partial name="_ReguaEstoque" model="item.Estoque" />
+                                    @if (item.Estoque == 0)
+                                    {
+                                        <span class="chip chip-danger">Sem estoque</span>
+                                    }
+                                    else if (item.Estoque <= minimo)
+                                    {
+                                        <span class="chip chip-warning">Baixo · @item.Estoque un.</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="num">@item.Estoque un.</span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="acoes-col">
+                                <div class="row-actions">
+                                    <a asp-action="Edit" asp-route-id="@item.ProdutoId" class="btn btn-ghost btn-sm">@Html.Raw(Icones.Get("editar"))<span>Editar</span></a>
+                                    <a asp-action="Delete" asp-route-id="@item.ProdutoId" class="btn btn-ghost-danger btn-icon btn-sm" aria-label="Excluir @item.Name" title="Excluir">@Html.Raw(Icones.Get("excluir"))</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="sem-resultado" id="semProdutos" hidden>
+                <img src="~/img/vazio-busca.svg" alt="" width="120" height="85" />
+                Nenhum produto encontrado para essa busca.
+            </div>
+        </div>
+    }
+</div>

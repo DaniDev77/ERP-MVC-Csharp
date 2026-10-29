@@ -1,29 +1,43 @@
 @page
 @model IndexModel
 @{
-    ViewData["Title"] = "Profile";
+    ViewData["Title"] = "Dados da conta";
     ViewData["ActivePage"] = ManageNavPages.Index;
 }
 
-<h3>@ViewData["Title"]</h3>
-<partial name="_StatusMessage" for="StatusMessage" />
-<div class="row">
-    <div class="col-md-6">
-        <form id="profile-form" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
-                <label asp-for="Username" class="form-label"></label>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number. "/>
-                <label asp-for="Input.PhoneNumber" class="form-label"></label>
-                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
-            </div>
-            <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </form>
+@* Dados da conta de acesso: usuário (somente leitura) e telefone *@
+<div class="ui-card-header">
+    <div>
+        <h2 class="ui-card-title">@ViewData["Title"]</h2>
+        <p class="ui-card-sub">Informações da sua conta de acesso.</p>
     </div>
 </div>
+<form id="profile-form" method="post">
+    <div class="ui-card-body">
+        <partial name="_StatusMessage" for="StatusMessage" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+        <div class="form-grid cols-2">
+            <div>
+                <label asp-for="Username" class="form-label">Usuário (e-mail)</label>
+                <div class="input-icon">
+                    @Html.Raw(Icones.Get("email"))
+                    <input asp-for="Username" class="form-control" disabled />
+                </div>
+            </div>
+            <div>
+                <label asp-for="Input.PhoneNumber" class="form-label">Telefone <span class="opcional">(opcional)</span></label>
+                <div class="input-icon">
+                    @Html.Raw(Icones.Get("telefone"))
+                    <input asp-for="Input.PhoneNumber" class="form-control" placeholder="(11) 99999-9999" />
+                </div>
+                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+    <div class="ui-card-footer">
+        <button id="update-profile-button" type="submit" class="btn btn-primary">Salvar alterações</button>
+    </div>
+</form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

@@ -1,0 +1,43 @@
+@model Sistema.Models.Usuario
+
+@* Seção "Dados pessoais" do usuário, compartilhada por Criar e Editar *@
+<section class="form-section">
+    <div class="form-section-head">
+        <h2><span class="bubble bubble-sm" aria-hidden="true">@Html.Raw(Icones.Get("perfil"))</span>Dados pessoais</h2>
+        <p>Usados para identificar a pessoa nas vendas e compras.</p>
+    </div>
+    <div class="form-grid cols-2">
+        <div class="span-2">
+            <label asp-for="Name" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("perfil"))
+                <input asp-for="Name" class="form-control" autocomplete="name" placeholder="Nome completo" autofocus />
+            </div>
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div>
+            <label asp-for="CPF" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("id"))
+                <input asp-for="CPF" class="form-control" inputmode="numeric" placeholder="Somente números" />
+            </div>
+            <span asp-validation-for="CPF" class="text-danger"></span>
+        </div>
+        <div>
+            <label asp-for="Phone" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("telefone"))
+                <input asp-for="Phone" class="form-control" autocomplete="tel" placeholder="(11) 99999-9999" />
+            </div>
+            <span asp-validation-for="Phone" class="text-danger"></span>
+        </div>
+        <div class="span-2">
+            <label asp-for="Email" class="form-label"></label>
+            <div class="input-icon">
+                @Html.Raw(Icones.Get("email"))
+                <input asp-for="Email" class="form-control" autocomplete="email" placeholder="pessoa@empresa.com" />
+            </div>
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+    </div>
+</section>

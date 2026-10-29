@@ -1,43 +1,53 @@
 @page
 @model EmailModel
 @{
-    ViewData["Title"] = "Manage Email";
+    ViewData["Title"] = "E-mail";
     ViewData["ActivePage"] = ManageNavPages.Email;
 }
 
-<h3>@ViewData["Title"]</h3>
-<partial name="_StatusMessage" for="StatusMessage" />
-<div class="row">
-    <div class="col-md-6">
-        <form id="email-form" method="post">
-            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
-            @if (Model.IsEmailConfirmed)
-            {
-                <div class="form-floating mb-3 input-group">
-                    <input asp-for="Email" class="form-control" placeholder="Please enter your email." disabled />
-                        <div class="input-group-append">
-                            <span class="h-100 input-group-text text-success font-weight-bold">?</span>
-                        </div>
-                    <label asp-for="Email" class="form-label"></label>
-                </div>
-            }
-            else
-            {
-                <div class="form-floating mb-3">
-                    <input asp-for="Email" class="form-control" placeholder="Please enter your email." disabled />
-                    <label asp-for="Email" class="form-label"></label>
-                    <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn btn-link">Send verification email</button>
-                </div>
-            }
-            <div class="form-floating mb-3">
-                <input asp-for="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="Please enter new email." />
-                <label asp-for="Input.NewEmail" class="form-label"></label>
-                <span asp-validation-for="Input.NewEmail" class="text-danger"></span>
-            </div>
-            <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="w-100 btn btn-lg btn-primary">Change email</button>
-        </form>
+@* E-mail de acesso: atual (com selo de confirmado) e troca por um novo *@
+<div class="ui-card-header">
+    <div>
+        <h2 class="ui-card-title">@ViewData["Title"]</h2>
+        <p class="ui-card-sub">O e-mail que você usa para entrar no sistema.</p>
     </div>
 </div>
+<form id="email-form" method="post">
+    <div class="ui-card-body">
+        <partial name="_StatusMessage" for="StatusMessage" />
+        <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+        <div class="form-grid" style="max-width: 480px">
+            <div>
+                <div class="auth-linha">
+                    <label asp-for="Email" class="form-label">E-mail atual</label>
+                    @if (Model.IsEmailConfirmed)
+                    {
+                        <span class="chip chip-success mb-2">Confirmado</span>
+                    }
+                </div>
+                <div class="input-icon">
+                    @Html.Raw(Icones.Get("email"))
+                    <input asp-for="Email" class="form-control" disabled />
+                </div>
+                @if (!Model.IsEmailConfirmed)
+                {
+                    <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn btn-link btn-sm px-0 mt-1">Enviar e-mail de verificação</button>
+                }
+            </div>
+            <div>
+                <label asp-for="Input.NewEmail" class="form-label">Novo e-mail</label>
+                <div class="input-icon">
+                    @Html.Raw(Icones.Get("email"))
+                    <input asp-for="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="novo@empresa.com" />
+                </div>
+                <span asp-validation-for="Input.NewEmail" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+    <div class="ui-card-footer">
+        <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="btn btn-primary">Alterar e-mail</button>
+    </div>
+</form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

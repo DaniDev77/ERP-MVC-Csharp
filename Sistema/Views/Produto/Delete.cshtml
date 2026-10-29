@@ -1,28 +1,45 @@
+@using System.Globalization
 @model Sistema.Models.Produto
 
 @{
     ViewData["Title"] = "Excluir produto";
+    var pt = new CultureInfo("pt-BR");
 }
 
-<div class="page-header">
-    <div>
-        <h1>Excluir produto</h1>
-        <p class="page-sub">Essa ação não pode ser desfeita.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Excluir produto", Descricao = "Confira os dados antes de confirmar.",
+    VoltarTexto = "Produtos", VoltarUrl = Url.Action("Index") }' />
 
-<div class="panel form-card">
-    <dl class="row mb-3" style="font-size: 14px;">
-        <dt class="col-sm-3 text-muted fw-normal">Produto</dt>
-        <dd class="col-sm-9">@Model.Name</dd>
-        <dt class="col-sm-3 text-muted fw-normal">Estoque</dt>
-        <dd class="col-sm-9">@Model.Estoque</dd>
-    </dl>
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="ProdutoId" />
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-danger">Excluir produto</button>
-            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+@* Card de confirmação em tom de alerta *@
+<div class="ui-card danger-card confirm-card">
+    <div class="object-header">
+        <partial name="_ProdutoThumb" model='new ProdutoThumb { Nome = Model.Name, Tamanho = "thumb-lg" }' />
+        <div class="object-header-texto">
+            <h2>@Model.Name</h2>
+            <div class="object-header-meta">
+                <span>@Html.Raw(Icones.Get("tipos"))@(Model.TipoProduto?.TipoNome ?? "Sem tipo")</span>
+                <span>@Html.Raw(Icones.Get("fornecedores"))@(Model.Fornecedor?.FonecedorNome ?? "Sem fornecedor")</span>
+            </div>
         </div>
+    </div>
+
+    <dl class="detail-grid">
+        <div><dt>@Html.Raw(Icones.Get("texto"))@Html.DisplayNameFor(m => m.Descricao)</dt><dd>@Model.Descricao</dd></div>
+        <div><dt>@Html.Raw(Icones.Get("moeda"))@Html.DisplayNameFor(m => m.Preco)</dt><dd class="num">@Model.Preco.ToString("C2", pt)</dd></div>
+        <div><dt>@Html.Raw(Icones.Get("caixa"))@Html.DisplayNameFor(m => m.Estoque)</dt><dd class="num">@Model.Estoque un.</dd></div>
+    </dl>
+
+    <div class="danger-zone" role="alert">
+        @Html.Raw(Icones.Get("alerta"))
+        <div>
+            <strong>Esta ação não pode ser desfeita.</strong>
+            <p>O produto <b>@Model.Name</b> será removido do cadastro.</p>
+        </div>
+    </div>
+
+    <form asp-action="Delete" class="ui-card-footer mt-4">
+        <input type="hidden" asp-for="ProdutoId" />
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-danger">@Html.Raw(Icones.Get("excluir"))<span>Excluir produto</span></button>
     </form>
 </div>

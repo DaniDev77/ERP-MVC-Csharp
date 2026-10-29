@@ -4,26 +4,38 @@
     ViewData["Title"] = "Excluir usuário";
 }
 
-<div class="page-header">
-    <div>
-        <h1>Excluir @Model.Name?</h1>
-        <p class="page-sub">A pessoa perde o acesso ao sistema. Vendas e compras já registradas continuam no histórico.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Excluir usuário", Descricao = "A pessoa perde o acesso ao sistema. Vendas e compras já registradas continuam no histórico.",
+    VoltarTexto = "Usuários", VoltarUrl = Url.Action("Index") }' />
 
-<div class="panel form-card">
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" role="alert"></div>
-    <dl class="detail-list">
-        <dt>E-mail</dt>
-        <dd>@Model.Email</dd>
-        <dt>CPF</dt>
-        <dd class="mono">@Model.CPF</dd>
-        <dt>Função</dt>
-        <dd>@(Model.Funcao?.Name ?? "Aguardando liberação")</dd>
+<div class="ui-card danger-card confirm-card">
+    <div class="object-header">
+        <span class="avatar avatar-lg" style="--h: @Visual.Matiz(Model.Name)" aria-hidden="true">@Visual.Iniciais(Model.Name)</span>
+        <div class="object-header-texto">
+            <h2>@Model.Name</h2>
+            <div class="object-header-meta">@Html.Raw(Pilulas.Funcao(Model.FuncaoId, Model.Funcao?.Name))</div>
+        </div>
+    </div>
+
+    @* Erro do servidor (ex.: tentar excluir a si mesmo) *@
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger m-4 mb-0" role="alert"></div>
+
+    <dl class="detail-grid">
+        <div><dt>@Html.Raw(Icones.Get("email"))E-mail</dt><dd>@Model.Email</dd></div>
+        <div><dt>@Html.Raw(Icones.Get("documento"))CPF</dt><dd class="mono">@Model.CPF</dd></div>
+        <div><dt>@Html.Raw(Icones.Get("funcoes"))Função</dt><dd>@(Model.Funcao?.Name ?? "Aguardando liberação")</dd></div>
     </dl>
 
-    <form asp-action="Delete" asp-route-usuarioid="@Model.UsuarioId" class="acoes mt-4">
-        <button type="submit" class="btn btn-danger">Excluir usuário</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+    <div class="danger-zone" role="alert">
+        @Html.Raw(Icones.Get("alerta"))
+        <div>
+            <strong>Esta ação não pode ser desfeita.</strong>
+            <p><b>@Model.Name</b> perde o acesso ao sistema.</p>
+        </div>
+    </div>
+
+    <form asp-action="Delete" asp-route-usuarioid="@Model.UsuarioId" class="ui-card-footer mt-4">
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-danger">@Html.Raw(Icones.Get("excluir"))<span>Excluir usuário</span></button>
     </form>
 </div>

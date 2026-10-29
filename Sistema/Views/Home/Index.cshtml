@@ -1,233 +1,311 @@
 ﻿@using System.Globalization
-@using Sistema.Helpers
 @model Sistema.Models.InicioViewModel
 
 @{
     ViewData["Title"] = "Início";
-    var moeda = new CultureInfo("pt-BR");
-    var nomeMes = Model.Mes.ToString("MMMM 'de' yyyy", moeda);
-    var diasComVenda = DateTime.Today.Day;
+    var pt = new CultureInfo("pt-BR");
+    var nomeMes = Model.Mes.ToString("MMMM 'de' yyyy", pt);
+    var mesCurto = Model.Mes.ToString("MMMM", pt);
+    var primeiroNome = (Model.NomeUsuario ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+    var hora = DateTime.Now.Hour;
+    var saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
+    // Visitante usa a casca das telas de acesso (painel da marca + formulário)
+    if (!Model.Logado)
+    {
+        Layout = "_LayoutAuth";
+    }
 }
 
 @if (!Model.Logado)
 {
-    @* Visitante: o que é o sistema e como entrar *@
-    <div class="page-header">
-        <div>
-            <h1>Sistema de vendas e estoque</h1>
-            <p class="page-sub">Venda, compra e acompanhamento do estoque em um só lugar.</p>
-        </div>
+    @* ---------- Visitante: boas-vindas e os dois caminhos ---------- *@
+    @* Redesign: sai a ilustração de dashboard; o painel da esquerda já traz a ilustração da marca *@
+    <h1>Boas-vindas ao Sistema</h1>
+    <p class="auth-sub">Registre vendas no balcão, compras de fornecedores e acompanhe o estoque e o desempenho do mês.</p>
+    <div class="d-grid gap-2">
+        <a class="btn btn-primary btn-lg" asp-area="Identity" asp-page="/Account/Login">@Html.Raw(Icones.Get("perfil"))<span>Entrar na minha conta</span></a>
+        <a class="btn btn-secondary btn-lg" asp-area="Identity" asp-page="/Account/Register">Criar conta</a>
     </div>
-    <div class="panel boas-vindas">
-        <p>Entre com sua conta para registrar vendas e compras e acompanhar o desempenho. Se você ainda não tem conta, crie uma: um administrador libera a sua função.</p>
-        <div class="acoes">
-            <a class="btn btn-primary" asp-area="Identity" asp-page="/Account/Login">Entrar</a>
-            <a class="btn btn-outline-secondary" asp-area="Identity" asp-page="/Account/Register">Criar conta</a>
-        </div>
+    <div class="alert alert-brand mt-4">
+        @Html.Raw(Icones.Get("info"))
+        <div><span class="alert-texto">Conta nova começa sem função: um administrador libera venda ou compra para você.</span></div>
     </div>
 }
 else if (Model.Pendente)
 {
-    @* Conta sem função: explica o que falta, sem mostrar telas que não funcionam para ela *@
-    <div class="page-header">
+    @* ---------- Conta sem função: o que falta para começar ---------- *@
+    @* Redesign: o hero com ilustração virou o cabeçalho padrão de página; o estado da conta vira um selo à direita *@
+    <header class="page-header">
         <div>
-            <h1>Início</h1>
-            <p class="page-sub">Sua conta está criada, mas ainda não pode vender nem comprar.</p>
+            <h1 id="hero-titulo">@saudacao@(primeiroNome != null ? ", " + primeiroNome : "")</h1>
+            <p class="page-header-sub">Sua conta está criada, mas ainda não pode vender nem comprar. Falta pouco.</p>
         </div>
-    </div>
-    <div class="panel passos">
-        @if (string.IsNullOrEmpty(Model.NomeUsuario))
-        {
-            <h2 class="panel-title">Falta completar seu cadastro</h2>
-            <p class="text-muted">Informe seus dados (nome e CPF) para que um administrador possa liberar sua função.</p>
-            <a class="btn btn-primary" asp-controller="Usuario" asp-action="Create">Completar cadastro</a>
-        }
-        else
-        {
-            <h2 class="panel-title">Aguardando liberação de @Model.NomeUsuario</h2>
-            <ol class="passos-lista">
-                <li><span class="passo-ok">Conta criada</span></li>
-                <li><span class="passo-atual">Um administrador define sua função (vendedor ou padrão)</span></li>
-                <li><span>Você passa a ver as telas de venda ou compra</span></li>
-            </ol>
-            <p class="text-muted mb-0">Não precisa fazer nada agora. Quando a função for definida, esta tela muda sozinha.</p>
-        }
+        <div class="page-header-acoes">
+            <span class="chip chip-warning">Conta em configuração</span>
+        </div>
+    </header>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <section class="ui-card h-100">
+                <div class="ui-card-header">
+                    <div>
+                        <h2 class="ui-card-title">Próximos passos</h2>
+                        <p class="ui-card-sub">Acompanhe a liberação da sua conta</p>
+                    </div>
+                </div>
+                <div class="ui-card-body">
+                    @{ var temCadastro = !string.IsNullOrEmpty(Model.NomeUsuario); }
+                    <ol class="steps">
+                        <li class="feito"><span class="passo-marca">@Html.Raw(Icones.Get("ok"))</span>Conta de acesso criada</li>
+                        <li class="@(temCadastro ? "feito" : "atual")"><span class="passo-marca">@if (temCadastro) { @Html.Raw(Icones.Get("ok")) } else { <text>2</text> }</span>Cadastro com nome e CPF</li>
+                        <li class="@(temCadastro ? "atual" : "")"><span class="passo-marca">3</span>Um administrador define sua função (vendedor ou padrão)</li>
+                        <li><span class="passo-marca">4</span>Você passa a ver as telas de venda ou compra</li>
+                    </ol>
+                </div>
+                @if (!temCadastro)
+                {
+                    <div class="ui-card-footer">
+                        <span class="esquerda">Leva menos de um minuto.</span>
+                        <a class="btn btn-primary" asp-controller="Usuario" asp-action="Create">@Html.Raw(Icones.Get("id"))<span>Completar cadastro</span></a>
+                    </div>
+                }
+            </section>
+        </div>
+        <div class="col-lg-5">
+            <section class="ui-card h-100">
+                <div class="ui-card-body">
+                    <span class="bubble bubble-info mb-3" aria-hidden="true">@Html.Raw(Icones.Get("info"))</span>
+                    <h2 class="ui-card-title mb-2">Não precisa fazer nada agora</h2>
+                    <p class="text-2">@(temCadastro ? "Seu cadastro foi enviado. Quando a função for definida, esta tela muda sozinha e o menu mostra as novas opções." : "Assim que você completar o cadastro, um administrador recebe seu pedido de liberação.")</p>
+                    <a class="btn btn-secondary mt-2" asp-controller="Perfil" asp-action="Index">@Html.Raw(Icones.Get("perfil"))<span>Ver meu perfil</span></a>
+                </div>
+            </section>
+        </div>
     </div>
 }
 else if (Model.EhAdmin)
 {
-    <div class="page-header">
+    var minimoEstoque = Sistema.Models.Produto.EstoqueMinimo;
+    var ticketMedio = Model.QtdVendasMes > 0 ? Model.ValorVendasMes / Model.QtdVendasMes : 0m;
+    var valoresJson = "[" + string.Join(",", Model.VendasPorDia.Select(v => v.ToString(CultureInfo.InvariantCulture))) + "]";
+
+    @* ---------- Cabeçalho: título-substantivo e a informação do mês ---------- *@
+    @* Redesign: o hero com saudação e ilustração virou "Visão da loja" + a frase do mês (o achado) e a ação principal à direita *@
+    <header class="page-header">
         <div>
-            <h1>Início</h1>
-            <p class="page-sub">A loja em @nomeMes</p>
+            <h1 id="hero-titulo">Visão da loja</h1>
+            <p class="page-header-sub">
+                @char.ToUpper(nomeMes[0])@nomeMes[1..]: a loja vendeu <strong>@Model.ValorVendasMes.ToString("C2", pt)</strong>.
+                @if (Model.TotalEstoqueBaixo > 0)
+                {
+                    <span>@Model.TotalEstoqueBaixo @(Model.TotalEstoqueBaixo == 1 ? "produto precisa" : "produtos precisam") de reposição.</span>
+                }
+                else
+                {
+                    <span>Todo o estoque está acima do mínimo.</span>
+                }
+            </p>
         </div>
-        <div class="acoes-topo">
-            <a class="btn btn-outline-secondary" asp-controller="Produto" asp-action="Create">Novo produto</a>
+        <div class="page-header-acoes">
+            <a class="btn btn-secondary" asp-controller="Produto" asp-action="Create">@Html.Raw(Icones.Get("produtos"))<span>Novo produto</span></a>
             <a class="btn btn-primary" asp-controller="Venda" asp-action="Create">@Html.Raw(Icones.Get("mais"))<span>Registrar venda</span></a>
         </div>
-    </div>
+    </header>
 
-    @* Números do mês em uma faixa só, separados por filetes: o valor é o protagonista *@
-    <div class="faixa-numeros">
-        <div class="numero">
-            <div class="numero-rotulo">Vendas no mês</div>
-            <div class="numero-valor num">@Model.ValorVendasMes.ToString("C2", moeda)</div>
-            <div class="numero-sub">@Model.QtdVendasMes venda(s)</div>
-        </div>
-        <div class="numero">
-            <div class="numero-rotulo">Compras no mês</div>
-            <div class="numero-valor num">@Model.ValorComprasMes.ToString("C2", moeda)</div>
-            <div class="numero-sub">@Model.QtdComprasMes compra(s)</div>
-        </div>
-        <div class="numero @(Model.TotalEstoqueBaixo > 0 ? "numero-alerta" : "")">
-            <div class="numero-rotulo">Produtos com estoque baixo</div>
-            <div class="numero-valor num">@Model.TotalEstoqueBaixo</div>
-            <div class="numero-sub">com até @Sistema.Models.Produto.EstoqueMinimo unidades</div>
-        </div>
-        <div class="numero">
-            <div class="numero-rotulo">Valor em estoque</div>
-            <div class="numero-valor num">@Model.ValorEmEstoque.ToString("C2", moeda)</div>
-            <div class="numero-sub">preço × quantidade</div>
-        </div>
-    </div>
+    @* ---------- KPIs do mês ---------- *@
+    <section class="kpi-grid" aria-label="Indicadores de @nomeMes">
+        <partial name="_KpiCard" model='new KpiCard {
+            Rotulo = "Vendas do mês", Valor = Model.ValorVendasMes.ToString("C2", pt), Icone = "venda", Tom = "brand",
+            Selo = $"{Model.QtdVendasMes} {(Model.QtdVendasMes == 1 ? "venda" : "vendas")}",
+            Rodape = Model.QtdVendasMes > 0 ? $"ticket médio {ticketMedio.ToString("C2", pt)}" : "nenhuma venda ainda",
+            Url = Url.Action("Index", "Desempenho") }' />
+        @* Tom neutro (slate) no lugar do antigo violeta *@
+        <partial name="_KpiCard" model='new KpiCard {
+            Rotulo = "Compras do mês", Valor = Model.ValorComprasMes.ToString("C2", pt), Icone = "compra", Tom = "slate",
+            Selo = $"{Model.QtdComprasMes} {(Model.QtdComprasMes == 1 ? "compra" : "compras")}", SeloTom = "info",
+            Rodape = "em " + mesCurto }' />
+        <partial name="_KpiCard" model='new KpiCard {
+            Rotulo = "Valor em estoque", Valor = Model.ValorEmEstoque.ToString("C2", pt), Icone = "caixa", Tom = "info",
+            Selo = $"{Model.TotalProdutos} {(Model.TotalProdutos == 1 ? "produto" : "produtos")}", SeloTom = "info",
+            Rodape = "a preço de venda", Url = Url.Action("Index", "Produto") }' />
+        <partial name="_KpiCard" model='new KpiCard {
+            Rotulo = "Estoque baixo", Valor = Model.TotalEstoqueBaixo.ToString(), Icone = "sino",
+            Tom = Model.TotalEstoqueBaixo > 0 ? "warning" : "success",
+            Selo = Model.TotalSemEstoque > 0 ? $"{Model.TotalSemEstoque} sem estoque" : (Model.TotalEstoqueBaixo > 0 ? null : "tudo certo"),
+            SeloTom = Model.TotalSemEstoque > 0 ? "danger" : "success",
+            Rodape = $"com {minimoEstoque} un. ou menos", Alerta = Model.TotalEstoqueBaixo > 0,
+            Url = Url.Action("EstoqueBaixo", "Produto") }' />
+    </section>
 
-    <div class="grade-inicio">
-        <section class="panel">
-            <div class="painel-cabecalho">
-                <h2 class="panel-title">Vendas por dia</h2>
-                <span class="text-muted">Maior dia: <span class="num">@Model.MaiorVendaDoDia.ToString("C2", moeda)</span></span>
+    <div class="dash-grid">
+        @* ---------- Gráfico de vendas por dia (Chart.js) ---------- *@
+        <section class="ui-card" aria-labelledby="titulo-vendas-dia">
+            <div class="ui-card-header sem-linha">
+                <div>
+                    <h2 class="ui-card-title" id="titulo-vendas-dia">Vendas por dia</h2>
+                    <p class="ui-card-sub">@char.ToUpper(nomeMes[0])@nomeMes[1..], até hoje</p>
+                </div>
+                <span class="chip chip-brand sem-ponto">@Html.Raw(Icones.Get("tendencia"))Maior dia: @Model.MaiorVendaDoDia.ToString("C2", pt)</span>
             </div>
-            @if (Model.QtdVendasMes == 0)
-            {
-                <div class="vazio-pequeno">Nenhuma venda em @nomeMes ainda. As vendas aparecem aqui assim que forem registradas.</div>
-            }
-            else
-            {
-                <svg class="grafico" viewBox="0 0 720 180" preserveAspectRatio="none" role="img" aria-label="Vendas por dia no mês">
-                    <line x1="0" y1="174" x2="720" y2="174" stroke="var(--border-strong)" stroke-width="1" vector-effect="non-scaling-stroke" />
-                    <line x1="0" y1="90" x2="720" y2="90" stroke="var(--grid)" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" />
-                    <line x1="0" y1="6" x2="720" y2="6" stroke="var(--grid)" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" />
-                    <polyline points="@Model.PontosVendasPorDia" fill="none" stroke="var(--chart)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
-                </svg>
-                <div class="eixo-x"><span>Dia 1</span><span>Dia @(Math.Max(1, diasComVenda / 2))</span><span>Hoje (dia @diasComVenda)</span></div>
-            }
+            <div class="ui-card-body">
+                <div class="grafico">
+                    @* O canvas lê os totais diários de VendasPorDia; sem JS fica a descrição em texto *@
+                    <canvas id="graficoVendas" data-valores="@valoresJson" data-mes="@Model.Mes.ToString("MM")"
+                            role="img" aria-label="Gráfico de vendas por dia em @nomeMes. Total @Model.ValorVendasMes.ToString("C2", pt); maior dia @Model.MaiorVendaDoDia.ToString("C2", pt).">
+                        Vendas em @nomeMes: @Model.ValorVendasMes.ToString("C2", pt).
+                    </canvas>
+                    <span class="skeleton grafico-skeleton" aria-hidden="true"></span>
+                    @if (Model.QtdVendasMes == 0)
+                    {
+                        <div class="grafico-vazio">
+                            <span class="bubble bubble-brand" aria-hidden="true">@Html.Raw(Icones.Get("desempenho"))</span>
+                            <strong>Nenhuma venda em @mesCurto ainda</strong>
+                            <span>As vendas aparecem aqui assim que forem registradas.</span>
+                        </div>
+                    }
+                </div>
+            </div>
         </section>
 
-        <section class="panel">
-            <div class="painel-cabecalho">
-                <h2 class="panel-title">Estoque baixo</h2>
-                <a asp-controller="Produto" asp-action="Index" asp-route-filtro="baixo" class="link-discreto">Ver todos</a>
+        @* ---------- Estoque baixo: os cinco menores estoques ---------- *@
+        <section class="ui-card d-flex flex-column" aria-labelledby="titulo-estoque">
+            <div class="ui-card-header">
+                <div>
+                    <h2 class="ui-card-title" id="titulo-estoque">Reposição</h2>
+                    <p class="ui-card-sub">Os menores estoques da loja</p>
+                </div>
+                <a asp-controller="Produto" asp-action="EstoqueBaixo" class="btn btn-ghost btn-sm">Ver todos @Html.Raw(Icones.Get("seta"))</a>
             </div>
             @if (!Model.EstoqueBaixo.Any())
             {
-                <div class="vazio-pequeno">Nenhum produto em nível baixo. Tudo certo com o estoque.</div>
+                <partial name="_EmptyState" model='new EmptyState {
+                    Imagem = "~/img/vazio-caixas.svg", Titulo = "Nenhum produto ainda",
+                    Texto = "Cadastre produtos para acompanhar o estoque aqui.",
+                    AcaoTexto = "Cadastrar produto", AcaoUrl = Url.Action("Create", "Produto"), Compacto = true }' />
             }
             else
             {
-                <ul class="lista-estoque">
+                <ul class="estoque-lista">
                     @foreach (var p in Model.EstoqueBaixo)
                     {
+                        // Tom do selo: zerado, no mínimo ou ok (a barra agora é a régua de estoque, _ReguaEstoque)
+                        var tom = p.Estoque == 0 ? "danger" : p.Estoque <= minimoEstoque ? "warning" : "success";
                         <li>
-                            <span class="lista-nome">@p.Name</span>
-                            <span class="num @(p.Estoque == 0 ? "num-alerta" : "")">@p.Estoque un.</span>
-                            <a asp-controller="Produto" asp-action="Edit" asp-route-id="@p.ProdutoId" class="btn btn-sm btn-outline-secondary">Repor</a>
+                            <partial name="_ProdutoThumb" model='new ProdutoThumb { Nome = p.Name, Tamanho = "thumb-sm" }' />
+                            <div class="estoque-info">
+                                <div class="estoque-linha">
+                                    <a class="cell-title" asp-controller="Produto" asp-action="Edit" asp-route-id="@p.ProdutoId">@p.Name</a>
+                                    <span class="chip chip-@tom">@(p.Estoque == 0 ? "Sem estoque" : p.Estoque + " un.")</span>
+                                </div>
+                                @* Redesign: régua de estoque com o tique no mínimo (o número está no selo acima) *@
+                                <partial name="_ReguaEstoque" model="p.Estoque" />
+                            </div>
                         </li>
                     }
                 </ul>
+                <div class="ui-card-footer mt-auto">
+                    <dl class="mini-stats">
+                        <div><dt>Cadastrados</dt><dd>@Model.TotalProdutos</dd></div>
+                        <div><dt>No mínimo</dt><dd class="@(Model.TotalEstoqueBaixo > 0 ? "text-warning-ink" : "")">@Model.TotalEstoqueBaixo</dd></div>
+                        <div><dt>Zerados</dt><dd class="@(Model.TotalSemEstoque > 0 ? "text-danger-ink" : "")">@Model.TotalSemEstoque</dd></div>
+                    </dl>
+                </div>
             }
         </section>
     </div>
 
-    <section class="panel">
-        <div class="painel-cabecalho">
-            <h2 class="panel-title">Últimas operações</h2>
-            <a asp-controller="Desempenho" asp-action="Index" class="link-discreto">Ver desempenho</a>
+    @* ---------- Últimos pedidos ---------- *@
+    <section class="ui-card mt-4" aria-labelledby="titulo-pedidos">
+        <div class="ui-card-header">
+            <div>
+                <h2 class="ui-card-title" id="titulo-pedidos">Últimos pedidos</h2>
+                <p class="ui-card-sub">Vendas e compras mais recentes</p>
+            </div>
+            <a asp-controller="Desempenho" asp-action="Index" class="btn btn-ghost btn-sm">Ver desempenho @Html.Raw(Icones.Get("seta"))</a>
         </div>
         @if (!Model.UltimosPedidos.Any())
         {
-            <div class="vazio-pequeno">Nenhuma operação registrada ainda.</div>
+            <partial name="_EmptyState" model='new EmptyState {
+                Imagem = "~/img/vazio-carrinho.svg", Titulo = "Nenhum pedido registrado",
+                Texto = "Cada venda e compra aparece aqui, a mais recente em cima.",
+                AcaoTexto = "Registrar venda", AcaoUrl = Url.Action("Create", "Venda"), Compacto = true }' />
         }
         else
         {
-            <div class="table-wrap">
-                <table class="table mb-0">
-                    <thead>
-                        <tr>
-                            <th>Quando</th>
-                            <th>Tipo</th>
-                            <th>Cliente</th>
-                            <th>Vendedor</th>
-                            <th class="num">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var pedido in Model.UltimosPedidos)
-                        {
-                            <tr>
-                                <td class="mono">@pedido.DataHora.ToString("dd/MM HH:mm")</td>
-                                <td>@Html.Raw(Pilulas.Tipo(pedido.Tipo == Sistema.Models.TipoPedido.Venda))</td>
-                                <td>@(pedido.Comprador?.Name ?? "—")</td>
-                                <td>@(pedido.Vendedor?.Name ?? "—")</td>
-                                <td class="num">@pedido.Total.ToString("C2", moeda)</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+            <ul class="pedidos-lista">
+                @foreach (var pedido in Model.UltimosPedidos)
+                {
+                    var venda = pedido.Tipo == Sistema.Models.TipoPedido.Venda;
+                    var cliente = pedido.Comprador?.Name ?? "Cliente";
+                    <li>
+                        <span class="avatar" style="--h: @Visual.Matiz(cliente)" aria-hidden="true">@Visual.Iniciais(cliente)</span>
+                        <div class="pedido-info">
+                            <strong>@cliente</strong>
+                            <span>
+                                <time datetime="@pedido.DataHora.ToString("yyyy-MM-ddTHH:mm")">@pedido.DataHora.ToString("dd/MM 'às' HH:mm")</time>
+                                @if (pedido.Vendedor != null)
+                                {
+                                    <text> · vendido por @pedido.Vendedor.Name</text>
+                                }
+                            </span>
+                        </div>
+                        @* Redesign: venda no tom do destaque, compra em neutro (verde fica só para "deu certo") *@
+                        <span class="chip @(venda ? "chip-brand" : "")">@(venda ? "Venda" : "Compra")</span>
+                        <span class="pedido-total num">@pedido.Total.ToString("C2", pt)</span>
+                    </li>
+                }
+            </ul>
         }
     </section>
 }
 else if (Model.EhVendedor)
 {
-    <div class="page-header">
+    var ticket = Model.QtdVendasMes > 0 ? (Model.ValorVendasMes / Model.QtdVendasMes).ToString("C2", pt) : "—";
+    @* Redesign: home pessoal do vendedor; saudação curta como título, o total do mês na linha de apoio e as ações à direita *@
+    <header class="page-header">
         <div>
-            <h1>Início</h1>
-            <p class="page-sub">Suas vendas em @nomeMes</p>
+            <h1 id="hero-titulo">@saudacao@(primeiroNome != null ? ", " + primeiroNome : "")</h1>
+            <p class="page-header-sub">@char.ToUpper(nomeMes[0])@nomeMes[1..]: você vendeu <strong>@Model.ValorVendasMes.ToString("C2", pt)</strong>.</p>
         </div>
-        <div class="acoes-topo">
+        <div class="page-header-acoes">
+            <a class="btn btn-secondary" asp-controller="Desempenho" asp-action="Vendedor">@Html.Raw(Icones.Get("desempenho"))<span>Meu desempenho</span></a>
             <a class="btn btn-primary" asp-controller="Venda" asp-action="Create">@Html.Raw(Icones.Get("mais"))<span>Registrar venda</span></a>
         </div>
-    </div>
+    </header>
 
-    <div class="faixa-numeros faixa-duas">
-        <div class="numero">
-            <div class="numero-rotulo">Suas vendas no mês</div>
-            <div class="numero-valor num">@Model.ValorVendasMes.ToString("C2", moeda)</div>
-            <div class="numero-sub">@Model.QtdVendasMes venda(s)</div>
-        </div>
-        <div class="numero">
-            <div class="numero-rotulo">Ticket médio</div>
-            <div class="numero-valor num">@(Model.QtdVendasMes > 0 ? (Model.ValorVendasMes / Model.QtdVendasMes).ToString("C2", moeda) : "—")</div>
-            <div class="numero-sub">valor médio por venda</div>
-        </div>
-    </div>
-
-    <section class="panel">
-        <h2 class="panel-title">Próximo passo</h2>
-        <p class="text-muted">Registre a venda assim que o cliente escolher os produtos. Use o CPF ou o código do cliente para encontrá-lo.</p>
-        <div class="acoes">
-            <a class="btn btn-primary" asp-controller="Venda" asp-action="Create">Registrar venda</a>
-            <a class="btn btn-outline-secondary" asp-controller="Desempenho" asp-action="Vendedor">Ver meu desempenho</a>
-        </div>
+    <section class="kpi-grid kpi-grid-3" aria-label="Seus números em @nomeMes">
+        <partial name="_KpiCard" model='new KpiCard { Rotulo = "Total vendido", Valor = Model.ValorVendasMes.ToString("C2", pt), Icone = "moeda", Tom = "brand", Rodape = "em " + mesCurto }' />
+        <partial name="_KpiCard" model='new KpiCard { Rotulo = "Vendas", Valor = Model.QtdVendasMes.ToString(), Icone = "recibo", Tom = "success", Rodape = "pedidos registrados por você" }' />
+        @* Tom neutro (slate) no lugar do antigo violeta *@
+        <partial name="_KpiCard" model='new KpiCard { Rotulo = "Ticket médio", Valor = ticket, Icone = "tendencia", Tom = "slate", Rodape = "valor médio por venda" }' />
     </section>
 }
 else if (Model.EhPadrao)
 {
-    <div class="page-header">
+    @* Redesign: home pessoal do cliente; saudação como título, total do mês na linha de apoio e a compra como ação principal *@
+    <header class="page-header">
         <div>
-            <h1>Início</h1>
-            <p class="page-sub">Suas compras em @nomeMes</p>
+            <h1 id="hero-titulo">@saudacao@(primeiroNome != null ? ", " + primeiroNome : "")</h1>
+            <p class="page-header-sub">Suas compras de @mesCurto somam <strong>@Model.ValorComprasMes.ToString("C2", pt)</strong>.</p>
         </div>
-        <div class="acoes-topo">
-            <a class="btn btn-primary" asp-controller="Compra" asp-action="Create">@Html.Raw(Icones.Get("mais"))<span>Fazer compra</span></a>
+        <div class="page-header-acoes">
+            <a class="btn btn-primary" asp-controller="Compra" asp-action="Create">@Html.Raw(Icones.Get("carrinho"))<span>Fazer compra</span></a>
         </div>
-    </div>
+    </header>
 
-    <div class="faixa-numeros faixa-duas">
-        <div class="numero">
-            <div class="numero-rotulo">Suas compras no mês</div>
-            <div class="numero-valor num">@Model.ValorComprasMes.ToString("C2", moeda)</div>
-            <div class="numero-sub">@Model.QtdComprasMes compra(s)</div>
-        </div>
-    </div>
+    <section class="kpi-grid kpi-grid-3" aria-label="Suas compras em @nomeMes">
+        <partial name="_KpiCard" model='new KpiCard { Rotulo = "Total comprado", Valor = Model.ValorComprasMes.ToString("C2", pt), Icone = "moeda", Tom = "brand", Rodape = "em " + mesCurto }' />
+        @* Tom neutro (slate) no lugar do antigo violeta *@
+        <partial name="_KpiCard" model='new KpiCard { Rotulo = "Compras", Valor = Model.QtdComprasMes.ToString(), Icone = "carrinho", Tom = "slate", Rodape = "pedidos no mês" }' />
+        <partial name="_KpiCard" model='new KpiCard { Rotulo = "Meu perfil", Valor = "Dados e senha", Icone = "perfil", Tom = "info", Rodape = "ver e atualizar", Url = Url.Action("Index", "Perfil") }' />
+    </section>
+}
+
+@section Scripts {
+    @if (Model.Logado && Model.EhAdmin)
+    {
+        @* Chart.js local (CSP: só scripts do próprio site) *@
+        <script src="~/lib/chartjs/chart.umd.min.js"></script>
+    }
 }

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 170" fill="none">
+  <!-- Redesign: paleta trocada do azul-marinho para o verde-petróleo da etiqueta de gôndola e neutros -->
+  <!-- Busca sem resultado: lista e lupa em azul-marinho, sem brilhos -->
+  <rect x="24" y="16" width="192" height="140" rx="14" fill="#2A8199" opacity=".07"/>
+  <!-- Folhas de lista -->
+  <rect x="58" y="44" width="96" height="104" rx="8" fill="#E3EEEF"/>
+  <rect x="70" y="36" width="96" height="104" rx="8" fill="#fff" stroke="#C7DDE2" stroke-width="2"/>
+  <rect x="84" y="54" width="44" height="7" rx="2" fill="#9CC4CE"/>
+  <rect x="84" y="72" width="66" height="5" rx="2" fill="#E6E9E9"/>
+  <rect x="84" y="86" width="56" height="5" rx="2" fill="#E6E9E9"/>
+  <rect x="84" y="100" width="62" height="5" rx="2" fill="#E6E9E9"/>
+  <!-- Lupa -->
+  <circle cx="160" cy="104" r="25" fill="#fff" stroke="#1B6C80" stroke-width="6"/>
+  <circle cx="160" cy="104" r="16" fill="#F1F6F6"/>
+  <path d="M178 123 l20 20" stroke="#1B6C80" stroke-width="9" stroke-linecap="round"/>
+  <path d="M155 99 l10 10 M165 99 l-10 10" stroke="#5D9FB0" stroke-width="3" stroke-linecap="round"/>
+</svg>

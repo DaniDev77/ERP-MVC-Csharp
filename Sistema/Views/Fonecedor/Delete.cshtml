@@ -1,58 +1,40 @@
 @model Sistema.Models.Fonecedor
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Excluir fornecedor";
 }
 
-<h1>Excluir fornecedor</h1>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Excluir fornecedor", Descricao = "Confira os dados antes de confirmar.",
+    VoltarTexto = "Fornecedores", VoltarUrl = Url.Action("Index") }' />
 
-<h3>Tem certeza que quer excluir este registro?</h3>
-<div>
-    <h4>Sistema.Models.Fonecedor</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FonecedorNome)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FonecedorNome)
-        </dd>
+@* Card de confirmação em tom de alerta *@
+<div class="ui-card danger-card confirm-card">
+    <div class="object-header">
+        <span class="avatar avatar-lg" style="--h: @Visual.Matiz(Model.FonecedorNome)" aria-hidden="true">@Visual.Iniciais(Model.FonecedorNome)</span>
+        <div class="object-header-texto">
+            <h2>@Model.FonecedorNome</h2>
+            <div class="object-header-meta"><span>@Html.Raw(Icones.Get("documento"))<span class="mono">@Model.CNPJ</span></span></div>
+        </div>
+    </div>
+
+    <dl class="detail-grid">
+        <div><dt>@Html.Raw(Icones.Get("texto"))@Html.DisplayNameFor(m => m.FonecedorDescricao)</dt><dd>@Model.FonecedorDescricao</dd></div>
+        <div><dt>@Html.Raw(Icones.Get("telefone"))@Html.DisplayNameFor(m => m.FonecedorTelefone)</dt><dd>@Model.FonecedorTelefone</dd></div>
+        <div><dt>@Html.Raw(Icones.Get("email"))@Html.DisplayNameFor(m => m.FonecedorEmail)</dt><dd>@Model.FonecedorEmail</dd></div>
     </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FonecedorDescricao)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FonecedorDescricao)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CNPJ)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CNPJ)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FonecedorTelefone)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FonecedorTelefone)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FonecedorEmail)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FonecedorEmail)
-        </dd>
-    </dl>
-    <form asp-action="Delete">
+
+    <div class="danger-zone" role="alert">
+        @Html.Raw(Icones.Get("alerta"))
+        <div>
+            <strong>Esta ação não pode ser desfeita.</strong>
+            <p>O fornecedor <b>@Model.FonecedorNome</b> será removido do cadastro.</p>
+        </div>
+    </div>
+
+    <form asp-action="Delete" class="ui-card-footer mt-4">
         <input type="hidden" asp-for="FonecedorId" />
-        <input type="submit" value="Excluir" class="btn btn-danger" /> |
-        <a asp-action="Index">Voltar para a lista</a>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-danger">@Html.Raw(Icones.Get("excluir"))<span>Excluir fornecedor</span></button>
     </form>
 </div>

@@ -2,46 +2,54 @@
 
 @{
     ViewData["Title"] = "Desempenho";
+    var pt = new System.Globalization.CultureInfo("pt-BR");
+    var maior = Model.PorVendedor.Count > 0 ? Model.PorVendedor.Max(l => l.Valor) : 0m;
+    var totalVendedores = Model.PorVendedor.Sum(l => l.Valor);
 }
 
-<div class="page-header">
-    <div>
-        <h1>Desempenho de compras e vendas</h1>
-        <p class="page-sub">Todas as operações da loja no período escolhido.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model='new PageHeader {
+    Titulo = "Desempenho", Descricao = "Compras e vendas da loja no período escolhido.", Icone = "desempenho" }' />
 
 <partial name="_Desempenho" model="Model" />
 
-@* Quanto cada vendedor vendeu no período: a tabela que o gestor usa para cobrar metas *@
-<section class="panel mt-3">
-    <h2 class="panel-title">Vendas por vendedor</h2>
+@* Ranking de vendedores: barra proporcional ao maior valor e a fatia de cada um no total *@
+<section class="ui-card" aria-labelledby="titulo-ranking">
+    <div class="ui-card-header">
+        <div>
+            <h2 class="ui-card-title" id="titulo-ranking">Vendas por vendedor</h2>
+            <p class="ui-card-sub">Quanto cada vendedor vendeu no período</p>
+        </div>
+    </div>
     @if (Model.PorVendedor.Count == 0)
     {
-        <p class="text-muted mb-0">Nenhuma venda registrada neste período.</p>
+        <partial name="_EmptyState" model='new EmptyState {
+            Imagem = "~/img/vazio-equipe.svg", Titulo = "Nenhuma venda neste período",
+            Texto = "Troque o período acima ou registre uma venda.", Compacto = true }' />
     }
     else
     {
-        <div class="table-wrap">
-            <table class="table mb-0">
-                <thead>
-                    <tr>
-                        <th>Vendedor</th>
-                        <th class="num">Vendas</th>
-                        <th class="num">Valor vendido</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var linha in Model.PorVendedor)
-                    {
-                        <tr>
-                            <td>@linha.Nome</td>
-                            <td class="num">@linha.Quantidade</td>
-                            <td class="num">@linha.Valor.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+        <ol class="ranking">
+            @{ var posicao = 0; }
+            @foreach (var linha in Model.PorVendedor.OrderByDescending(l => l.Valor))
+            {
+                posicao++;
+                var largura = maior == 0 ? 0 : (double)(linha.Valor / maior) * 100;
+                var fatia = totalVendedores == 0 ? 0 : (double)(linha.Valor / totalVendedores) * 100;
+                <li>
+                    <span class="ranking-pos @(posicao <= 3 ? "top" + posicao : "")" aria-label="@(posicao)º lugar">@posicao</span>
+                    <span class="avatar" style="--h: @Visual.Matiz(linha.Nome)" aria-hidden="true">@Visual.Iniciais(linha.Nome)</span>
+                    <div class="ranking-info">
+                        <div class="ranking-linha">
+                            <strong>@linha.Nome</strong>
+                            <span class="num ranking-valor">@linha.Valor.ToString("C2", pt)</span>
+                        </div>
+                        <div class="barra barra-brand" role="img" aria-label="@fatia.ToString("0")% do total vendido">
+                            <span style="width: @largura.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span>
+                        </div>
+                        <span class="cell-sub">@linha.Quantidade @(linha.Quantidade == 1 ? "venda" : "vendas") · @fatia.ToString("0")% do total</span>
+                    </div>
+                </li>
+            }
+        </ol>
     }
 </section>

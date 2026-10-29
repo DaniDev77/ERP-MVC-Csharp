@@ -1,0 +1,205 @@
+/* =========================================================================
+   tokens.css · Design tokens do Sistema (cores, tipo, raios, espaço, gráfico)
+   Tema claro em :root; tema escuro em [data-theme="dark"] (definido pelo theme-init.js)
+
+   Redesign "moldura e folha": a casca (sidebar + topbar) é uma moldura em L num
+   cinza-esverdeado bem leve, e o trabalho fica numa folha branca. A cor de
+   destaque é o verde-petróleo da etiqueta de gôndola, usada só em dados, foco,
+   logo e aba ativa. O botão principal é quase preto. Sem gradiente, sem sombra
+   em nada parado. Contrastes medidos: todos os textos passam AA (4.5:1).
+   ========================================================================= */
+
+:root {
+  /* ---------- Papéis novos (o que as peças usam) ---------- */
+  /* Moldura em L (sidebar + topbar) e fundo da página: cinza-esverdeado tirado do verde-petróleo */
+  --frame: #EEF2F1;
+  /* Folha de trabalho, cards e campos */
+  --surface: #FFFFFF;
+  /* Um degrau de tom: rodapé de card, hover de linha, poço de dados */
+  --raised: #F4F6F6;
+  /* Pílula cinza do item ativo no menu e hover de botões discretos */
+  --active: #E3E8E7;
+  /* Linhas em três degraus: borda de card, régua de linha, borda de controle */
+  --border: #E6E9E9;
+  --rule: #F0F2F2;
+  --control: #CDCED1;
+  /* Borda dos campos de formulário: 3,3:1 sobre branco (WCAG 1.4.11) */
+  --input-line: #8A8D90;
+  /* Texto em três níveis (18,4:1 · 6,4:1 · 5,2:1 sobre branco) */
+  --text: #131416;
+  --muted: #5D5F60;
+  --faint: #6B6D6E;
+  /* Botão principal quase preto com rótulo branco (17,8:1) */
+  --primary-fill: #16181A;
+  --primary-fill-hover: #2B2E31;
+  --on-primary-fill: #FFFFFF;
+  /* Destaque verde-petróleo: dados, foco, aba ativa, logo (6,0:1 sobre branco) */
+  --accent: #1B6C80;
+  --accent-fill: #1B6C80;          /* fundo com texto branco (checkbox marcado, logo) */
+  --accent-soft: #E3F0F3;          /* fundo pálido do selo de destaque */
+  --accent-ink: #12505F;           /* texto sobre o fundo pálido */
+  /* Estados: texto AA e pares pálidos para selos */
+  --positive: #1E7B4F;
+  --negative: #C4242A;
+  --warning: #92400E;
+  --pill-positive-bg: #DCFAE5; --pill-positive-ink: #04250E; --pill-positive-line: #B5E8C6;
+  --pill-negative-bg: #FFEDEA; --pill-negative-ink: #831C1E; --pill-negative-line: #F6C9C4;
+  --pill-warning-bg:  #FFFBEB; --pill-warning-ink:  #92400E; --pill-warning-line:  #FDE68A;
+  --pill-neutral-bg:  #EBEDEE; --pill-neutral-ink:  #353736;
+  --focus-ring: 0 0 0 3px rgba(27, 108, 128, .28);
+  --overlay: rgba(19, 20, 22, .45);
+
+  /* ---------- Apelidos dos nomes antigos (mantidos para nada quebrar) ---------- */
+  /* Os nomes antigos passam a apontar para os papéis novos */
+  --bg: var(--frame);
+  --surface-2: var(--raised);
+  --surface-3: var(--active);
+  --border-strong: var(--control);
+  --text-2: var(--muted);
+  --text-3: var(--faint);
+  --primary: var(--accent);
+  --primary-hover: var(--accent-ink);
+  --primary-soft: var(--accent-soft);
+  --primary-soft-2: var(--accent-soft);
+  --primary-line: var(--border);
+  --on-primary: var(--on-primary-fill);
+  --action: var(--primary-fill);
+  --action-hover: var(--primary-fill-hover);
+  --action-active: #000000;
+  --surface-inverse: var(--primary-fill);
+  --on-inverse: #FFFFFF;
+  --on-inverse-2: #C9CCCE;
+  --inverse-line: rgba(255, 255, 255, .14);
+  --inverse-soft: rgba(255, 255, 255, .08);
+  --neutral-ink: var(--muted);
+  --neutral-bg: var(--raised);
+  /* Escala "brand" antiga remapeada para a família do verde-petróleo */
+  --brand-50: #F1F6F6; --brand-100: #E3EEEF; --brand-200: #C7DDE2; --brand-300: #9CC4CE;
+  --brand-400: #5D9FB0; --brand-500: #2A8199; --brand-600: #1B6C80; --brand-700: #12505F;
+  --brand-800: #1D3A42; --brand-900: #131416; --brand-950: #0A0B0C;
+  /* Escala slate antiga remapeada para os neutros novos */
+  --slate-25: #FCFCFC; --slate-50: #F4F6F6; --slate-100: #EBEDEE; --slate-200: #E6E9E9;
+  --slate-300: #CDCED1; --slate-400: #8A8D90; --slate-500: #6B6D6E; --slate-600: #5D5F60;
+  --slate-700: #353736; --slate-800: #1F2123; --slate-900: #131416; --slate-950: #0A0B0C;
+  /* Estados com os nomes antigos (cor, texto, fundo pálido, linha) */
+  --success: var(--positive); --success-ink: var(--positive); --success-bg: var(--pill-positive-bg); --success-line: var(--pill-positive-line);
+  --warning-ink: var(--warning); --warning-bg: var(--pill-warning-bg); --warning-line: var(--pill-warning-line);
+  --danger: var(--negative); --danger-ink: var(--pill-negative-ink); --danger-bg: var(--pill-negative-bg); --danger-line: var(--pill-negative-line);
+  --danger-hover: #A11D22;
+  --info: var(--accent); --info-ink: var(--accent-ink); --info-bg: var(--accent-soft); --info-line: var(--brand-200);
+
+  /* ---------- Tipografia: uma família só, IBM Plex Sans ---------- */
+  --font-sans: "IBM Plex Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Títulos usam a mesma família (antes era Plus Jakarta Sans) */
+  --font-display: var(--font-sans);
+  /* Plex Mono só para códigos, CPF e IDs */
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-base: 14px;
+  --fs-md: 16px;
+  --fs-lg: 16px;
+  --fs-xl: 22px;
+  --fs-2xl: 22px;
+  --fs-3xl: 28px;
+  --fs-kpi: 28px;
+
+  /* ---------- Raios: folha 16, card 8, controle 6, selo 4 ---------- */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-control: 6px;
+  --r-card: 8px;
+  --r-lg: 8px;
+  --r-sheet: 16px;
+  --r-pill: 999px;
+
+  /* ---------- Sombras: só no que flutua (menus, toasts); nada parado tem sombra ---------- */
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: 0 4px 16px rgba(19, 20, 22, .10);
+  --shadow-lg: 0 8px 28px rgba(19, 20, 22, .14);
+
+  /* ---------- Espaço (escala de 4px; um espaçamento único de 24px) ---------- */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 20px;
+  --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px;
+  --gap: 24px;
+
+  /* ---------- Movimento: só resposta a ações ---------- */
+  --t-fast: 120ms;
+  --t-base: 160ms;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+
+  /* ---------- Medidas da casca ---------- */
+  --sidebar-w: 228px;
+  --topbar-h: 48px;
+  --sheet-inset: 8px;
+  --content-max: 1320px;
+
+  /* ---------- Gráfico: cores lidas pelo site.js ---------- */
+  /* Barras do mês no verde-petróleo; "hoje" em tinta para se destacar */
+  --chart-bar: #1B6C80;
+  --chart-bar-hoje: #131416;
+  --chart-bar-hover: #12505F;
+  --chart-grid: #ECEEEE;
+  --chart-text: #5D5F60;
+  --chart-tooltip: #131416;
+
+  color-scheme: light;
+}
+
+/* ---------- Tema escuro: neutro de verdade (sai o azul-marinho) ---------- */
+[data-theme="dark"] {
+  /* Moldura mais escura que a folha; superfícies separadas por degraus de luz */
+  --frame: #0A0B0C;
+  --surface: #111314;
+  --raised: #1A1C1E;
+  --active: #222527;
+  --border: #24272A;
+  --rule: #1C1E20;
+  --control: #3A3E42;
+  --input-line: #6E7276;
+  /* Texto: 16,8:1 · 9,2:1 · 6,3:1 sobre a folha */
+  --text: #F2F3F3;
+  --muted: #B4B6B8;
+  --faint: #949698;
+  /* Botão principal invertido: fundo claro, rótulo escuro */
+  --primary-fill: #F2F3F3;
+  --primary-fill-hover: #D9DBDC;
+  --on-primary-fill: #111314;
+  /* Destaque mais claro para manter 7,8:1 sobre a folha escura */
+  --accent: #5FB3C7;
+  --accent-fill: #2D8296;
+  --accent-soft: rgba(95, 179, 199, .14);
+  --accent-ink: #8FCBD9;
+  --positive: #3FC07A;
+  --negative: #EF6B74;
+  --warning: #E3A54A;
+  --pill-positive-bg: #172A1D; --pill-positive-ink: #5FD394; --pill-positive-line: #23422D;
+  --pill-negative-bg: #2C1A1D; --pill-negative-ink: #F28B92; --pill-negative-line: #4A2529;
+  --pill-warning-bg:  #2A2112; --pill-warning-ink:  #EDB766; --pill-warning-line:  #4A3818;
+  --pill-neutral-bg:  #222527; --pill-neutral-ink:  #C9CBCD;
+  --focus-ring: 0 0 0 3px rgba(95, 179, 199, .35);
+  --overlay: rgba(0, 0, 0, .6);
+
+  /* Apelidos que mudam no escuro */
+  --action-active: #BFC2C4;
+  --surface-inverse: #1A1C1E;
+  --on-inverse-2: #B4B6B8;
+  --danger-hover: #D9454E;
+  --info-line: rgba(95, 179, 199, .30);
+  --brand-200: #24474F; --brand-300: #5FB3C7; --brand-400: #5FB3C7; --brand-500: #5FB3C7;
+
+  /* Sombras um pouco mais fortes, só para o que flutua */
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, .45);
+  --shadow-lg: 0 8px 28px rgba(0, 0, 0, .55);
+
+  /* Gráfico no escuro: barras em petróleo claro e "hoje" em branco */
+  --chart-bar: #3E97AC;
+  --chart-bar-hoje: #F2F3F3;
+  --chart-bar-hover: #5FB3C7;
+  --chart-grid: #222527;
+  --chart-text: #B4B6B8;
+  --chart-tooltip: #000000;
+
+  color-scheme: dark;
+}

@@ -1,34 +1,49 @@
-﻿@using Microsoft.AspNetCore.Identity
-@using Sistema.Helpers
+@using Microsoft.AspNetCore.Identity
 @using Sistema.Services
 @inject SignInManager<IdentityUser> SignInManager
 @inject UsuarioLogadoService UsuarioLogado
 
-@* Rodapé da barra lateral: quem está logado (com link para o perfil) e a saída; para visitantes, entrar e cadastrar *@
+@* Canto direito da topbar: saudação, avatar com iniciais e o menu do usuário; para visitantes, entrar e criar conta *@
 @if (SignInManager.IsSignedIn(User))
 {
     var usuario = await UsuarioLogado.ObterAsync(User);
     var nome = usuario?.Name ?? User.Identity?.Name ?? "Conta";
-    // Iniciais do avatar: primeira letra do primeiro e do último nome
-    var partes = nome.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-    var iniciais = partes.Length == 0 ? "?" : partes.Length == 1 ? partes[0][..1] : partes[0][..1] + partes[^1][..1];
+    var primeiroNome = nome.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? nome;
+    var funcao = usuario?.Funcao?.Name is string f ? Visual.NomeFuncao(f) : "Sem cadastro";
+    var hora = DateTime.Now.Hour;
+    var saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
 
-    <a class="profile-link" asp-controller="Perfil" asp-action="Index" aria-label="Meu perfil">
-        <span class="avatar" aria-hidden="true">@iniciais.ToUpperInvariant()</span>
-        <span class="profile-text">
-            <span class="profile-link-name">@nome</span>
-            <span class="profile-link-role">@(usuario?.Funcao?.Name ?? "Sem cadastro")</span>
-        </span>
-        @Html.Raw(Icones.Get("perfil"))
-    </a>
-    <form class="logout-form" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-        <button type="submit" class="btn-sair">@Html.Raw(Icones.Get("sair"))<span>Sair da conta</span></button>
-    </form>
+    <div class="topbar-saudacao">
+        <span>@saudacao,</span>
+        <strong>@primeiroNome</strong>
+    </div>
+
+    <div class="menu-acoes">
+        <button type="button" class="user-btn" data-menu-acoes aria-haspopup="true" aria-expanded="false" aria-controls="menuUsuario" aria-label="Menu da conta de @nome">
+            <span class="avatar" style="--h: @Visual.Matiz(nome)" aria-hidden="true">@Visual.Iniciais(nome)</span>
+            <span class="user-btn-texto">
+                <strong>@primeiroNome</strong>
+                <span>@funcao</span>
+            </span>
+            @Html.Raw(Icones.Get("chevron"))
+        </button>
+        <div class="menu-acoes-lista" id="menuUsuario" hidden>
+            <div class="menu-acoes-cabeca">
+                <strong>@nome</strong>
+                <span>@(usuario?.Email ?? User.Identity?.Name)</span>
+            </div>
+            <a asp-area="" asp-controller="Perfil" asp-action="Index">@Html.Raw(Icones.Get("perfil"))Meu perfil</a>
+            <a asp-area="Identity" asp-page="/Account/Manage/Index">@Html.Raw(Icones.Get("id"))Dados da conta</a>
+            <a asp-area="Identity" asp-page="/Account/Manage/ChangePassword">@Html.Raw(Icones.Get("cadeado"))Alterar senha</a>
+            <hr />
+            <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post" data-sem-spinner>
+                <button type="submit" class="perigo">@Html.Raw(Icones.Get("sair"))Sair</button>
+            </form>
+        </div>
+    </div>
 }
 else
 {
-    <div class="d-flex flex-column gap-1">
-        <a class="nav-app-link" asp-area="Identity" asp-page="/Account/Login">@Html.Raw(Icones.Get("perfil"))<span>Entrar</span></a>
-        <a class="nav-app-link" asp-area="Identity" asp-page="/Account/Register">@Html.Raw(Icones.Get("usuarios"))<span>Cadastrar-se</span></a>
-    </div>
+    <a class="btn btn-secondary btn-sm" asp-area="Identity" asp-page="/Account/Login">Entrar</a>
+    <a class="btn btn-primary btn-sm" asp-area="Identity" asp-page="/Account/Register">Criar conta</a>
 }

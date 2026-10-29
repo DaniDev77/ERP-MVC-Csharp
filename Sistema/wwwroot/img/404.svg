@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220" fill="none">
+  <!-- Redesign: paleta trocada do azul-marinho para o verde-petróleo da etiqueta de gôndola e neutros -->
+  <!-- 404 sóbrio: algarismos em marinho chapado, fundo translúcido (serve nos dois temas), sem brilhos -->
+  <rect x="30" y="20" width="260" height="180" rx="16" fill="#2A8199" opacity=".07"/>
+  <!-- "404" desenhado com formas (sem depender de fonte) -->
+  <g fill="#1B6C80">
+    <path d="M62 64 h16 v40 h18 v-40 h16 v84 h-16 v-30 h-34z"/>
+    <rect x="130" y="64" width="60" height="84" rx="30"/>
+    <path d="M208 64 h16 v40 h18 v-40 h16 v84 h-16 v-30 h-34z"/>
+  </g>
+  <rect x="146" y="82" width="28" height="48" rx="14" fill="#fff"/>
+  <!-- Caixa fora do lugar (tons neutros) -->
+  <g transform="rotate(-12 262 174)">
+    <path d="M238 164 l24 -10 24 10 -24 10z" fill="#E3EEEF"/>
+    <path d="M238 164 v26 l24 10 v-26z" fill="#C7DDE2"/>
+    <path d="M286 164 v26 l-24 10 v-26z" fill="#9CC4CE"/>
+  </g>
+  <path d="M50 182 h160" stroke="#9CC4CE" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 9"/>
+</svg>
