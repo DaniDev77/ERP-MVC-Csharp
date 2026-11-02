@@ -31,6 +31,18 @@ namespace Sistema.Helpers
             return ehVenda ? Selo("pill-azul", "Venda") : Selo("pill", "Compra");
         }
 
+        // Novo: selo do status do pedido. Pendente em âmbar (pede ação), confirmado em azul, recusado em vermelho, cancelado neutro
+        public static string StatusPedido(Sistema.Models.StatusPedido status)
+        {
+            return status switch
+            {
+                Sistema.Models.StatusPedido.Pendente => Selo("pill-alerta", "Pendente"),
+                Sistema.Models.StatusPedido.Confirmado => Selo("pill-azul", "Confirmado"),
+                Sistema.Models.StatusPedido.Recusado => Selo("pill-erro", "Recusado"),
+                _ => Selo("pill", "Cancelado")
+            };
+        }
+
         // Escapa o texto: nome vindo do banco nunca vira HTML executável
         private static string Selo(string classe, string texto)
         {

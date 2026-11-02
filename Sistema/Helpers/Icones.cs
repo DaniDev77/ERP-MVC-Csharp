@@ -62,6 +62,8 @@ namespace Sistema.Helpers
             ["filtro"] = "<path d=\"M4 5h16l-6 7.5V19l-4 2v-8.5L4 5z\"/>",
             ["externo"] = "<path d=\"M14 4h6v6M20 4l-9 9\"/><path d=\"M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4\"/>",
             ["casa-erro"] = "<path d=\"M12 3 2.5 19.5h19L12 3z\"/><path d=\"M12 10v4.5M12 17.5v.01\"/>",
+            // Novo: marcador de mapa (localização do cliente e painel por localidade)
+            ["local"] = "<path d=\"M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z\"/><circle cx=\"12\" cy=\"9.5\" r=\"2.5\"/>",
         };
 
         // Devolve o SVG do ícone pelo nome; nome desconhecido não gera nada
