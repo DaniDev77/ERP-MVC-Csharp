@@ -1,5 +1,7 @@
 ﻿@using System.Globalization
 @model Sistema.Models.InicioViewModel
+@* Lê a chave Sistema:MostrarVitrine do appsettings.json, que liga ou desliga o site de vendas para visitantes *@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
     ViewData["Title"] = "Início";
@@ -9,14 +11,28 @@
     var primeiroNome = (Model.NomeUsuario ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
     var hora = DateTime.Now.Hour;
     var saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
-    // Visitante usa a casca das telas de acesso (painel da marca + formulário)
+    // Site de vendas (vitrine) para visitantes só quando Sistema:MostrarVitrine for true; sem a chave, fica a tela de boas-vindas
+    var mostrarVitrine = Configuration.GetValue("Sistema:MostrarVitrine", false);
+    // Visitante usa a casca da vitrine ou a casca das telas de acesso (painel da marca + formulário)
     if (!Model.Logado)
     {
-        Layout = "_LayoutAuth";
+        Layout = mostrarVitrine ? "_LayoutVitrine" : "_LayoutAuth";
+        // Título e descrição da vitrine: o _LayoutVitrine usa no <title>, na meta description e no Open Graph
+        if (mostrarVitrine)
+        {
+            ViewData["Title"] = "Controle de vendas e estoque para lojas";
+            ViewData["Descricao"] = "Registre vendas no balcão, veja o estoque baixar sozinho e saiba o que repor antes de faltar. Peça uma demonstração do Sistema.";
+        }
     }
 }
 
-@if (!Model.Logado)
+@* Vitrine ligada: o site de vendas inteiro fica no partial Views/Home/_Vitrine.cshtml (contatos e preços editáveis no topo dele).
+   Vitrine desligada: o ramo seguinte é a tela de boas-vindas de sempre, sem nenhuma mudança *@
+@if (!Model.Logado && mostrarVitrine)
+{
+    <partial name="_Vitrine" />
+}
+else if (!Model.Logado)
 {
     @* ---------- Visitante: boas-vindas e os dois caminhos ---------- *@
     @* Redesign: sai a ilustração de dashboard; o painel da esquerda já traz a ilustração da marca *@
@@ -112,6 +128,19 @@ else if (Model.EhAdmin)
             <a class="btn btn-primary" asp-controller="Venda" asp-action="Create">@Html.Raw(Icones.Get("mais"))<span>Registrar venda</span></a>
         </div>
     </header>
+
+    @* Novo (back-end, HF-001): aviso de pedidos de clientes aguardando confirmação. Visual provisório, a refinar pelo front-end *@
+    @if (Model.PedidosPendentes > 0)
+    {
+        <div class="alert alert-warning mb-4" role="status">
+            @Html.Raw(Icones.Get("espera"))
+            <div>
+                <strong>@Model.PedidosPendentes @(Model.PedidosPendentes == 1 ? "pedido aguarda" : "pedidos aguardam") confirmação.</strong>
+                <span class="alert-texto">As compras dos clientes só valem e só baixam o estoque depois de confirmadas.</span>
+            </div>
+            <a class="btn btn-secondary btn-sm ms-auto" asp-controller="Pedido" asp-action="Index">Ver pedidos</a>
+        </div>
+    }
 
     @* ---------- KPIs do mês ---------- *@
     <section class="kpi-grid" aria-label="Indicadores de @nomeMes">
@@ -236,8 +265,9 @@ else if (Model.EhAdmin)
             <ul class="pedidos-lista">
                 @foreach (var pedido in Model.UltimosPedidos)
                 {
-                    var venda = pedido.Tipo == Sistema.Models.TipoPedido.Venda;
-                    var cliente = pedido.Comprador?.Name ?? "Cliente";
+                    @* Alterado (HF-001): UltimosPedidos agora é List<Movimentacao> (compras confirmadas + vendas) *@
+                    var venda = pedido.EhVenda;
+                    var cliente = string.IsNullOrEmpty(pedido.Cliente) ? "Cliente" : pedido.Cliente;
                     <li>
                         <span class="avatar" style="--h: @Visual.Matiz(cliente)" aria-hidden="true">@Visual.Iniciais(cliente)</span>
                         <div class="pedido-info">
@@ -246,7 +276,7 @@ else if (Model.EhAdmin)
                                 <time datetime="@pedido.DataHora.ToString("yyyy-MM-ddTHH:mm")">@pedido.DataHora.ToString("dd/MM 'às' HH:mm")</time>
                                 @if (pedido.Vendedor != null)
                                 {
-                                    <text> · vendido por @pedido.Vendedor.Name</text>
+                                    <text> · vendido por @pedido.Vendedor</text>
                                 }
                             </span>
                         </div>
@@ -290,9 +320,24 @@ else if (Model.EhPadrao)
             <p class="page-header-sub">Suas compras de @mesCurto somam <strong>@Model.ValorComprasMes.ToString("C2", pt)</strong>.</p>
         </div>
         <div class="page-header-acoes">
+            @* Novo (HF-001): acesso aos próprios pedidos *@
+            <a class="btn btn-secondary" asp-controller="Pedido" asp-action="Meus">@Html.Raw(Icones.Get("recibo"))<span>Meus pedidos</span></a>
             <a class="btn btn-primary" asp-controller="Compra" asp-action="Create">@Html.Raw(Icones.Get("carrinho"))<span>Fazer compra</span></a>
         </div>
     </header>
+
+    @* Novo (HF-001): pedidos do cliente ainda aguardando a loja. Visual provisório *@
+    @if (Model.PedidosPendentes > 0)
+    {
+        <div class="alert alert-info mb-4" role="status">
+            @Html.Raw(Icones.Get("espera"))
+            <div>
+                <strong>@Model.PedidosPendentes @(Model.PedidosPendentes == 1 ? "pedido aguarda" : "pedidos aguardam") a confirmação da loja.</strong>
+                <span class="alert-texto">O valor entra em "Total comprado" quando a loja confirmar.</span>
+            </div>
+            <a class="btn btn-secondary btn-sm ms-auto" asp-controller="Pedido" asp-action="Meus">Acompanhar</a>
+        </div>
+    }
 
     <section class="kpi-grid kpi-grid-3" aria-label="Suas compras em @nomeMes">
         <partial name="_KpiCard" model='new KpiCard { Rotulo = "Total comprado", Valor = Model.ValorComprasMes.ToString("C2", pt), Icone = "moeda", Tom = "brand", Rodape = "em " + mesCurto }' />

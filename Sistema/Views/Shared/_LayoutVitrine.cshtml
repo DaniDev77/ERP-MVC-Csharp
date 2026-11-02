@@ -1,0 +1,72 @@
+@* Casca do site de vendas (vitrine), usada só por visitantes quando Sistema:MostrarVitrine = true.
+   Sem sidebar nem topbar do app: cabeçalho, conteúdo e rodapé vêm do Views/Home/_Vitrine.cshtml.
+   Aqui ficam o <head> (SEO e Open Graph), o toast e os scripts, na ordem: _Toast, Scripts da view, site.js, vitrine.js *@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    // Endereço público: a chave Sistema:UrlPublica; vazia = esquema e host da própria requisição (Context.Request)
+    var urlPublica = (Configuration["Sistema:UrlPublica"] ?? "").Trim().TrimEnd('/');
+    if (string.IsNullOrEmpty(urlPublica))
+    {
+        urlPublica = $"{Context.Request.Scheme}://{Context.Request.Host.ToUriComponent()}";
+    }
+    // Canonical e og:url sempre na raiz do site, sem caminho nem query
+    var urlRaiz = urlPublica + "/";
+    // Imagem de prévia (WhatsApp e redes): arquivo local com endereço absoluto
+    var urlImagemOg = urlPublica + Url.Content("~/img/og-sistema.jpg");
+    var titulo = (ViewData["Title"] as string) ?? "Controle de vendas e estoque para lojas";
+    var descricao = (ViewData["Descricao"] as string) ?? "";
+}
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    @* viewport-fit=cover: a barra fixa de chamada do celular respeita a área segura (env(safe-area-inset-bottom)) *@
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>@titulo · Sistema</title>
+    <meta name="description" content="@descricao" />
+    <link rel="canonical" href="@urlRaiz" />
+    @* Open Graph e cartão do X: título, descrição e imagem da prévia do link *@
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="Sistema" />
+    <meta property="og:title" content="@titulo · Sistema" />
+    <meta property="og:description" content="@descricao" />
+    <meta property="og:url" content="@urlRaiz" />
+    <meta property="og:image" content="@urlImagemOg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Tela de venda do Sistema: cupom com produtos e total, ao lado do título Vendeu no balcão, o estoque já baixou." />
+    <meta name="twitter:card" content="summary_large_image" />
+    @* Aplica o tema salvo antes de pintar (arquivo próprio: a CSP não aceita script inline) *@
+    <script src="~/js/theme-init.js" asp-append-version="true"></script>
+    <link rel="icon" href="~/img/logo.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    @* A mesma URL de fontes das outras cascas: o navegador reaproveita o cache ao ir para o login *@
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    @* Design system do app (os fragmentos da vitrine usam as classes reais) e, por último, o CSS próprio da vitrine *@
+    <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/base.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/vitrine.css" asp-append-version="true" />
+</head>
+<body class="vitrine">
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+    @RenderBody()
+
+    @* Pilha de toasts (aria-live) e o modelo que o site.js usa em window.SistemaToast: precisa vir antes do site.js *@
+    <partial name="_Toast" />
+
+    @* O Index define a seção Scripts para todos os perfis; ela precisa ser renderizada (para visitante sai vazia) *@
+    @await RenderSectionAsync("Scripts", required: false)
+    @* site.js: tema, toasts e o resto da interface; vitrine.js depois dele (usa window.SistemaToast) *@
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/vitrine.js" asp-append-version="true"></script>
+</body>
+</html>

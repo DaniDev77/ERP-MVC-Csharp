@@ -1,0 +1,76 @@
+@model Sistema.Models.LocalizacaoViewModel
+
+@* Novo (back-end, HF-002): pedido de localização com consentimento (LGPD). Usado no Perfil e na tela de compra.
+   Funciona sem JavaScript: trocar a UF e salvar recarrega com as cidades daquela UF.
+   Com JavaScript (site.js), o select de cidade é preenchido por GET Perfil/Cidades?uf=XX ao trocar a UF.
+   Visual provisório, a refinar pelo front-end. *@
+@{
+    var erro = ViewBag.LocalizacaoErro as string;
+}
+<section class="ui-card" id="localizacao" aria-labelledby="titulo-localizacao">
+    <div class="ui-card-header">
+        <div>
+            <h2 class="ui-card-title" id="titulo-localizacao"><span class="bubble bubble-sm" aria-hidden="true">@Html.Raw(Icones.Get("local"))</span>Sua localização</h2>
+            <p class="ui-card-sub">
+                @if (Model.CidadeAtual != null)
+                {
+                    <text>Informada: <strong>@Model.CidadeAtual</strong></text>
+                }
+                else if (Model.Recusada)
+                {
+                    <text>Você preferiu não informar.</text>
+                }
+                else
+                {
+                    <text>Opcional</text>
+                }
+            </p>
+        </div>
+    </div>
+    <div class="ui-card-body">
+        @* Finalidade explicada antes de pedir o dado (LGPD, art. 9º) *@
+        <p class="text-2">
+            Usamos só o estado e a cidade, para entender de onde vêm as compras e planejar entregas e estoque.
+            Não pedimos endereço nem a localização do aparelho. Informar é opcional, e você pode mudar ou apagar a qualquer momento aqui em Meu perfil.
+            @* Corrigido (QA B2): deixa claro até onde vai o "apagar" *@
+            Ao apagar, a cidade sai também das suas compras anteriores.
+        </p>
+
+        <form asp-controller="Perfil" asp-action="Localizacao" method="post" class="row g-3 align-items-end" data-localizacao>
+            <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+            <div class="col-sm-4">
+                <label class="form-label" for="loc-uf">Estado (UF)</label>
+                <select class="form-select" id="loc-uf" name="Uf" required data-loc-uf data-cidades-url="@Url.Action("Cidades", "Perfil")">
+                    <option value="">Escolha</option>
+                    @foreach (var uf in Model.Ufs)
+                    {
+                        <option value="@uf.Key" selected="@(uf.Key == Model.Uf)">@uf.Key - @uf.Value</option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-5">
+                <label class="form-label" for="loc-cidade">Cidade</label>
+                <select class="form-select @(erro != null ? "is-invalid" : "")" id="loc-cidade" name="CodigoMunicipio" data-loc-cidade
+                        aria-describedby="@(erro != null ? "loc-cidade-erro" : null)">
+                    <option value="">@(Model.Cidades.Any() ? "Escolha" : "Escolha a UF primeiro")</option>
+                    @foreach (var c in Model.Cidades)
+                    {
+                        <option value="@c.Codigo" selected="@(c.Codigo == Model.CodigoMunicipio)">@c.Nome</option>
+                    }
+                </select>
+                @if (erro != null)
+                {
+                    <div class="invalid-feedback" id="loc-cidade-erro">@erro</div>
+                }
+            </div>
+            <div class="col-sm-3 d-grid">
+                <button type="submit" class="btn btn-primary">@Html.Raw(Icones.Get("ok"))<span>Salvar</span></button>
+            </div>
+        </form>
+
+        <form asp-controller="Perfil" asp-action="RecusarLocalizacao" method="post" class="mt-3">
+            <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+            <button type="submit" class="btn btn-ghost btn-sm">@(Model.CidadeAtual != null ? "Apagar minha localização" : "Prefiro não informar")</button>
+        </form>
+    </div>
+</section>

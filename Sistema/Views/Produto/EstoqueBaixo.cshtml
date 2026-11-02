@@ -51,7 +51,8 @@
                                 </div>
                             </td>
                             <td class="acoes-col">
-                                <a asp-action="Edit" asp-route-id="@item.ProdutoId" class="btn btn-soft btn-sm">@Html.Raw(Icones.Get("mais"))<span>Repor estoque</span></a>
+                                @* Alterado (HF-005): depois de salvar, volta para Estoque baixo *@
+                                <a asp-action="Edit" asp-route-id="@item.ProdutoId" asp-route-returnUrl="@Url.Action("EstoqueBaixo")" class="btn btn-soft btn-sm">@Html.Raw(Icones.Get("mais"))<span>Repor estoque</span></a>
                             </td>
                         </tr>
                     }

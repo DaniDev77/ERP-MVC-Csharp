@@ -1,0 +1,17 @@
+@model int
+
+@* Novo (HF-008, versão mínima do back-end; o front refina). O link aparece sempre; o contador só com pendentes.
+   O número fica no fim, separado por espaço: a busca do menu (site.js) tira esse número do texto do link *@
+@{
+    var rota = ViewContext.RouteData.Values;
+    var ativo = string.Equals((string?)rota["controller"], "Pedido", StringComparison.OrdinalIgnoreCase)
+             && string.Equals((string?)rota["action"], "Index", StringComparison.OrdinalIgnoreCase);
+}
+<a class="nav-item-x @(ativo ? "ativo" : "")" asp-area="" asp-controller="Pedido" asp-action="Index"
+   aria-current="@(ativo ? "page" : null)" aria-label="@(Model > 0 ? $"Pedidos, {Model} aguardando confirmação" : null)">
+    @Html.Raw(Icones.Get("recibo"))<span>Pedidos</span>
+    @if (Model > 0)
+    {
+        <span class="contador" aria-hidden="true">@Model</span>
+    }
+</a>

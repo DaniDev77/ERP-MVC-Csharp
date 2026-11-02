@@ -1,0 +1,853 @@
+@using System.Globalization
+@* Site de vendas (vitrine) para visitantes, mostrado em "/" quando Sistema:MostrarVitrine = true (ver Index.cshtml).
+   Casca: Views/Shared/_LayoutVitrine.cshtml. Estilos: wwwroot/css/vitrine.css. Melhorias: wwwroot/js/vitrine.js.
+   A página funciona inteira sem JavaScript; os fragmentos de tela usam as classes reais do app e trazem dados de exemplo. *@
+@{
+    // =====================================================================================
+    // EDITE AQUI: contatos, horário e preços do site de vendas.
+    // Os valores abaixo são EXEMPLOS. Troque pelos dados reais antes de divulgar o site.
+    // =====================================================================================
+
+    // WhatsApp de vendas: 55 + DDD + número (ex.: "5511912345678"). Vazio = o site não mostra WhatsApp e usa o e-mail
+    var whatsApp = "";
+    // E-mail de vendas (sempre aparece; vira a chamada principal quando não há WhatsApp). EXEMPLO: troque pelo real
+    var emailVendas = "vendas@example.com";
+    // Horário de atendimento, mostrado perto das chamadas. EXEMPLO
+    var horario = "Atendimento em dias úteis, das 9h às 18h.";
+    // Mensagem que já vem escrita no WhatsApp ou no e-mail
+    var mensagemPadrao = "Olá! Quero uma demonstração do Sistema para a minha loja.";
+    // true enquanto os preços forem de exemplo: mostra "Valores de exemplo" junto do preço de cada plano
+    var precosDeExemplo = true;
+    // Mostra o link "Privacidade" no rodapé (ligue quando a página de privacidade estiver escrita)
+    var mostrarPrivacidade = false;
+    // Planos (de 1 a 4). PrecoMes nulo = "Sob consulta". Destaque = coluna em verde-petróleo. Tudo EXEMPLO
+    var planos = new List<PlanoVitrine>
+    {
+        new("Balcão", 89m, 890m, "Até 3", "Em dias úteis", "Guia passo a passo"),
+        new("Loja", 149m, 1490m, "Até 10", "Em horário comercial", "Ajuda no cadastro dos produtos", Destaque: true),
+        new("Loja grande", 249m, 2490m, "Sem limite", "Prioritário", "Cadastro dos produtos e treino da equipe"),
+    };
+    // ================================ fim do EDITE AQUI ==================================
+
+    // ---------- Daqui para baixo é só montagem: não precisa editar ----------
+    var pt = new CultureInfo("pt-BR");
+    var inv = CultureInfo.InvariantCulture;
+    // Só dígitos no número do WhatsApp (aceita espaços, parênteses e traço); sem número, nada de WhatsApp na página
+    var whatsDigitos = new string((whatsApp ?? "").Where(char.IsDigit).ToArray());
+    var temWhatsApp = whatsDigitos.Length >= 10;
+    string LinkWhats(string texto) => $"https://wa.me/{whatsDigitos}?text={Uri.EscapeDataString(texto)}";
+    string LinkEmail(string assunto, string corpo) => $"mailto:{emailVendas}?subject={Uri.EscapeDataString(assunto)}&body={Uri.EscapeDataString(corpo)}";
+    string LinkContato(string texto) => temWhatsApp ? LinkWhats(texto) : LinkEmail("Demonstração do Sistema", texto);
+    var linkDemo = LinkContato(mensagemPadrao);
+    // WhatsApp abre em nova aba; e-mail abre o programa de e-mail na mesma aba
+    string? alvoLink = temWhatsApp ? "_blank" : null;
+    string? relLink = temWhatsApp ? "noopener noreferrer" : null;
+    var notaCanal = temWhatsApp ? $"Abre o WhatsApp com a mensagem pronta. {horario}" : $"Abre o seu e-mail com a mensagem pronta para {emailVendas}. {horario}";
+    // Preço sem centavos quando é redondo (R$ 149); com centavos quando houver (R$ 149,90)
+    string Preco(decimal valor) => valor.ToString(valor % 1 == 0 ? "C0" : "C2", pt);
+
+    // ---------- Dados de exemplo das demonstrações (fictícios: não são clientes nem números reais) ----------
+    // O mínimo vem do sistema (Produto.EstoqueMinimo): as demonstrações seguem a mesma regra das telas reais
+    var minimo = Sistema.Models.Produto.EstoqueMinimo;
+    var produtosDemo = new[]
+    {
+        (Id: "camiseta", Nome: "Camiseta básica branca", Preco: 49.90m, Estoque: minimo + 4),
+        (Id: "bone", Nome: "Boné aba curva", Preco: 59.90m, Estoque: minimo + 1),
+        (Id: "tenis", Nome: "Tênis de corrida", Preco: 289.90m, Estoque: Math.Max(1, minimo - 4)),
+    };
+    var cupomInicial = new[] { (Id: "camiseta", Qtd: 2), (Id: "bone", Qtd: 1) };
+    var totalCupom = cupomInicial.Sum(c => produtosDemo.First(p => p.Id == c.Id).Preco * c.Qtd);
+    var itensCupom = cupomInicial.Sum(c => c.Qtd);
+    var baixosIniciais = produtosDemo.Count(p => p.Estoque <= minimo);
+
+    // Mês de exemplo: do dia 10 em diante, o mês atual até hoje; antes disso, o mês anterior completo
+    var hoje = DateTime.Today;
+    var usarMesAtual = hoje.Day >= 10;
+    var mesExemplo = usarMesAtual ? new DateTime(hoje.Year, hoje.Month, 1) : new DateTime(hoje.Year, hoje.Month, 1).AddMonths(-1);
+    var dias = usarMesAtual ? hoje.Day : DateTime.DaysInMonth(mesExemplo.Year, mesExemplo.Month);
+    var fimPeriodo = mesExemplo.AddDays(dias - 1);
+    var baseDiaria = new[] { 1420.50m, 1688.30m, 1512.90m, 2894.40m, 640.00m, 1386.70m, 1544.20m, 1702.80m, 1630.10m, 1815.60m,
+                             3120.00m, 712.40m, 1458.90m, 1499.30m, 1610.50m, 1577.80m, 1912.70m, 2988.60m, 690.20m, 1402.10m,
+                             1530.40m, 1621.90m, 1584.30m, 1876.50m, 2945.20m, 705.80m, 1466.60m, 1528.70m, 1650.40m, 1702.30m, 1980.90m };
+    var valoresDia = baseDiaria.Take(dias).ToArray();
+    // Os números fecham por construção: total = soma dos dias, vendas = soma das vendas de cada dia, ticket = total ÷ vendas
+    var totalMes = valoresDia.Sum();
+    var qtdVendas = valoresDia.Sum(v => Math.Max(1, (int)Math.Round(v / 155m)));
+    var ticketMedio = totalMes / qtdVendas;
+    var maiorDia = valoresDia.Max();
+    var degrauEixo = Math.Ceiling(maiorDia / 3m / 500m) * 500m;
+    var topoEixo = degrauEixo * 3;
+    string Mil(decimal v) => v == 0 ? "R$ 0" : "R$ " + (v / 1000m).ToString("0.#", pt) + " mil";
+    var nomeMes = mesExemplo.ToString("MMMM 'de' yyyy", pt);
+    nomeMes = char.ToUpper(nomeMes[0]) + nomeMes[1..];
+    // Ranking de exemplo: as fatias somam 100% e os valores somam o total do mês
+    var valorAna = Math.Round(totalMes * 0.41m, 2);
+    var valorRafael = Math.Round(totalMes * 0.33m, 2);
+    var valorJuliana = totalMes - valorAna - valorRafael;
+    var vendasAna = (int)Math.Round(qtdVendas * 0.41m);
+    var vendasRafael = (int)Math.Round(qtdVendas * 0.33m);
+    var ranking = new[]
+    {
+        (Nome: "Ana Souza", Valor: valorAna, Vendas: vendasAna),
+        (Nome: "Rafael Costa", Valor: valorRafael, Vendas: vendasRafael),
+        (Nome: "Juliana Prado", Valor: valorJuliana, Vendas: qtdVendas - vendasAna - vendasRafael),
+    };
+}
+@functions {
+    // Plano da tabela de preços (só apresentação: nenhuma regra do sistema depende disto; usado só nesta view)
+    public record PlanoVitrine(string Nome, decimal? PrecoMes, decimal? PrecoAno, string Usuarios, string Suporte, string Implantacao, bool Destaque = false);
+}
+
+@* ================================ Cabeçalho ================================ *@
+@* Barra simples sobre o chão da página: marca, seções, Entrar (visível em todas as larguras), tema e a chamada.
+   Abaixo de 992px as seções vão para o menu <details>, que funciona sem JavaScript *@
+<header class="v-cabecalho">
+    <div class="v-largura v-cabecalho-linha">
+        <a class="sidebar-marca v-marca" href="#conteudo" aria-label="Sistema, vendas e estoque: ir para o início da página">
+            <partial name="_Logo" />
+        </a>
+        <nav class="v-nav" aria-label="Seções da página">
+            <a href="#estoque">Estoque</a>
+            <a href="#numeros">Números</a>
+            <a href="#equipe">Equipe</a>
+            <a href="#precos">Preços</a>
+            <a href="#duvidas">Dúvidas</a>
+        </nav>
+        <div class="v-cabecalho-acoes">
+            <a class="v-entrar" asp-area="Identity" asp-page="/Account/Login">Entrar</a>
+            <button type="button" class="icon-btn v-tema" data-tema-alternar aria-pressed="false" aria-label="Usar tema escuro">
+                <span class="icone-lua">@Html.Raw(Icones.Get("lua"))</span>
+                <span class="icone-sol">@Html.Raw(Icones.Get("sol"))</span>
+            </button>
+            <a class="btn btn-primary v-cabecalho-cta" href="@linkDemo" target="@alvoLink" rel="@relLink">Pedir demonstração</a>
+            <details class="v-menu" data-vitrine-menu>
+                <summary class="v-menu-botao">Menu</summary>
+                <div class="v-menu-folha">
+                    <nav aria-label="Seções da página">
+                        <a href="#estoque">Estoque</a>
+                        <a href="#numeros">Números</a>
+                        <a href="#equipe">Equipe</a>
+                        <a href="#precos">Preços</a>
+                        <a href="#duvidas">Dúvidas</a>
+                    </nav>
+                    <a class="btn btn-primary btn-lg v-cta" href="@linkDemo" target="@alvoLink" rel="@relLink">Pedir demonstração</a>
+                    <p class="v-nota">@notaCanal</p>
+                </div>
+            </details>
+        </div>
+    </div>
+</header>
+
+<main id="conteudo" tabindex="-1">
+
+    @* ================================ 1. Herói ================================ *@
+    @* Texto primeiro no HTML (e na tela do celular), a demonstração depois: a ordem visual bate com a ordem de foco *@
+    <section class="v-heroi" aria-labelledby="heroi-titulo">
+        <div class="v-heroi-texto">
+            @* Título em duas linhas escritas à mão: cada linha sobe por trás da própria base ao carregar *@
+            <h1 class="v-heroi-titulo" id="heroi-titulo">
+                <span class="v-linha"><span>Vendeu no balcão,</span></span>
+                <span class="v-linha"><span>o estoque já baixou</span></span>
+            </h1>
+            <p class="v-heroi-apoio">O Sistema registra as vendas da sua loja, ajusta o estoque sozinho e avisa quando um produto chega ao mínimo.</p>
+            <div class="v-heroi-acoes">
+                <a class="btn btn-primary btn-lg v-cta" id="heroiCta" href="@linkDemo" target="@alvoLink" rel="@relLink">Pedir demonstração</a>
+                <p class="v-nota">@notaCanal</p>
+            </div>
+        </div>
+
+        @* Palco verde-petróleo com a demonstração viva do PDV (peças reais: .pdv-produto, cupom, régua e contador) *@
+        <div class="v-palco">
+            <figure class="v-demo-figura">
+                <div class="v-demo" data-ui data-demo data-minimo="@minimo">
+                    <div class="v-demo-catalogo">
+                        @* Pedaço do menu do administrador: o contador de estoque baixo reage à venda da demonstração *@
+                        <div class="v-demo-menu">
+                            <span class="nav-item-x alerta">@Html.Raw(Icones.Get("sino"))<span>Estoque baixo</span><span class="contador contador-danger" data-demo-contador>@baixosIniciais</span></span>
+                        </div>
+                        @foreach (var p in produtosDemo)
+                        {
+                            var baixo = p.Estoque <= minimo;
+                            var noCupom = cupomInicial.Where(c => c.Id == p.Id).Sum(c => c.Qtd);
+                            <div class="pdv-produto @(noCupom > 0 ? "no-carrinho" : "")" data-demo-produto="@p.Id" data-nome="@p.Nome"
+                                 data-preco="@p.Preco.ToString(inv)" data-estoque="@p.Estoque" data-matiz="@Visual.Matiz(p.Nome)" data-iniciais="@Visual.Iniciais(p.Nome)">
+                                <div class="pdv-produto-img">
+                                    <partial name="_ProdutoThumb" model='new ProdutoThumb { Nome = p.Nome, Tamanho = "thumb-lg" }' />
+                                </div>
+                                <div class="pdv-produto-corpo">
+                                    <p class="pdv-produto-nome">@p.Nome</p>
+                                    <span class="chip chip-brand sem-ponto v-no-carrinho" data-demo-nocarrinho hidden="@(noCupom == 0)">@noCupom no carrinho</span>
+                                    <div class="pdv-produto-rodape">
+                                        <div>
+                                            <strong class="pdv-preco num">@p.Preco.ToString("C2", pt)</strong>
+                                            <span class="pdv-estoque @(baixo ? "baixo" : "")" data-demo-estoque>@p.Estoque em estoque</span>
+                                        </div>
+                                        <button type="button" class="btn btn-soft btn-icon pdv-add" data-demo-add aria-label="Adicionar @p.Nome ao carrinho" title="Adicionar">@Html.Raw(Icones.Get("mais"))</button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="ui-card pdv-carrinho v-demo-cupom">
+                        <div class="ui-card-header">
+                            <p class="ui-card-title">@Html.Raw(Icones.Get("recibo"))Cupom da venda</p>
+                            <span class="chip sem-ponto" data-demo-itens>@itensCupom itens</span>
+                        </div>
+                        @* Cliente em texto (não é campo): na tela real, a venda é para um cliente achado pelo CPF ou código *@
+                        <div class="pdv-cliente">
+                            <span class="form-label">Cliente</span>
+                            <div class="input-icon">@Html.Raw(Icones.Get("id"))<span class="form-control v-demo-campo">1042</span></div>
+                        </div>
+                        <div class="pdv-linhas">
+                            <div data-demo-linhas>
+                                @foreach (var c in cupomInicial)
+                                {
+                                    var p = produtosDemo.First(x => x.Id == c.Id);
+                                    <div class="pedido-linha" data-demo-linha="@p.Id">
+                                        <span class="thumb thumb-sm pdv-linha-thumb" style="--h: @Visual.Matiz(p.Nome)" aria-hidden="true">@Html.Raw(Icones.Get("caixa"))<span>@Visual.Iniciais(p.Nome)</span></span>
+                                        <div class="pdv-linha-info"><strong>@p.Nome</strong><span>@p.Preco.ToString("C2", pt) · @p.Estoque em estoque</span></div>
+                                        <div class="qtd-stepper">
+                                            <button type="button" class="qtd-btn" data-demo-menos aria-label="Diminuir quantidade de @p.Nome">@Html.Raw(Icones.Get("menos"))</button>
+                                            <span class="form-control qtd-input" data-demo-qtd>@c.Qtd</span>
+                                            <button type="button" class="qtd-btn" data-demo-mais aria-label="Aumentar quantidade de @p.Nome">@Html.Raw(Icones.Get("mais"))</button>
+                                        </div>
+                                        <div class="pdv-linha-fim">
+                                            <span class="pdv-subtotal num" data-demo-subtotal>@((p.Preco * c.Qtd).ToString("C2", pt))</span>
+                                            <button type="button" class="btn btn-ghost-danger btn-icon btn-sm pdv-remover" data-demo-remover aria-label="Remover @p.Nome do carrinho">@Html.Raw(Icones.Get("excluir"))</button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            @* Carrinho vazio: mesmo texto da tela real *@
+                            <div class="carrinho-vazio" data-demo-vazio hidden>
+                                <img src="~/img/vazio-carrinho.svg" alt="" width="140" height="99" />
+                                <strong>O carrinho está vazio</strong>
+                                <span>Toque em <b>+</b> num produto para adicioná-lo.</span>
+                            </div>
+                        </div>
+                        <div class="pdv-resumo">
+                            <div class="pdv-total">
+                                <span>Total</span>
+                                <strong class="num" data-demo-total>@totalCupom.ToString("C2", pt)</strong>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-lg w-100" data-demo-finalizar>@Html.Raw(Icones.Get("ok"))<span>Finalizar venda</span></button>
+                        </div>
+                    </div>
+                </div>
+                @* Legenda: a demonstração usa dados de exemplo; "Recomeçar" aparece depois da primeira venda *@
+                <figcaption class="v-palco-legenda">
+                    Demonstração com dados de exemplo.
+                    <button type="button" class="v-legenda-botao" data-demo-recomecar hidden>Recomeçar</button>
+                </figcaption>
+            </figure>
+            @* Modelo de linha do cupom: o vitrine.js clona e preenche (nomes e rótulos por textContent) *@
+            <template data-demo-modelo>
+                <div class="pedido-linha" data-demo-linha="">
+                    <span class="thumb thumb-sm pdv-linha-thumb" aria-hidden="true">@Html.Raw(Icones.Get("caixa"))<span data-demo-iniciais></span></span>
+                    <div class="pdv-linha-info"><strong data-demo-nome></strong><span data-demo-info></span></div>
+                    <div class="qtd-stepper">
+                        <button type="button" class="qtd-btn" data-demo-menos>@Html.Raw(Icones.Get("menos"))</button>
+                        <span class="form-control qtd-input" data-demo-qtd></span>
+                        <button type="button" class="qtd-btn" data-demo-mais>@Html.Raw(Icones.Get("mais"))</button>
+                    </div>
+                    <div class="pdv-linha-fim">
+                        <span class="pdv-subtotal num" data-demo-subtotal></span>
+                        <button type="button" class="btn btn-ghost-danger btn-icon btn-sm pdv-remover" data-demo-remover>@Html.Raw(Icones.Get("excluir"))</button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </section>
+
+    @* ================================ 2. História (fotos de arquivo) ================================ *@
+    @* Fotos da seção (domínio público, via Wikimedia Commons). Fonte e licença de cada uma:
+       1) Loja de calçados Casa Atlas, Rua da Carioca, Rio de Janeiro. Foto de Augusto Malta, Acervo do Instituto Moreira Salles.
+          https://commons.wikimedia.org/wiki/File:Rua_da_Carioca,_com_destaque_para_a_Loja_de_cal%C3%A7ados_Casa_Atlas,_Acervo_do_Instituto_Moreira_Salles.jpg
+          Licença: domínio público (Public Domain Mark 1.0).
+       2) Armazém de secos e molhados da família Mury, Nova Friburgo (RJ), início do século XX.
+          https://commons.wikimedia.org/wiki/File:Armaz%C3%A9m_da_Fam%C3%ADlia_Mury_em_1916_-_Nova_Friburgo.jpg
+          Licença: domínio público (Public Domain Mark 1.0).
+       Arquivos reduzidos e em tons de cinza em wwwroot/img/vitrine *@
+    <section class="v-historia" id="historia" aria-labelledby="historia-titulo">
+        <div class="v-historia-grade">
+            <h2 class="v-display v-historia-titulo" id="historia-titulo" data-revelar>
+                <span class="v-historia-l1">O balcão continua,</span>
+                <span class="v-historia-l2">o caderno não</span>
+            </h2>
+            <figure class="v-foto v-foto-grande" data-revelar="2">
+                <div class="v-foto-moldura">
+                    <img src="~/img/vitrine/loja-rua-da-carioca.jpg" width="960" height="1267" loading="lazy" decoding="async"
+                         alt="Fachada de uma loja de calçados no térreo de um sobrado ornamentado, com vitrines cheias de sapatos e um cartaz de grande venda; pedestres na calçada. Foto antiga, em preto e branco." />
+                </div>
+                <figcaption>Loja de calçados Casa Atlas, Rua da Carioca, Rio de Janeiro. Foto de Augusto Malta.</figcaption>
+            </figure>
+            <p class="v-frase v-historia-texto" data-revelar="2">Loja é balcão, prateleira e caderno há mais de cem anos. O Sistema assume o caderno: cada venda entra no estoque e na conta do mês.</p>
+            <figure class="v-foto v-foto-pequena" data-revelar="3">
+                <div class="v-foto-moldura">
+                    <img src="~/img/vitrine/armazem-mury.jpg" width="1600" height="900" loading="lazy" decoding="async"
+                         alt="Interior de um armazém antigo: prateleiras cheias de garrafas e caixas, um balcão de madeira com balança e um homem sentado à mesa com papéis, ao lado de um menino. Foto antiga, em preto e branco." />
+                </div>
+                <figcaption>Armazém de secos e molhados da família Mury, Nova Friburgo (RJ), início do século XX.</figcaption>
+            </figure>
+        </div>
+    </section>
+
+    @* ================================ 3. Estoque: uma linha, três estados ================================ *@
+    @* A mesma linha da tela de Produtos em três momentos; a do meio funciona (Repor estoque → campo Estoque → Salvar alterações) *@
+    <section class="v-secao v-estoque" id="estoque" aria-labelledby="estoque-titulo">
+        <div class="v-largura v-estoque-grade">
+            <h2 class="v-titulo v-estoque-titulo" id="estoque-titulo" data-revelar>Repõe antes de faltar</h2>
+
+            @* Estado 1 (ilustração, sem controles): estoque acima do mínimo *@
+            <div class="v-estado" data-revelar>
+                <p class="v-estado-nome">Vendendo</p>
+                <p class="visually-hidden">Boné aba curva com @(minimo * 2 + 4) unidades em estoque, acima do mínimo.</p>
+                <div class="ui-card table-card v-copia" data-ui inert aria-hidden="true">
+                    <table class="table-ui table-stack" role="presentation">
+                        <tbody>
+                            <tr>
+                                <td class="cell-head"><div class="cell-main"><partial name="_ProdutoThumb" model='new ProdutoThumb { Nome = "Boné aba curva" }' /><div><span class="cell-title">Boné aba curva</span><span class="cell-sub">Acessórios</span></div></div></td>
+                                <td data-label="Fornecedor">Malharia Boa Vista</td>
+                                <td data-label="Preço" class="num fw-semibold">R$ 59,90</td>
+                                <td data-label="Estoque"><div class="estoque-cel"><partial name="_ReguaEstoque" model="minimo * 2 + 4" /><span class="num">@(minimo * 2 + 4) un.</span></div></td>
+                                <td class="acoes-col"><span class="btn btn-ghost btn-sm">@Html.Raw(Icones.Get("editar"))<span>Editar</span></span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @* Estado 2 (vivo): no mínimo, com o botão Repor estoque da tela real *@
+            <div class="v-estado" data-revelar="2">
+                <p class="v-estado-nome" data-repor-estado>No mínimo</p>
+                <div class="ui-card table-card v-copia v-copia-viva" data-ui data-repor data-minimo="@minimo">
+                    <table class="table-ui table-stack" role="presentation">
+                        <tbody>
+                            <tr>
+                                <td class="cell-head"><div class="cell-main"><partial name="_ProdutoThumb" model='new ProdutoThumb { Nome = "Boné aba curva" }' /><div><span class="cell-title">Boné aba curva</span><span class="cell-sub">Acessórios</span></div></div></td>
+                                <td data-label="Fornecedor">Malharia Boa Vista</td>
+                                <td data-label="Preço" class="num fw-semibold">R$ 59,90</td>
+                                <td data-label="Estoque">
+                                    <div class="estoque-cel" data-repor-celula>
+                                        <partial name="_ReguaEstoque" model="minimo" />
+                                        <span class="chip chip-warning" data-repor-chip>Baixo · @minimo un.</span>
+                                    </div>
+                                </td>
+                                <td class="acoes-col">
+                                    <button type="button" class="btn btn-soft btn-sm" data-repor-abrir aria-expanded="false" aria-controls="reporCampo">@Html.Raw(Icones.Get("mais"))<span>Repor estoque</span></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    @* Campo da tela de edição do produto (rótulo e botão iguais aos reais) *@
+                    <div class="v-repor-campo" id="reporCampo" hidden>
+                        <label class="form-label" for="reporQtd">Estoque</label>
+                        <div class="v-repor-linha">
+                            <input class="form-control" id="reporQtd" type="number" min="0" max="9999" step="1" inputmode="numeric" value="@(minimo + 24)" />
+                            <button type="button" class="btn btn-primary" data-repor-salvar>@Html.Raw(Icones.Get("ok"))<span>Salvar alterações</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Estado 3 (ilustração, sem controles): reposto *@
+            <div class="v-estado" data-revelar="3">
+                <p class="v-estado-nome">Reposto</p>
+                <p class="visually-hidden">Depois da reposição, o boné volta a ter @(minimo + 24) unidades em estoque.</p>
+                <div class="ui-card table-card v-copia" data-ui inert aria-hidden="true">
+                    <table class="table-ui table-stack" role="presentation">
+                        <tbody>
+                            <tr>
+                                <td class="cell-head"><div class="cell-main"><partial name="_ProdutoThumb" model='new ProdutoThumb { Nome = "Boné aba curva" }' /><div><span class="cell-title">Boné aba curva</span><span class="cell-sub">Acessórios</span></div></div></td>
+                                <td data-label="Fornecedor">Malharia Boa Vista</td>
+                                <td data-label="Preço" class="num fw-semibold">R$ 59,90</td>
+                                <td data-label="Estoque"><div class="estoque-cel"><partial name="_ReguaEstoque" model="minimo + 24" /><span class="num">@(minimo + 24) un.</span></div></td>
+                                <td class="acoes-col"><span class="btn btn-ghost btn-sm">@Html.Raw(Icones.Get("editar"))<span>Editar</span></span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @* A regra, com as palavras do próprio formulário de produto (Produto/_Form.cshtml) *@
+            <p class="v-estoque-nota" data-revelar="3">Com @minimo unidades ou menos, o produto entra no alerta de estoque baixo e na lista de reposição. Para repor, é só editar a quantidade do produto.</p>
+        </div>
+    </section>
+
+    @* ================================ 4. Números: seis células com fragmentos ================================ *@
+    @* Células em xadrez (texto em cima / fragmento em cima). Os fragmentos são ilustração: inert + aria-hidden, e o texto descreve *@
+    <section class="v-secao v-numeros" id="numeros" aria-labelledby="numeros-titulo">
+        <div class="v-largura">
+            <h2 class="v-titulo" id="numeros-titulo" data-revelar>Os números da loja</h2>
+            <div class="v-celulas">
+                @* Célula 1: a frase do mês (cabeçalho da Visão da loja) *@
+                <article class="v-celula v-celula-texto-cima" data-revelar>
+                    <div class="v-celula-texto">
+                        <h3>A frase do mês</h3>
+                        <p>A tela inicial do administrador abre dizendo quanto a loja vendeu no mês e quantos produtos pedem reposição.</p>
+                    </div>
+                    <div class="v-frag v-frag-direita" data-ui inert aria-hidden="true">
+                        <div class="v-frag-folha">
+                            <p class="v-app-h1">Visão da loja</p>
+                            <p class="page-header-sub">@nomeMes: a loja vendeu <strong>@totalMes.ToString("C2", pt)</strong>. 3 produtos precisam de reposição.</p>
+                            <div class="kpi-grid v-kpi-2">
+                                <div class="ui-card kpi">
+                                    <div class="kpi-topo"><span class="kpi-rotulo">Vendas do mês</span></div>
+                                    <div class="kpi-valor">@totalMes.ToString("C2", pt)</div>
+                                    <div class="kpi-rodape"><span class="chip chip-brand">@qtdVendas vendas</span><span>ticket médio @ticketMedio.ToString("C2", pt)</span></div>
+                                </div>
+                                <div class="ui-card kpi kpi-alerta">
+                                    <div class="kpi-topo"><span class="kpi-rotulo">Estoque baixo</span></div>
+                                    <div class="kpi-valor">3</div>
+                                    <div class="kpi-rodape"><span class="chip chip-danger">1 sem estoque</span><span>com @minimo un. ou menos</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                @* Célula 2: vendas por dia (colunas em SVG; hoje em tinta, como no gráfico real) *@
+                <article class="v-celula v-celula-frag-cima" data-revelar="2">
+                    <div class="v-frag v-frag-esquerda" data-ui inert aria-hidden="true">
+                        <div class="ui-card v-frag-grafico">
+                            <div class="ui-card-header sem-linha">
+                                <div>
+                                    <p class="ui-card-title">Vendas por dia</p>
+                                    <p class="ui-card-sub">@nomeMes@(usarMesAtual ? ", até hoje" : "")</p>
+                                </div>
+                                <span class="chip chip-brand sem-ponto">@Html.Raw(Icones.Get("tendencia"))Maior dia: @maiorDia.ToString("C2", pt)</span>
+                            </div>
+                            <div class="ui-card-body">
+                                <div class="v-grafico">
+                                    <div class="v-grafico-eixo">
+                                        <span>@Mil(topoEixo)</span><span>@Mil(degrauEixo * 2)</span><span>@Mil(degrauEixo)</span><span>R$ 0</span>
+                                    </div>
+                                    <svg class="v-grafico-barras" viewBox="0 0 @(dias * 10) 100" preserveAspectRatio="none">
+                                        <line class="v-grafico-grade" x1="0" x2="@(dias * 10)" y1="0.5" y2="0.5" />
+                                        <line class="v-grafico-grade" x1="0" x2="@(dias * 10)" y1="33.5" y2="33.5" />
+                                        <line class="v-grafico-grade" x1="0" x2="@(dias * 10)" y1="66.5" y2="66.5" />
+                                        @for (var i = 0; i < dias; i++)
+                                        {
+                                            var altura = (double)(valoresDia[i] / topoEixo) * 100;
+                                            <rect class="@(usarMesAtual && i == dias - 1 ? "hoje" : "")" x="@((i * 10 + 2).ToString(inv))" y="@((100 - altura).ToString("0.##", inv))" width="6" height="@altura.ToString("0.##", inv)" />
+                                        }
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="v-celula-texto">
+                        <h3>Vendas por dia</h3>
+                        <p>Cada coluna é um dia do mês. A de hoje aparece em destaque, e o maior dia fica no alto do cartão.</p>
+                    </div>
+                </article>
+
+                @* Célula 3: ranking por vendedor (só o administrador vê) *@
+                <article class="v-celula v-celula-texto-cima" data-revelar="3">
+                    <div class="v-celula-texto">
+                        <h3>Quem vendeu quanto</h3>
+                        <p>Só o administrador vê o ranking: quanto cada vendedor vendeu no período e a fatia dele no total.</p>
+                    </div>
+                    <div class="v-frag v-frag-direita" data-ui inert aria-hidden="true">
+                        <div class="ui-card">
+                            <div class="ui-card-header">
+                                <div>
+                                    <p class="ui-card-title">Vendas por vendedor</p>
+                                    <p class="ui-card-sub">Quanto cada vendedor vendeu no período</p>
+                                </div>
+                            </div>
+                            <ol class="ranking">
+                                @{ var posicao = 0; }
+                                @foreach (var r in ranking)
+                                {
+                                    posicao++;
+                                    var largura = (double)(r.Valor / ranking[0].Valor) * 100;
+                                    var fatia = (double)(r.Valor / totalMes) * 100;
+                                    <li>
+                                        <span class="ranking-pos top@(posicao)">@posicao</span>
+                                        <span class="avatar" style="--h: @Visual.Matiz(r.Nome)">@Visual.Iniciais(r.Nome)</span>
+                                        <div class="ranking-info">
+                                            <div class="ranking-linha"><strong>@r.Nome</strong><span class="num ranking-valor">@r.Valor.ToString("C2", pt)</span></div>
+                                            <div class="barra barra-brand"><span style="width: @largura.ToString("0.#", inv)%"></span></div>
+                                            <span class="cell-sub">@r.Vendas vendas · @fatia.ToString("0", pt)% do total</span>
+                                        </div>
+                                    </li>
+                                }
+                            </ol>
+                        </div>
+                    </div>
+                </article>
+
+                @* Célula 4: os cinco períodos do desempenho, sempre até hoje *@
+                <article class="v-celula v-celula-frag-cima" data-revelar>
+                    <div class="v-frag v-frag-direita" data-ui inert aria-hidden="true">
+                        <div class="v-frag-folha">
+                            <div class="periodo-barra">
+                                <nav class="segmented"><a>Semana</a><a class="ativo">Mês</a><a>Bimestre</a><a>Semestre</a><a>Ano</a></nav>
+                            </div>
+                            <span class="chip sem-ponto periodo-datas">@Html.Raw(Icones.Get("calendario"))@mesExemplo.ToString("dd/MM/yyyy", pt) — @fimPeriodo.ToString("dd/MM/yyyy", pt)</span>
+                            <div class="kpi-grid kpi-grid-3 v-kpi-3">
+                                <div class="ui-card kpi">
+                                    <div class="kpi-topo"><span class="kpi-rotulo">Valor em vendas</span></div>
+                                    <div class="kpi-valor">@totalMes.ToString("C0", pt)</div>
+                                    <div class="kpi-rodape"><span>no período</span></div>
+                                </div>
+                                <div class="ui-card kpi">
+                                    <div class="kpi-topo"><span class="kpi-rotulo">Ticket médio</span></div>
+                                    <div class="kpi-valor">@ticketMedio.ToString("C2", pt)</div>
+                                    <div class="kpi-rodape"><span>por venda</span></div>
+                                </div>
+                                <div class="ui-card kpi">
+                                    <div class="kpi-topo"><span class="kpi-rotulo">Vendas</span></div>
+                                    <div class="kpi-valor">@qtdVendas</div>
+                                    <div class="kpi-rodape"><span>registradas</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="v-celula-texto">
+                        <h3>Semana, mês ou ano</h3>
+                        <p>Troque o período e os totais acompanham: semana, mês, bimestre, semestre ou ano, sempre contando até hoje.</p>
+                    </div>
+                </article>
+
+                @* Célula 5: conta nova espera a liberação do administrador (selos reais do Pilulas.cs) *@
+                <article class="v-celula v-celula-texto-cima" data-revelar="2">
+                    <div class="v-celula-texto">
+                        <h3>Conta nova espera você</h3>
+                        <p>Quem cria a conta entra sem função. O administrador decide se a pessoa vende ou compra.</p>
+                    </div>
+                    <div class="v-frag v-frag-esquerda" data-ui inert aria-hidden="true">
+                        <div class="ui-card">
+                            <div class="alert alert-warning v-frag-alerta">
+                                @Html.Raw(Icones.Get("espera"))
+                                <div><strong>1 conta aguarda liberação</strong><span class="alert-texto">Defina a função (vendedor ou padrão) para que a pessoa comece a usar o sistema.</span></div>
+                            </div>
+                            <ul class="v-frag-usuarios">
+                                <li><span class="avatar" style="--h: @Visual.Matiz("Paula Nogueira")">@Visual.Iniciais("Paula Nogueira")</span><span class="v-frag-pessoa"><span class="cell-title">Paula Nogueira</span><span class="cell-sub">paula@example.com</span></span><span class="pill pill-alerta">Aguardando liberação</span></li>
+                                <li><span class="avatar" style="--h: @Visual.Matiz("Rafael Costa")">@Visual.Iniciais("Rafael Costa")</span><span class="v-frag-pessoa"><span class="cell-title">Rafael Costa</span><span class="cell-sub">rafael@example.com</span></span><span class="pill pill-azul">Vendedor</span></li>
+                                <li><span class="avatar" style="--h: @Visual.Matiz("Ana Souza")">@Visual.Iniciais("Ana Souza")</span><span class="v-frag-pessoa"><span class="cell-title">Ana Souza</span><span class="cell-sub">ana@example.com</span></span><span class="pill pill-forte">ADM</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </article>
+
+                @* Célula 6: no navegador do celular (a barra do carrinho fica parada dentro da moldura, nunca fixa) *@
+                <article class="v-celula v-celula-frag-cima" data-revelar="3">
+                    <div class="v-frag v-frag-centro" data-ui inert aria-hidden="true">
+                        <div class="v-frag-celular">
+                            <div class="v-frag-celular-grade">
+                                @foreach (var p in produtosDemo.Take(2))
+                                {
+                                    <div class="pdv-produto">
+                                        <div class="pdv-produto-img"><partial name="_ProdutoThumb" model='new ProdutoThumb { Nome = p.Nome, Tamanho = "thumb-card" }' /></div>
+                                        <div class="pdv-produto-corpo">
+                                            <p class="pdv-produto-nome">@p.Nome</p>
+                                            <div class="pdv-produto-rodape">
+                                                <div><strong class="pdv-preco num">@p.Preco.ToString("C2", pt)</strong><span class="pdv-estoque">@p.Estoque em estoque</span></div>
+                                                <span class="btn btn-soft btn-icon pdv-add">@Html.Raw(Icones.Get("mais"))</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <div class="pdv-barra">
+                                <span class="pdv-barra-info"><span>@itensCupom itens</span><strong class="num">@totalCupom.ToString("C2", pt)</strong></span>
+                                <span class="btn btn-on-brand btn-sm">@Html.Raw(Icones.Get("carrinho"))<span>Ver carrinho</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="v-celula-texto">
+                        <h3>No navegador do celular</h3>
+                        <p>Abre no navegador do celular, sem instalar aplicativo. No caixa, o carrinho vira uma barra com o total.</p>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    @* ================================ 5. Na hora do aperto ================================ *@
+    @* O que o sistema faz nas situações difíceis. Cada linha foi conferida no código (PedidoService, Program.cs, UsuarioController) *@
+    <section class="v-secao v-aperto" id="aperto" aria-labelledby="aperto-titulo">
+        <div class="v-largura">
+            <h2 class="v-display v-aperto-titulo" id="aperto-titulo" data-revelar><span>Na hora</span> <span>do aperto</span></h2>
+            <div class="v-aperto-tabela-wrap" data-revelar="2">
+                <table class="v-aperto-tabela">
+                    <caption class="visually-hidden">O que o Sistema faz em situações difíceis</caption>
+                    <colgroup><col class="v-col-grupo" /><col class="v-col-quando" /><col class="v-col-sistema" /><col class="v-col-onde" /></colgroup>
+                    <thead>
+                        <tr><th scope="col"><span class="visually-hidden">Assunto</span></th><th scope="col">Quando</th><th scope="col">O Sistema</th><th scope="col">Onde</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><th scope="rowgroup">Estoque</th><td>Dois vendedores registram a última unidade ao mesmo tempo</td><td>Só uma venda é gravada. A outra volta com o aviso para conferir as quantidades.</td><td>Registrar venda</td></tr>
+                        <tr><td></td><td>O cupom pede mais do que há na prateleira</td><td>A venda não passa, e a tela diz quantas unidades restam.</td><td>Registrar venda</td></tr>
+                        <tr><td></td><td>Um produto chega a @minimo unidades</td><td>Ele entra na lista de reposição, e o menu do administrador mostra quantos são.</td><td>Estoque baixo</td></tr>
+                    </tbody>
+                    <tbody>
+                        <tr><th scope="rowgroup">Preço</th><td>Alguém muda o valor na tela antes de finalizar</td><td>O total é refeito com o preço do cadastro.</td><td>Registrar venda</td></tr>
+                        <tr><td></td><td>O preço do produto muda amanhã</td><td>As vendas de hoje continuam com o valor de hoje no desempenho.</td><td>Desempenho</td></tr>
+                    </tbody>
+                    <tbody>
+                        <tr><th scope="rowgroup">Acesso</th><td>Alguém erra a senha 5 vezes seguidas</td><td>A conta fica bloqueada por 5 minutos.</td><td>Entrar</td></tr>
+                        <tr><td></td><td>Você troca a função de alguém</td><td>Trocar a função de alguém vale já no próximo clique.</td><td>Usuários</td></tr>
+                        <tr><td></td><td>Alguém cria uma conta por conta própria</td><td>Ela não vende nem compra até um administrador definir a função.</td><td>Usuários</td></tr>
+                        <tr><td></td><td>Tentam tirar a função do último administrador</td><td>O Sistema não deixa: a loja nunca fica sem administrador.</td><td>Usuários</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    @* ================================ 6. Quem vê o quê ================================ *@
+    @* Tirado do menu (_Layout.cshtml) e das políticas de acesso (Authorization/): cada função vê só as próprias telas *@
+    <section class="v-secao v-equipe" id="equipe" aria-labelledby="equipe-titulo">
+        <div class="v-largura">
+            <div class="v-equipe-coluna">
+                <h2 class="v-titulo" id="equipe-titulo" data-revelar>Quem vê o quê</h2>
+                <div class="v-equipe-grupos" data-revelar="2">
+                    <div class="v-equipe-grupo">
+                        <h3>Balcão</h3>
+                        <dl>
+                            <div><dt>@Html.Raw(Icones.Get("venda"))Registrar venda</dt><dd>ADM e vendedor</dd></div>
+                            <div><dt>@Html.Raw(Icones.Get("compra"))Fazer compra</dt><dd>ADM e cliente</dd></div>
+                        </dl>
+                    </div>
+                    <div class="v-equipe-grupo">
+                        <h3>Estoque</h3>
+                        <dl>
+                            <div><dt>@Html.Raw(Icones.Get("produtos"))Produtos</dt><dd>ADM</dd></div>
+                            <div><dt>@Html.Raw(Icones.Get("sino"))Estoque baixo</dt><dd>ADM</dd></div>
+                            <div><dt>@Html.Raw(Icones.Get("fornecedores"))Fornecedores</dt><dd>ADM</dd></div>
+                            <div><dt>@Html.Raw(Icones.Get("tipos"))Tipos de produto</dt><dd>ADM</dd></div>
+                        </dl>
+                    </div>
+                    <div class="v-equipe-grupo">
+                        <h3>Números</h3>
+                        <dl>
+                            <div><dt>@Html.Raw(Icones.Get("inicio"))Visão da loja</dt><dd>ADM</dd></div>
+                            <div><dt>@Html.Raw(Icones.Get("desempenho"))Desempenho da loja e ranking</dt><dd>ADM</dd></div>
+                            <div><dt>@Html.Raw(Icones.Get("desempenho"))Meu desempenho</dt><dd>Vendedor</dd></div>
+                            <div><dt>@Html.Raw(Icones.Get("carrinho"))Minhas compras do mês</dt><dd>Cliente</dd></div>
+                        </dl>
+                    </div>
+                    <div class="v-equipe-grupo">
+                        <h3>Equipe</h3>
+                        <dl>
+                            <div><dt>@Html.Raw(Icones.Get("usuarios"))Usuários e liberação de contas</dt><dd>ADM</dd></div>
+                            <div><dt>@Html.Raw(Icones.Get("funcoes"))Funções</dt><dd>ADM</dd></div>
+                        </dl>
+                    </div>
+                    <div class="v-equipe-grupo">
+                        <h3>Conta</h3>
+                        <dl>
+                            <div><dt>@Html.Raw(Icones.Get("perfil"))Meu perfil</dt><dd>Todos</dd></div>
+                            <div><dt>@Html.Raw(Icones.Get("cadeado"))Senha e dados da conta</dt><dd>Todos</dd></div>
+                            <div><dt>@Html.Raw(Icones.Get("lua"))Tema claro ou escuro</dt><dd>Todos</dd></div>
+                        </dl>
+                    </div>
+                </div>
+                <p class="v-equipe-nota" data-revelar="3">ADM é o administrador da loja. Cliente é a função Padrão: quem compra pela própria conta.</p>
+            </div>
+        </div>
+    </section>
+
+    @* ================================ 7. Planos e preços ================================ *@
+    @* Tabela no computador e blocos empilhados no celular (um some do outro com display:none). Sem dados estruturados com preço.
+       Preço publicado obriga quem anuncia: enquanto forem de exemplo, cada plano mostra o aviso junto do valor *@
+    <section class="v-secao v-precos" id="precos" aria-labelledby="precos-titulo">
+        <div class="v-largura">
+            <h2 class="v-titulo" id="precos-titulo" data-revelar>Planos e preços</h2>
+            <div class="v-precos-tabela-wrap" data-revelar="2">
+                <table class="v-precos-tabela">
+                    <caption class="visually-hidden">Comparação dos planos@(precosDeExemplo ? " (valores de exemplo)" : "")</caption>
+                    <thead>
+                        <tr>
+                            <td></td>
+                            @foreach (var plano in planos)
+                            {
+                                <th scope="col" class="@(plano.Destaque ? "v-destaque" : "")">
+                                    <span class="v-plano-nome">@(plano.Nome)@if (plano.Destaque) {<span class="visually-hidden"> (plano recomendado)</span>}</span>
+                                    @if (plano.PrecoMes is decimal mes)
+                                    {
+                                        <span class="v-plano-preco"><span class="num">@Preco(mes)</span><span class="v-plano-periodo">/mês</span></span>
+                                        @if (plano.PrecoAno is decimal ano)
+                                        {
+                                            <span class="v-plano-ano">ou @Preco(ano) por ano</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="v-plano-preco">Sob consulta</span>
+                                    }
+                                    @if (precosDeExemplo)
+                                    {
+                                        <span class="v-plano-exemplo">Valores de exemplo</span>
+                                    }
+                                </th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><th scope="row">Usuários</th>@foreach (var plano in planos) {<td class="@(plano.Destaque ? "v-destaque" : "")">@plano.Usuarios</td>}</tr>
+                        <tr><th scope="row">Produtos e vendas</th>@foreach (var plano in planos) {<td class="@(plano.Destaque ? "v-destaque" : "")">Sem limite</td>}</tr>
+                        <tr><th scope="row">Painel, desempenho e alerta de estoque</th>@foreach (var plano in planos) {<td class="@(plano.Destaque ? "v-destaque" : "")">Incluídos</td>}</tr>
+                        <tr><th scope="row">Funções e liberação de contas</th>@foreach (var plano in planos) {<td class="@(plano.Destaque ? "v-destaque" : "")">Incluídas</td>}</tr>
+                        <tr><th scope="row">Suporte</th>@foreach (var plano in planos) {<td class="@(plano.Destaque ? "v-destaque" : "")">@plano.Suporte</td>}</tr>
+                        <tr><th scope="row">Implantação</th>@foreach (var plano in planos) {<td class="@(plano.Destaque ? "v-destaque" : "")">@plano.Implantacao</td>}</tr>
+                        <tr class="v-precos-acoes">
+                            <td></td>
+                            @foreach (var plano in planos)
+                            {
+                                <td class="@(plano.Destaque ? "v-destaque" : "")">
+                                    <a class="btn btn-lg @(plano.Destaque ? "v-btn-claro" : "btn-primary")" href="@LinkContato($"Olá! Quero uma demonstração do Sistema. Tenho interesse no plano {plano.Nome}.")" target="@alvoLink" rel="@relLink">Pedir demonstração<span class="visually-hidden"> do plano @plano.Nome</span></a>
+                                </td>
+                            }
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            @* Celular: um bloco por plano; o recomendado fica no verde-petróleo *@
+            <div class="v-precos-blocos">
+                @foreach (var plano in planos)
+                {
+                    <article class="v-plano-bloco @(plano.Destaque ? "v-destaque" : "")" aria-label="Plano @plano.Nome@(plano.Destaque ? ", recomendado" : "")" data-revelar>
+                        <p class="v-plano-nome">@plano.Nome</p>
+                        @if (plano.PrecoMes is decimal mesB)
+                        {
+                            <p class="v-plano-preco"><span class="num">@Preco(mesB)</span><span class="v-plano-periodo">/mês</span></p>
+                            @if (plano.PrecoAno is decimal anoB)
+                            {
+                                <p class="v-plano-ano">ou @Preco(anoB) por ano</p>
+                            }
+                        }
+                        else
+                        {
+                            <p class="v-plano-preco">Sob consulta</p>
+                        }
+                        @if (precosDeExemplo)
+                        {
+                            <p class="v-plano-exemplo">Valores de exemplo</p>
+                        }
+                        <dl class="v-plano-itens">
+                            <div><dt>Usuários</dt><dd>@plano.Usuarios</dd></div>
+                            <div><dt>Produtos e vendas</dt><dd>Sem limite</dd></div>
+                            <div><dt>Painel, desempenho e alerta de estoque</dt><dd>Incluídos</dd></div>
+                            <div><dt>Funções e liberação de contas</dt><dd>Incluídas</dd></div>
+                            <div><dt>Suporte</dt><dd>@plano.Suporte</dd></div>
+                            <div><dt>Implantação</dt><dd>@plano.Implantacao</dd></div>
+                        </dl>
+                        <a class="btn btn-lg w-100 @(plano.Destaque ? "v-btn-claro" : "btn-primary")" href="@LinkContato($"Olá! Quero uma demonstração do Sistema. Tenho interesse no plano {plano.Nome}.")" target="@alvoLink" rel="@relLink">Pedir demonstração<span class="visually-hidden"> do plano @plano.Nome</span></a>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+
+    @* ================================ 8. Dúvidas ================================ *@
+    @* <details> com o mesmo name: abre uma por vez e funciona sem JavaScript; o "+" de cada pergunta é desenhado no CSS (.v-mais). A da nota fiscal já vem aberta,
+       porque "Cupom da venda" pode lembrar cupom fiscal *@
+    <section class="v-secao v-duvidas" id="duvidas" aria-labelledby="duvidas-titulo">
+        <div class="v-largura v-duvidas-grade">
+            <h2 class="v-titulo v-duvidas-titulo" id="duvidas-titulo" data-revelar>Dúvidas</h2>
+            <div class="v-duvidas-lista" data-revelar="2">
+                <details class="v-duvida" name="duvidas" open>
+                    <summary><span>O Sistema emite nota fiscal?</span><span class="v-mais" aria-hidden="true"></span></summary>
+                    <p>Não. O Sistema registra vendas, compras e estoque, e o “Cupom da venda” da tela é só o resumo do pedido. A nota fiscal continua no emissor que você já usa.</p>
+                </details>
+                <details class="v-duvida" name="duvidas">
+                    <summary><span>Dá para vender para quem não tem cadastro?</span><span class="v-mais" aria-hidden="true"></span></summary>
+                    <p>Não. Toda venda é registrada para um cliente cadastrado, encontrado pelo CPF ou pelo código. Assim cada compra fica no histórico de quem levou.</p>
+                </details>
+                <details class="v-duvida" name="duvidas">
+                    <summary><span>O que o vendedor consegue ver?</span><span class="v-mais" aria-hidden="true"></span></summary>
+                    <p>A tela de venda e o próprio desempenho: total vendido, número de vendas e ticket médio. Cadastros, usuários, o ranking e os números da loja inteira ficam só com o administrador.</p>
+                </details>
+                <details class="v-duvida" name="duvidas">
+                    <summary><span>Como funciona o aviso de estoque baixo?</span><span class="v-mais" aria-hidden="true"></span></summary>
+                    <p>Com @minimo unidades ou menos, o produto entra na lista de reposição e o menu do administrador mostra quantos são. Para repor, é só editar a quantidade do produto.</p>
+                </details>
+                <details class="v-duvida" name="duvidas">
+                    <summary><span>O cliente também pode comprar sozinho?</span><span class="v-mais" aria-hidden="true"></span></summary>
+                    <p>Pode. Quem tem a função Padrão faz a compra pela própria conta, e essa compra também baixa o estoque.</p>
+                </details>
+                <details class="v-duvida" name="duvidas">
+                    <summary><span>Quais períodos aparecem no desempenho?</span><span class="v-mais" aria-hidden="true"></span></summary>
+                    <p>Semana, mês, bimestre, semestre e ano, sempre contando até hoje.</p>
+                </details>
+                <details class="v-duvida" name="duvidas">
+                    <summary><span>A senha fica protegida?</span><span class="v-mais" aria-hidden="true"></span></summary>
+                    <p>A senha de acesso é guardada com hash pelo ASP.NET Identity, nunca em texto. Ela precisa de pelo menos 8 caracteres, com letra maiúscula, minúscula, número e símbolo, e 5 senhas erradas seguidas bloqueiam a conta por 5 minutos. Cada pessoa só abre as telas da própria função.</p>
+                </details>
+                <details class="v-duvida" name="duvidas">
+                    <summary><span>Funciona no celular?</span><span class="v-mais" aria-hidden="true"></span></summary>
+                    <p>Funciona no navegador do celular, do tablet ou do computador, sem instalar aplicativo. As telas se ajustam ao tamanho de cada um.</p>
+                </details>
+                <details class="v-duvida" name="duvidas">
+                    <summary><span>Como eu começo?</span><span class="v-mais" aria-hidden="true"></span></summary>
+                    <p>Peça uma demonstração @(temWhatsApp ? "pelo WhatsApp" : "por e-mail"). Mostramos o Sistema funcionando e combinamos a implantação na sua loja.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    @* ================================ 9. Contato ================================ *@
+    @* Sem JavaScript: a frase e o link direto (WhatsApp ou e-mail). Com o vitrine.js: a frase com lacuna vira o formulário,
+       que monta a mensagem e abre o WhatsApp ou o e-mail (nada é enviado ao servidor; a CSP não aceita form-action externo) *@
+    <section class="v-contato" id="contato" aria-labelledby="contato-titulo">
+        <div class="v-largura">
+            <div class="v-contato-simples" data-cta-simples>
+                <h2 class="v-display v-contato-frase" id="contato-titulo">Olá! Quero ver o Sistema na minha loja.</h2>
+                <a class="btn btn-lg v-btn-claro" href="@linkDemo" target="@alvoLink" rel="@relLink">Pedir demonstração</a>
+                <p class="v-contato-ajuda">@notaCanal</p>
+            </div>
+            <form class="v-frase-form" action="#" method="get" asp-antiforgery="false" novalidate hidden
+                  data-cta-frase data-sem-spinner data-whatsapp="@whatsDigitos" data-email="@emailVendas">
+                <h2 class="v-display v-frase-titulo" id="contato-titulo-frase"><label for="ctaLoja">Olá! Quero ver o Sistema<br class="v-quebra" /> na</label></h2>
+                <input class="v-frase-campo" id="ctaLoja" name="loja" type="text" maxlength="60" autocomplete="organization" placeholder="sua loja" aria-describedby="ctaAjuda" />
+                <button type="submit" class="v-frase-botao">Enviar</button>
+                <p class="v-contato-ajuda" id="ctaAjuda">
+                    @(temWhatsApp ? "Abre o WhatsApp com essa mensagem pronta." : $"Abre o seu e-mail com essa mensagem pronta para {emailVendas}.") @horario
+                    @if (temWhatsApp)
+                    {
+                        <text>Prefere e-mail? <a class="v-link-claro" href="@LinkEmail("Demonstração do Sistema", mensagemPadrao)">@emailVendas</a></text>
+                    }
+                </p>
+            </form>
+        </div>
+    </section>
+</main>
+
+@* ================================ Rodapé ================================ *@
+@* Uma linha só: o que é, os links e o ano; embaixo, o crédito das fotos. Sem "Criar conta" (a conta cairia como pendente na loja) *@
+<footer class="v-rodape">
+    <div class="v-largura">
+        <div class="v-rodape-linha">
+            <p class="v-rodape-oque">Sistema · vendas e estoque para lojas</p>
+            <nav class="v-rodape-links" aria-label="Rodapé">
+                <a asp-area="Identity" asp-page="/Account/Login">Entrar</a>
+                <a href="#precos">Preços</a>
+                <a href="@linkDemo" target="@alvoLink" rel="@relLink">Pedir demonstração</a>
+                <a href="@LinkEmail("Demonstração do Sistema", mensagemPadrao)">@emailVendas</a>
+            </nav>
+            <p class="v-rodape-ano">
+                © @DateTime.Today.Year Sistema
+                @if (mostrarPrivacidade)
+                {
+                    <text>· <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacidade</a></text>
+                }
+            </p>
+        </div>
+        <p class="v-creditos">Fotos de arquivo, em domínio público, via Wikimedia Commons: Rua da Carioca, Rio de Janeiro, por Augusto Malta (Acervo Instituto Moreira Salles); armazém da família Mury, Nova Friburgo (RJ).</p>
+    </div>
+</footer>
+
+@* Barra fixa de chamada no celular (abaixo de 768px): só existe com número de WhatsApp. Começa com hidden;
+   o vitrine.js mostra depois que o botão do herói sai da tela e esconde no contato, no rodapé e com o menu aberto *@
+@if (temWhatsApp)
+{
+    <div class="v-barra-cta" data-barra-cta hidden>
+        <a class="btn btn-primary btn-lg v-barra-cta-botao" href="@linkDemo" target="_blank" rel="noopener noreferrer">Pedir demonstração<span class="visually-hidden"> pelo WhatsApp</span></a>
+    </div>
+}

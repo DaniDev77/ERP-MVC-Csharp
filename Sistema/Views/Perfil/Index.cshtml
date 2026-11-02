@@ -80,4 +80,12 @@ else
             </section>
         </div>
     </div>
+
+    @* Novo (back-end, HF-002): localização do usuário, com consentimento *@
+    @if (ViewBag.Localizacao is Sistema.Models.LocalizacaoViewModel localizacao)
+    {
+        <div class="mt-4">
+            <partial name="_Localizacao" model="localizacao" />
+        </div>
+    }
 }

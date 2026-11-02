@@ -24,6 +24,9 @@
 
     @await Html.PartialAsync("_Form", Model)
     <input type="hidden" asp-for="ProdutoId" />
+    @* Novo (HF-005): RowVersion detecta venda ou edição feita enquanto o form estava aberto; returnUrl volta à tela de origem. O front não pode remover *@
+    <input type="hidden" asp-for="RowVersion" />
+    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
 
     <div class="ui-card-footer">
         <a asp-action="Delete" asp-route-id="@Model.ProdutoId" class="btn btn-ghost-danger esquerda-btn">@Html.Raw(Icones.Get("excluir"))<span>Excluir</span></a>

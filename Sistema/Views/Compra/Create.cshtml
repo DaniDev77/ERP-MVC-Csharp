@@ -4,7 +4,17 @@
     ViewData["Title"] = "Fazer compra";
 }
 
+@* Alterado (back-end, HF-001): a compra agora vira um pedido pendente; o texto explica que o estoque só baixa na confirmação *@
 <partial name="_PageHeader" model='new PageHeader {
-    Titulo = "Fazer compra", Descricao = "Escolha os produtos e as quantidades. A compra fica no seu histórico e dá baixa no estoque.", Icone = "compra" }' />
+    Titulo = "Fazer compra", Descricao = "Escolha os produtos e as quantidades e envie o pedido. A loja confirma e você acompanha em Meus pedidos.", Icone = "compra",
+    SecundariaTexto = "Meus pedidos", SecundariaUrl = Url.Action("Meus", "Pedido"), SecundariaIcone = "recibo" }' />
+
+@* Novo (back-end, HF-002): só aparece enquanto o cliente não informou nem recusou a localização *@
+@if (ViewBag.Localizacao is Sistema.Models.LocalizacaoViewModel localizacao)
+{
+    <div class="mb-4">
+        <partial name="_Localizacao" model="localizacao" />
+    </div>
+}
 
 <partial name="_NovoPedido" model="Model" />

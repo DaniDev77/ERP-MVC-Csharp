@@ -73,6 +73,8 @@
                     @if (podeComprar)
                     {
                         @Html.Raw(Item("Compra", "Create", "Registrar compra", "compra"))
+                        @* Novo (HF-001): o cliente acompanha os próprios pedidos *@
+                        @Html.Raw(Item("Pedido", "Meus", "Meus pedidos", "recibo", porAction: true))
                     }
                     @if (veMeuDesempenho)
                     {
@@ -80,7 +82,11 @@
                     }
                     @if (podeAdmin)
                     {
+                        @* Novo (HF-001 e HF-003): gerenciamento de pedidos e painel por localidade, só ADM *@
+                        @* Alterado (HF-008): o item "Pedidos" vem do ViewComponent, com o contador de pendentes *@
+                        @await Component.InvokeAsync("PedidosPendentes")
                         @Html.Raw(Item("Desempenho", "Index", "Desempenho", "desempenho", porAction: true))
+                        @Html.Raw(Item("Desempenho", "Localidades", "Compras por localidade", "local", porAction: true))
                         @await Component.InvokeAsync("EstoqueBaixo")
                     }
                 }
