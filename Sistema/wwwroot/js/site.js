@@ -508,4 +508,53 @@
         document.addEventListener("sistema:tema", desenhar);
         canvas.parentElement.classList.add("pronto");
     }
+
+    // ---------------------------------------------------------------
+    // Novo (HF-002): localização do cliente. Ao trocar a UF, busca as cidades em GET Perfil/Cidades?uf=XX
+    // (mesmo site, permitido pela CSP) e preenche o select de cidade. Sem JS, o formulário funciona em dois envios.
+    // ---------------------------------------------------------------
+    $$("[data-loc-uf]").forEach(function (selUf) {
+        var form = selUf.form;
+        var selCidade = form && $("[data-loc-cidade]", form);
+        var url = selUf.getAttribute("data-cidades-url");
+        if (!selCidade || !url) return;
+
+        function opcao(valor, texto) {
+            var o = document.createElement("option");
+            o.value = valor;
+            o.textContent = texto;
+            return o;
+        }
+
+        selUf.addEventListener("change", function () {
+            var uf = selUf.value;
+            selCidade.replaceChildren(opcao("", uf ? "Carregando cidades..." : "Escolha a UF primeiro"));
+            selCidade.disabled = !!uf;
+            if (!uf) { selCidade.disabled = false; return; }
+
+            fetch(url + "?uf=" + encodeURIComponent(uf), { headers: { "Accept": "application/json" }, credentials: "same-origin" })
+                .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                .then(function (cidades) {
+                    // Resposta atrasada de uma UF anterior não sobrescreve a escolha atual
+                    if (selUf.value !== uf) return;
+                    selCidade.replaceChildren(opcao("", "Escolha"));
+                    cidades.forEach(function (c) { selCidade.appendChild(opcao(c.codigo, c.nome)); });
+                    selCidade.required = true;
+                })
+                .catch(function () {
+                    if (selUf.value !== uf) return;
+                    selCidade.replaceChildren(opcao("", "Não foi possível carregar. Clique em Salvar para tentar de novo."));
+                    // Corrigido (QA B4): sem a lista, a cidade deixa de ser obrigatória no navegador, para o Salvar enviar
+                    // só a UF e o servidor devolver a página já com as cidades (o mesmo caminho de quem está sem JS)
+                    selCidade.required = false;
+                })
+                .finally(function () {
+                    // Corrigido (QA B4): só reabilita se ainda for a UF escolhida (resposta atrasada não destrava outra carga)
+                    if (selUf.value === uf) selCidade.disabled = false;
+                });
+        });
+
+        // Com JS, a cidade passa a ser obrigatória no navegador (o servidor confere de qualquer forma)
+        selCidade.required = true;
+    });
 })();

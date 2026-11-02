@@ -1,0 +1,978 @@
+/* =========================================================================
+   vitrine.css · Site de vendas (vitrine) do Sistema, só no _LayoutVitrine
+   Mesma marca do app: chão na cor da moldura, folhas brancas, campo
+   verde-petróleo (a etiqueta de gôndola) e IBM Plex Sans. Os fragmentos de
+   tela usam as classes reais do app; aqui ficam só os ajustes sob [data-ui].
+   Sem gradiente, sem sombra em nada parado; tudo funciona nos dois temas.
+   ========================================================================= */
+
+/* ---------- Tokens da vitrine (apontam para os tokens do app) ---------- */
+.vitrine {
+  --v-chao: var(--frame);
+  --v-folha: var(--surface);
+  --v-tinta: var(--text);
+  --v-tinta-2: var(--muted);
+  /* Campo verde-petróleo: branco sobre ele dá 6,0:1 */
+  --v-palco: #1B6C80;
+  /* Listra da coluna recomendada (branco 5,5:1) e campo da frase final (branco 7,9:1) */
+  --v-palco-faixa: #1F7387;
+  --v-palco-fundo: #15596A;
+  --v-sobre-palco: #FFFFFF;
+  /* Grade: margens de 16 a 32px, um vão único, seções de 80 a 160px */
+  --v-margem: clamp(1rem, 2.2vw, 2rem);
+  --v-vao: clamp(0.75rem, 1.4vw, 1.5rem);
+  --v-largura-max: 110rem;
+  --v-secao: clamp(5rem, 10vw, 10rem);
+  --v-raio: 8px;
+  /* Cinco degraus de tipo: mini, corpo, frase, título e display */
+  --v-fs-mini: 0.8125rem;
+  --v-fs-corpo: 1.0625rem;
+  --v-fs-frase: clamp(1.1875rem, 1.05rem + 0.45vw, 1.375rem);
+  --v-fs-titulo: clamp(2rem, 1.1rem + 3.4vw, 4rem);
+  --v-fs-display: clamp(2rem, 0.6rem + 6.2vw, 5.5rem);
+  /* Curvas de movimento */
+  --v-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --v-ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Tema escuro: palco mais fundo (branco 7,9:1) e as listras acompanham */
+[data-theme="dark"] .vitrine {
+  --v-palco: #15596A;
+  --v-palco-faixa: #1A6475;
+  --v-palco-fundo: #0F4A59;
+}
+
+/* ---------- Base da página ---------- */
+/* Corpo em 17px na tinta cheia, sobre o chão cinza-esverdeado */
+body.vitrine {
+  font-size: var(--v-fs-corpo);
+  line-height: 1.55;
+  color: var(--v-tinta);
+  background: var(--v-chao);
+}
+.vitrine main:focus { outline: none; }
+.vitrine p { text-wrap: pretty; }
+
+/* Largura da página: uma margem igual dos dois lados, conteúdo até 1760px */
+.v-largura {
+  width: 100%;
+  max-width: var(--v-largura-max);
+  margin-inline: auto;
+  padding-inline: var(--v-margem);
+}
+
+/* Títulos de seção (32 a 64px) e de exibição (32 a 88px): uma família, peso 600, tracking negativo */
+.v-titulo {
+  margin: 0;
+  font-size: var(--v-fs-titulo);
+  font-weight: 600;
+  letter-spacing: -0.032em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+.v-display {
+  margin: 0;
+  font-size: var(--v-fs-display);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+.v-frase { font-size: var(--v-fs-frase); line-height: 1.42; }
+
+/* Nota curta de apoio (canal e horário), em cinza */
+.v-nota {
+  margin: 0.875rem 0 0;
+  font-size: var(--v-fs-mini);
+  color: var(--v-tinta-2);
+  max-width: 44ch;
+}
+
+/* Botão principal grande: 48px de alvo */
+.vitrine .v-cta {
+  --btn-h: 3rem;
+  padding-inline: 1.5rem;
+  font-size: 1rem;
+}
+/* Botão claro sobre o verde-petróleo (plano recomendado e contato) */
+.vitrine .v-btn-claro {
+  color: #131416;
+  background: #FFFFFF;
+  border-color: #FFFFFF;
+}
+.vitrine .v-btn-claro:hover, .vitrine .v-btn-claro:focus-visible {
+  color: #131416;
+  background: #E3F0F3;
+  border-color: #E3F0F3;
+}
+.vitrine .v-btn-claro:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.55); }
+
+/* Links de texto da página: tinta cheia, sublinhado que aparece no hover */
+.v-nav a, .v-entrar, .v-rodape a, .v-menu-folha nav a {
+  color: var(--v-tinta);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.3em;
+  text-decoration-thickness: 0.07em;
+  transition: text-decoration-color var(--t-base) var(--ease), color var(--t-base) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .v-nav a:hover, .v-entrar:hover, .v-rodape a:hover, .v-menu-folha nav a:hover {
+    color: var(--v-tinta);
+    text-decoration-color: currentColor;
+  }
+}
+
+/* ================================ Cabeçalho ================================ */
+/* Barra simples na cor do chão, sem borda; não é fixa (não cobre o conteúdo ao rolar) */
+.v-cabecalho {
+  position: relative;
+  z-index: 1030;
+  background: var(--v-chao);
+}
+.v-cabecalho-linha {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 2rem);
+  min-height: 4.5rem;
+}
+/* Marca: o _Logo de sempre, com alvo de 44px */
+.v-cabecalho .v-marca {
+  height: auto;
+  min-height: 44px;
+  padding: 0;
+  flex: none;
+}
+/* Seções em linha só a partir de 1100px; abaixo disso vão para o menu */
+.v-nav {
+  display: none;
+  gap: clamp(1rem, 1.8vw, 2rem);
+  margin-left: auto;
+  font-weight: 500;
+}
+.v-nav a { display: inline-flex; align-items: center; min-height: 44px; }
+.v-cabecalho-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+.v-nav + .v-cabecalho-acoes { margin-left: 0; }
+/* Entrar fica visível em todas as larguras */
+.v-entrar {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 0.5rem;
+  font-weight: 500;
+}
+.vitrine .v-tema { width: 44px; height: 44px; }
+/* A chamada do cabeçalho aparece a partir de 768px (no celular há o botão do herói, o menu e a barra fixa) */
+.v-cabecalho-cta { display: none; }
+
+/* Menu <details>: o resumo vira um botão preenchido de 44px; a folha abre embaixo do cabeçalho */
+.v-menu { position: static; }
+.v-menu-botao {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.875rem;
+  border-radius: var(--r-control);
+  background: var(--active);
+  color: var(--v-tinta);
+  font-weight: 500;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+.v-menu-botao::-webkit-details-marker { display: none; }
+.v-menu-botao:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.v-menu[open] .v-menu-botao { background: var(--primary-fill); color: var(--on-primary-fill); }
+/* A folha flutua sobre a página: é o único lugar do cabeçalho com sombra */
+.v-menu-folha {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 1040;
+  display: grid;
+  gap: 1rem;
+  padding: 0.5rem var(--v-margem) 1.5rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+.v-menu-folha nav { display: grid; }
+.v-menu-folha nav a {
+  display: flex;
+  align-items: center;
+  min-height: 3rem;
+  font-size: var(--v-fs-frase);
+  font-weight: 500;
+}
+
+@media (max-width: 399.98px) {
+  /* Telas muito estreitas: some a linha "Vendas e estoque" da marca para caber Entrar, tema e menu */
+  .v-cabecalho .marca-sub { display: none; }
+}
+@media (min-width: 768px) {
+  .v-cabecalho-cta { display: inline-flex; }
+}
+@media (min-width: 1100px) {
+  .v-nav { display: flex; }
+  .v-menu { display: none; }
+}
+
+/* ================================ 1. Herói ================================ */
+/* Celular e tablet: texto em cima, palco embaixo (mesma ordem do HTML e do foco) */
+.v-heroi { display: grid; grid-template-columns: minmax(0, 1fr); }
+.v-heroi-texto {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(2rem, 6vw, 4rem) var(--v-margem) clamp(2.5rem, 6vw, 4rem);
+}
+/* Título grande em duas linhas escritas (32 a 64px): cada linha tem a própria máscara */
+.v-heroi-titulo {
+  margin: 0;
+  font-size: var(--v-fs-titulo);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+.v-linha {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.v-linha > span { display: block; }
+.v-heroi-apoio {
+  margin: 1.5rem 0 2rem;
+  max-width: 34ch;
+  font-size: var(--v-fs-frase);
+  line-height: 1.45;
+  color: var(--v-tinta);
+}
+
+/* Palco: campo chapado verde-petróleo com a demonstração no centro */
+.v-palco {
+  display: grid;
+  place-items: center;
+  padding: clamp(1.5rem, 4vw, 3.5rem) var(--v-margem);
+  background: var(--v-palco);
+}
+.v-demo-figura {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  margin: 0;
+}
+/* Legenda branca sobre o palco: avisa que os dados são de exemplo */
+.v-palco-legenda {
+  color: var(--v-sobre-palco);
+  font-size: var(--v-fs-mini);
+  text-align: center;
+}
+.v-legenda-botao {
+  min-height: 44px;
+  padding: 0 0.375rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+.v-legenda-botao:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 2px; }
+
+/* Computador: duas colunas; o texto fica centrado na altura (sem o vazio grande em cima) e o palco vai até a borda */
+@media (min-width: 992px) {
+  .v-heroi {
+    grid-template-columns: minmax(0, 1.04fr) minmax(0, 1fr);
+    min-height: min(calc(100svh - 4.5rem), 54rem);
+  }
+  .v-heroi-texto {
+    padding-left: max(var(--v-margem), calc((100vw - var(--v-largura-max)) / 2 + var(--v-margem)));
+    padding-right: clamp(1.5rem, 3vw, 3.5rem);
+  }
+  .v-palco { padding: clamp(2rem, 4vw, 4rem); }
+}
+
+/* ---------- Fragmento do PDV (peças reais do app, ajustadas para caber no palco) ---------- */
+/* Volta ao corpo de 14px do app: o fragmento fica em tamanho real */
+.v-demo[data-ui] {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 36rem);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  color: var(--text);
+  text-align: left;
+}
+[data-ui] p { margin: 0; }
+.v-demo .v-demo-catalogo { display: grid; gap: 10px; align-content: start; }
+/* Pedaço do menu do administrador (sidebar na cor da moldura) com o contador de estoque baixo */
+.v-demo .v-demo-menu {
+  padding: 4px;
+  border-radius: var(--r-card);
+  background: var(--frame);
+}
+.v-demo .v-demo-menu .nav-item-x { margin: 0; cursor: default; }
+.v-demo .v-demo-menu .nav-item-x:hover { background: transparent; color: var(--muted); }
+/* Cards de produto deitados (miniatura à esquerda) para caberem três na coluna */
+.v-demo .pdv-produto { flex-direction: row; align-items: stretch; }
+.v-demo .pdv-produto-img { padding: 8px 0 8px 8px; }
+.v-demo .pdv-produto-corpo { min-width: 0; padding: 10px 12px; }
+.v-demo .pdv-produto-rodape { padding-top: 6px; }
+.v-demo .v-no-carrinho { align-self: flex-start; margin-top: 4px; }
+/* Cupom parado dentro da moldura (na tela real ele é fixo ao rolar) */
+.v-demo .pdv-carrinho { position: static; max-height: none; }
+.v-demo .pdv-linhas { overflow: visible; min-height: 0; }
+/* Cliente e quantidade em texto (não são campos): mesmo desenho do campo real */
+.v-demo .v-demo-campo.form-control { display: flex; align-items: center; }
+.v-demo .qtd-input.form-control {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 32px;
+}
+/* Sem o vitrine.js, os botões da demonstração não aparecem (nada de controle que não funciona) */
+html:not(.vitrine-js) [data-demo] button,
+html:not(.vitrine-js) [data-repor] button { visibility: hidden; }
+
+@media (min-width: 576px) {
+  .v-demo[data-ui] { grid-template-columns: 15rem minmax(0, 1fr); align-items: start; }
+}
+@media (max-width: 767.98px) {
+  /* Alvos de toque de 44px nos botões da demonstração */
+  .v-demo .pdv-add, .v-demo .qtd-btn, .v-demo .pdv-remover { width: 44px; height: 44px; --btn-h: 44px; }
+  .v-demo .qtd-input.form-control { height: 44px; }
+}
+
+/* ================================ 2. História ================================ */
+/* Chão branco; no computador o título cruza a quina da foto grande, colada na borda direita */
+.v-historia {
+  padding-block: var(--v-secao);
+  background: var(--v-folha);
+  overflow: clip;
+}
+.v-historia-grade {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+  max-width: var(--v-largura-max);
+  margin-inline: auto;
+  padding-inline: var(--v-margem);
+}
+.v-historia-titulo > span { display: block; }
+.v-historia-titulo { font-weight: 500; position: relative; z-index: 2; }
+.v-historia-texto { margin: 0; max-width: 30ch; }
+/* Fotos: mesmo recorte em retrato, cantos retos, em tons de cinza (já gravadas assim) */
+.v-foto { margin: 0; }
+.v-foto-moldura {
+  overflow: clip;
+  aspect-ratio: 960 / 1267;
+  background: var(--active);
+}
+.v-foto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.v-foto-pequena img { object-position: 25% 50%; }
+.v-foto figcaption {
+  max-width: 44ch;
+  margin-top: 0.75rem;
+  font-size: var(--v-fs-mini);
+  color: var(--v-tinta-2);
+}
+.v-foto-pequena { width: 78%; justify-self: end; }
+/* No escuro as fotos escurecem: o texto claro que cruza a foto continua legível */
+[data-theme="dark"] .v-foto img { filter: brightness(0.6); }
+
+@media (min-width: 992px) {
+  .v-historia-grade {
+    --v-historia-topo: clamp(1rem, 6vh, 4rem);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--v-vao);
+    row-gap: 0;
+    max-width: none;
+    padding-right: 0;
+    padding-left: max(var(--v-margem), calc((100vw - var(--v-largura-max)) / 2 + var(--v-margem)));
+  }
+  .v-historia-titulo { grid-column: 1 / -1; grid-row: 1; padding-top: var(--v-historia-topo); }
+  /* 2ª linha alinhada pela direita: termina 6% da largura depois da borda esquerda da foto (sobre o céu claro) */
+  .v-historia-l2 {
+    width: fit-content;
+    margin-left: auto;
+    margin-right: calc((100% - 11 * var(--v-vao)) * 0.5 + 5 * var(--v-vao) - 6%);
+  }
+  .v-foto-grande {
+    grid-column: 7 / -1;
+    grid-row: 1 / span 3;
+    margin-top: calc(var(--v-historia-topo) + var(--v-fs-display) * 1.04);
+  }
+  .v-foto-grande figcaption { padding-right: var(--v-margem); }
+  .v-historia-texto { grid-column: 1 / 6; grid-row: 2; margin-top: 2.5rem; }
+  .v-foto-pequena { grid-column: 2 / 6; grid-row: 3; width: auto; justify-self: stretch; margin-top: 4rem; }
+}
+
+/* ================================ Seções em geral ================================ */
+.v-secao { padding-block: var(--v-secao); }
+
+/* ================================ 3. Estoque ================================ */
+/* Uma linha da tela de Produtos em três estados; no computador o nome do estado fica à esquerda */
+.v-estoque { background: var(--v-chao); }
+.v-estoque-grade { display: grid; gap: 1.25rem; }
+.v-estoque-titulo { margin-bottom: 1.5rem; }
+.v-estado { display: grid; gap: 0.625rem; }
+.v-estado-nome {
+  order: 2;
+  margin: 0;
+  font-size: var(--v-fs-corpo);
+  color: var(--v-tinta-2);
+}
+.v-estado + .v-estado { margin-top: 1.75rem; }
+.v-estoque-nota { margin: 1rem 0 0; max-width: 36ch; }
+/* Campo de reposição da cópia viva (o mesmo campo Estoque da edição de produto) */
+.v-copia .v-repor-campo {
+  display: grid;
+  gap: 8px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--rule);
+  background: var(--surface);
+  border-radius: 0 0 var(--r-card) var(--r-card);
+}
+.v-copia .v-repor-campo[hidden] { display: none; }
+.v-copia .v-repor-linha { display: flex; flex-wrap: wrap; gap: 8px; }
+.v-copia .v-repor-linha .form-control { width: 8rem; }
+.v-copia .table-ui { font-size: var(--fs-base); }
+
+@media (max-width: 767.98px) {
+  /* No celular a linha vira o card da tela real (table-stack); o campo de reposição ganha a própria borda */
+  .v-copia .v-repor-campo { border: 1px solid var(--border); border-radius: var(--r-card); margin-top: 8px; }
+  .v-copia .estoque-cel { justify-content: end; }
+}
+@media (min-width: 992px) {
+  .v-estoque-grade {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--v-vao);
+    row-gap: 3.5rem;
+  }
+  .v-estoque-titulo { grid-column: 4 / -1; margin-bottom: 2.5rem; }
+  .v-estado {
+    grid-column: 1 / 10;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    column-gap: var(--v-vao);
+    align-items: center;
+  }
+  .v-estado + .v-estado { margin-top: 0; }
+  .v-estado-nome { grid-column: 1 / 4; order: 0; text-align: right; font-size: var(--v-fs-frase); }
+  .v-estado .v-copia { grid-column: 4 / -1; }
+  /* A regra fecha o lado direito, na altura do estado do meio */
+  .v-estoque-nota { grid-column: 10 / -1; grid-row: 3; margin: 0; align-self: center; }
+}
+
+/* ================================ 4. Números ================================ */
+/* Seis células preenchidas, sem contorno, com o fragmento encostado na borda oposta ao texto */
+.v-numeros { background: var(--v-folha); }
+.v-numeros .v-titulo { margin-bottom: clamp(2rem, 4vw, 3.5rem); }
+.v-celulas { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr); }
+.v-celula {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+  overflow: clip;
+  border-radius: var(--v-raio);
+  background: var(--v-chao);
+}
+.v-celula-texto { padding: 1.5rem 1.5rem 0; }
+.v-celula-frag-cima .v-celula-texto { padding: 0 1.5rem 1.5rem; }
+.v-celula-texto h3 {
+  margin: 0 0 0.5rem;
+  font-size: var(--v-fs-corpo);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.v-celula-texto p { margin: 0; max-width: 36ch; color: var(--v-tinta); }
+/* O fragmento passa da borda e é cortado pela célula (recorte, não miniatura) */
+.v-frag { flex: none; width: 25rem; max-width: none; font-size: var(--fs-base); line-height: 1.5; color: var(--text); }
+.v-celula-texto-cima .v-frag { margin-top: auto; margin-bottom: -1.25rem; }
+.v-celula-frag-cima .v-frag { margin-top: -1.25rem; }
+.v-frag-direita { align-self: flex-end; margin-right: -2.5rem; }
+.v-frag-esquerda { align-self: flex-start; margin-left: -2.5rem; }
+.v-frag-centro { align-self: center; width: auto; }
+.v-celula-texto-cima .v-frag-direita, .v-celula-frag-cima .v-frag-direita { margin-left: 1.5rem; }
+.v-celula-texto-cima .v-frag-esquerda, .v-celula-frag-cima .v-frag-esquerda { margin-right: 1.5rem; }
+
+@media (max-width: 767.98px) {
+  /* Celular: texto sempre antes do fragmento (os fragmentos não recebem foco, então a ordem de foco não muda) */
+  .v-celula-frag-cima .v-celula-texto { order: -1; padding: 1.5rem 1.5rem 0; }
+  .v-celula-frag-cima .v-frag { margin-top: 0; margin-bottom: -1.25rem; }
+}
+@media (min-width: 768px) {
+  .v-celulas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1100px) {
+  .v-celulas { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: minmax(27rem, auto); }
+}
+
+/* Folha do app recortada (cabeçalho da Visão da loja e a barra de período) */
+[data-ui] .v-frag-folha {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--surface);
+}
+[data-ui] .v-app-h1 { margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
+[data-ui] .kpi-grid.v-kpi-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 16px 0 0; }
+[data-ui] .kpi-grid.v-kpi-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 14px 0 0; }
+[data-ui] .v-kpi-3 .kpi-valor { font-size: 20px; }
+[data-ui] .kpi { padding: 14px 16px; }
+/* Gráfico de colunas em SVG com as cores do gráfico real (hoje em tinta) */
+[data-ui] .v-grafico {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  height: 168px;
+}
+[data-ui] .v-grafico-eixo {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--chart-text);
+  text-align: right;
+  white-space: nowrap;
+}
+[data-ui] .v-grafico-barras { width: 100%; height: 100%; overflow: visible; }
+[data-ui] .v-grafico-barras rect { fill: var(--chart-bar); }
+[data-ui] .v-grafico-barras rect.hoje { fill: var(--chart-bar-hoje); }
+[data-ui] .v-grafico-grade { stroke: var(--chart-grid); stroke-width: 1; vector-effect: non-scaling-stroke; }
+[data-ui] .ranking li { padding: 10px 16px; }
+[data-ui] .periodo-barra { margin-bottom: 12px; }
+/* Lista de usuários com os selos de função */
+[data-ui] .v-frag-alerta { margin: 12px; }
+[data-ui] .v-frag-usuarios { margin: 0; padding: 0 0 8px; list-style: none; }
+[data-ui] .v-frag-usuarios li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--rule);
+}
+[data-ui] .v-frag-pessoa { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+/* Retângulo simples (sem moldura de aparelho) com a tela do PDV no celular */
+[data-ui] .v-frag-celular {
+  display: grid;
+  gap: 10px;
+  width: 19rem;
+  padding: 12px;
+  border-radius: 24px;
+  background: var(--frame);
+}
+[data-ui] .v-frag-celular-grade { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+[data-ui] .v-frag-celular .pdv-produto-corpo { padding: 10px; }
+/* A barra do carrinho fica parada dentro da moldura: nunca fixa na tela (inclusive abaixo de 992px) */
+[data-ui] .pdv-barra,
+[data-ui] .pdv-barra:not([hidden]) {
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  z-index: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 8px 8px 16px;
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--primary-fill);
+  color: var(--on-primary-fill);
+  box-shadow: none;
+  animation: none;
+}
+[data-ui] .pdv-barra-info { display: flex; flex-direction: column; line-height: 1.2; }
+[data-ui] .pdv-barra-info span { font-size: 12px; opacity: 0.8; }
+[data-ui] .pdv-barra-info strong { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ================================ 5. Na hora do aperto ================================ */
+/* Tabela sem linhas: listras de tom substituem as réguas; o título desce em degrau */
+.v-aperto { background: var(--v-chao); }
+.v-aperto-titulo > span { display: block; }
+.v-aperto-titulo > span + span { padding-left: clamp(2rem, 14vw, 16rem); }
+.v-aperto-tabela-wrap { margin-top: clamp(2.5rem, 5vw, 4.5rem); }
+.v-aperto-tabela {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--v-fs-corpo);
+}
+.v-aperto-tabela thead th {
+  padding: 0 1rem 0.75rem;
+  font-size: var(--v-fs-mini);
+  font-weight: 500;
+  color: var(--v-tinta-2);
+  text-align: left;
+}
+.v-aperto-tabela thead th:last-child, .v-aperto-tabela td:last-child { text-align: right; }
+.v-aperto-tabela td, .v-aperto-tabela tbody th {
+  padding: 0.875rem 1rem;
+  vertical-align: top;
+  text-align: left;
+}
+.v-aperto-tabela tbody th { font-weight: 600; }
+.v-aperto-tabela td:last-child { color: var(--v-tinta-2); white-space: nowrap; }
+.v-aperto-tabela tbody tr:nth-child(even) > * { background: var(--v-folha); }
+.v-aperto-tabela tbody + tbody tr:first-child > * { padding-top: 2.5rem; }
+.v-col-grupo { width: 13%; }
+.v-col-quando { width: 33%; }
+.v-col-sistema { width: 38%; }
+.v-col-onde { width: 16%; }
+
+@media (max-width: 767.98px) {
+  /* Celular: cada linha vira um bloco (quando, o que o sistema faz e onde) */
+  .v-aperto-tabela, .v-aperto-tabela tbody, .v-aperto-tabela tr, .v-aperto-tabela td, .v-aperto-tabela tbody th { display: block; width: 100%; }
+  .v-aperto-tabela thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .v-aperto-tabela colgroup { display: none; }
+  .v-aperto-tabela tr { padding: 0.75rem 1rem; border-radius: var(--v-raio); }
+  .v-aperto-tabela tbody tr:nth-child(even) > * { background: transparent; }
+  .v-aperto-tabela tbody tr:nth-child(even) { background: var(--v-folha); }
+  .v-aperto-tabela td, .v-aperto-tabela tbody th { padding: 0.125rem 0; text-align: left; }
+  .v-aperto-tabela td:empty { display: none; }
+  .v-aperto-tabela tbody th { padding-bottom: 0.5rem; font-size: var(--v-fs-frase); }
+  .v-aperto-tabela td:nth-child(2) { font-weight: 600; }
+  .v-aperto-tabela td:last-child { text-align: left; font-size: var(--v-fs-mini); }
+  .v-aperto-tabela tbody + tbody tr:first-child > * { padding-top: 0.125rem; }
+  .v-aperto-tabela tbody + tbody { margin-top: 2rem; }
+}
+
+/* ================================ 6. Quem vê o quê ================================ */
+/* Coluna estreita centrada: tela à esquerda, quem vê à direita (valor em cinza, 13px) */
+.v-equipe { background: var(--v-folha); }
+.v-equipe-coluna { max-width: 34rem; margin-inline: auto; }
+.v-equipe .v-titulo { margin-bottom: 2rem; }
+.v-equipe-grupo + .v-equipe-grupo { margin-top: 2.5rem; }
+.v-equipe-grupo h3 {
+  margin: 0 0 0.25rem;
+  font-size: var(--v-fs-corpo);
+  font-weight: 400;
+  color: var(--v-tinta-2);
+}
+.v-equipe-grupo dl { margin: 0; }
+.v-equipe-grupo dl > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.375rem;
+  padding-block: 0.375rem;
+}
+.v-equipe-grupo dt {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 400;
+  color: var(--v-tinta);
+}
+.v-equipe-grupo dt svg { flex: none; width: 16px; height: 16px; color: var(--v-tinta-2); }
+.v-equipe-grupo dd {
+  margin: 0;
+  font-size: var(--v-fs-mini);
+  color: var(--v-tinta-2);
+  text-align: right;
+  white-space: nowrap;
+}
+.v-equipe-nota { margin: 2.5rem 0 0; font-size: var(--v-fs-mini); color: var(--v-tinta-2); }
+@media (max-width: 767.98px) {
+  .v-equipe-grupo dl > div { min-height: 2.75rem; }
+}
+
+/* ================================ 7. Planos e preços ================================ */
+/* Tabela grande no computador; blocos empilhados no celular. O recomendado fica no verde-petróleo */
+.v-precos { background: var(--v-chao); }
+.v-precos .v-titulo { margin-bottom: clamp(2rem, 4vw, 3.5rem); }
+.v-precos-tabela-wrap { display: none; }
+.v-precos-blocos { display: grid; gap: 8px; }
+.v-precos-tabela {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+.v-precos-tabela tr > :first-child { width: 31%; }
+.v-precos-tabela th, .v-precos-tabela td {
+  padding: 1.25rem;
+  text-align: left;
+  vertical-align: top;
+  font-size: var(--v-fs-frase);
+  line-height: 1.35;
+}
+.v-precos-tabela tbody th { font-weight: 400; }
+/* Listra a cada segunda linha (as respostas ficam legíveis sem réguas) */
+.v-precos-tabela tbody tr:nth-child(odd):not(.v-precos-acoes) > * { background: var(--v-folha); }
+.v-precos-tabela .v-destaque,
+.v-plano-bloco.v-destaque { background: var(--v-palco); color: var(--v-sobre-palco); }
+.v-precos-tabela tbody tr:nth-child(odd):not(.v-precos-acoes) > .v-destaque { background: var(--v-palco-faixa); }
+.v-precos-tabela thead .v-destaque { border-radius: var(--v-raio) var(--v-raio) 0 0; }
+.v-precos-acoes .v-destaque { border-radius: 0 0 var(--v-raio) var(--v-raio); }
+.v-precos-acoes td { padding-top: 1.5rem; padding-bottom: 1.75rem; }
+.v-precos-acoes .btn { width: 100%; }
+/* Cabeçalho de cada plano: nome, preço grande, valor anual e o aviso de exemplo junto do valor */
+.v-plano-nome { display: block; font-size: var(--v-fs-frase); font-weight: 600; }
+.v-plano-preco {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: var(--v-fs-titulo);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.v-plano-periodo { margin-left: 0.25rem; font-size: var(--v-fs-corpo); letter-spacing: 0; }
+.v-plano-ano { display: block; margin-top: 0.5rem; font-size: var(--v-fs-corpo); font-weight: 400; color: var(--v-tinta-2); }
+.v-plano-exemplo {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: var(--v-fs-mini);
+  font-weight: 500;
+  color: var(--warning);
+}
+.v-destaque .v-plano-ano, .v-destaque .v-plano-exemplo { color: var(--v-sobre-palco); }
+/* Blocos do celular */
+.v-plano-bloco { padding: 1.5rem; border-radius: var(--v-raio); background: var(--v-folha); }
+.v-plano-bloco p { margin: 0; }
+.v-plano-itens { display: grid; gap: 0.875rem; margin: 1.25rem 0 1.5rem; }
+.v-plano-itens dt { font-weight: 400; color: var(--v-tinta-2); }
+.v-plano-itens dd { margin: 0; }
+.v-destaque .v-plano-itens dt { color: rgba(255, 255, 255, 0.88); }
+@media (min-width: 768px) {
+  .v-precos-tabela-wrap { display: block; }
+  .v-precos-blocos { display: none; }
+}
+
+/* ================================ 8. Dúvidas ================================ */
+/* Título fixo à esquerda enquanto a lista passa; perguntas em blocos preenchidos, a aberta no verde-petróleo */
+.v-duvidas { background: var(--v-folha); }
+.v-duvidas-grade { display: grid; gap: 2rem; }
+.v-duvidas-lista { display: grid; gap: 8px; }
+.v-duvida {
+  border-radius: var(--v-raio);
+  background: var(--v-chao);
+  transition: background-color 240ms var(--v-ease), color 240ms var(--v-ease);
+}
+.v-duvida summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 4.5rem;
+  padding: 1rem 1.5rem;
+  font-size: var(--v-fs-frase);
+  font-weight: 500;
+  line-height: 1.3;
+  list-style: none;
+  cursor: pointer;
+}
+.v-duvida summary::-webkit-details-marker { display: none; }
+/* Sinal de mais feito de duas barras de 3px; a vertical deita ao abrir e vira o sinal de menos */
+.v-mais { position: relative; flex: none; width: 16px; height: 16px; }
+.v-mais::before, .v-mais::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6.5px;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: transform 240ms var(--v-ease);
+}
+.v-mais::after { transform: rotate(90deg); }
+.v-duvida[open] .v-mais::after { transform: rotate(0deg); }
+.v-duvida[open] { background: var(--v-palco); color: var(--v-sobre-palco); }
+.v-duvida[open] summary:focus-visible { outline-color: #FFFFFF; }
+.v-duvida p { margin: 0; max-width: 52ch; padding: 0 1.5rem 1.5rem; font-size: var(--v-fs-corpo); }
+@media (min-width: 992px) {
+  .v-duvidas-grade {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--v-vao);
+    align-items: start;
+  }
+  .v-duvidas-titulo { grid-column: 1 / 5; position: sticky; top: 2rem; }
+  .v-duvidas-lista { grid-column: 5 / -1; }
+}
+
+/* ================================ 9. Contato ================================ */
+/* Campo verde-petróleo de ponta a ponta: a frase com lacuna é a própria mensagem que vai para o WhatsApp ou e-mail */
+.v-contato {
+  padding-block: var(--v-secao);
+  background: var(--v-palco);
+  color: var(--v-sobre-palco);
+}
+.v-contato-frase { color: var(--v-sobre-palco); max-width: 18ch; }
+.v-contato-simples .btn { margin-top: 2rem; }
+.v-contato-ajuda {
+  max-width: 62ch;
+  margin: 1.75rem 0 0;
+  font-size: var(--v-fs-corpo);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.94);
+}
+.v-link-claro {
+  color: var(--v-sobre-palco);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.v-link-claro:hover { color: var(--v-sobre-palco); }
+.v-link-claro:focus-visible { outline-color: #FFFFFF; }
+/* A frase: texto, campo e botão na mesma linha de base, no tamanho de exibição */
+.v-frase-form {
+  font-size: var(--v-fs-display);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.16;
+}
+.v-frase-form[hidden] { display: none; }
+.v-frase-titulo {
+  display: inline;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  color: var(--v-sobre-palco);
+}
+.v-frase-titulo label { cursor: text; }
+.v-frase-campo {
+  width: 7em;
+  max-width: 100%;
+  height: 1.1em;
+  margin: 0 0.12em;
+  padding: 0 0.22em;
+  border: 0;
+  border-radius: var(--v-raio);
+  background: var(--v-palco-fundo);
+  color: var(--v-sobre-palco);
+  font: inherit;
+  letter-spacing: inherit;
+  vertical-align: baseline;
+}
+.v-frase-campo::placeholder { color: rgba(255, 255, 255, 0.85); opacity: 1; }
+.v-frase-campo:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 3px; }
+.v-frase-botao {
+  height: 1.1em;
+  padding: 0 0.3em;
+  border: 0;
+  border-radius: var(--v-raio);
+  background: #FFFFFF;
+  color: #131416;
+  font: inherit;
+  letter-spacing: inherit;
+  vertical-align: baseline;
+  cursor: pointer;
+  transition: background-color var(--t-base) var(--ease), transform 140ms var(--v-ease);
+}
+.v-frase-botao:hover { background: #E3F0F3; }
+.v-frase-botao:active { transform: scale(0.98); }
+.v-frase-botao:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 3px; }
+@media (max-width: 767.98px) {
+  /* Celular: o campo ganha linha própria entre as duas linhas da frase */
+  .v-quebra { display: none; }
+  .v-frase-campo { display: block; width: 100%; margin: 0.18em 0; }
+}
+
+/* ================================ Rodapé ================================ */
+/* Fecho discreto: o que é, os links e o ano numa linha; o crédito das fotos embaixo */
+.v-rodape {
+  padding: clamp(4rem, 16svh, 9rem) 0 2rem;
+  background: var(--v-chao);
+}
+.v-rodape-linha { display: grid; gap: 0.75rem; }
+.v-rodape p { margin: 0; color: var(--v-tinta-2); }
+.v-rodape-links { display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; }
+.v-rodape-links a { display: inline-flex; align-items: center; min-height: 44px; }
+.v-rodape-ano a { color: var(--v-tinta); }
+.v-creditos { max-width: 90ch; margin-top: 1.5rem !important; font-size: var(--v-fs-mini); }
+@media (min-width: 992px) {
+  .v-rodape-linha { grid-template-columns: 1fr auto 1fr; align-items: center; }
+  .v-rodape-links { justify-self: center; }
+  .v-rodape-ano { justify-self: end; }
+}
+
+/* ================================ Barra fixa de chamada (celular) ================================ */
+/* Só abaixo de 768px e só quando o vitrine.js tira o hidden; flutua, então leva sombra. Abaixo do toast (1080) e do skip-link (2000) */
+.v-barra-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1010;
+  padding: 0.75rem var(--v-margem) calc(0.75rem + env(safe-area-inset-bottom));
+  background: var(--v-chao);
+  box-shadow: 0 -4px 16px rgba(19, 20, 22, 0.12);
+}
+.v-barra-cta-botao { width: 100%; min-height: 3rem; }
+@media (min-width: 768px) {
+  .v-barra-cta { display: none !important; }
+}
+@media (max-width: 767.98px) {
+  /* Âncoras e foco não ficam escondidos atrás da barra */
+  html { scroll-padding-bottom: 5.5rem; }
+  /* Com a barra visível, os toasts sobem acima dela */
+  body.v-barra-visivel .toast-stack { bottom: calc(16px + 4.5rem + env(safe-area-inset-bottom)); }
+}
+
+/* ================================ Movimento ================================ */
+/* Tudo o que começa escondido fica dentro de prefers-reduced-motion: no-preference; sem JS (.js do theme-init) nada some */
+@media (prefers-reduced-motion: no-preference) {
+  /* Assinatura: cada linha do título sobe por trás da própria base; depois a frase e o botão */
+  .js .v-heroi-titulo .v-linha > span {
+    transform: translateY(105%);
+    animation: v-subir 900ms var(--v-ease-expo) 150ms forwards;
+  }
+  .js .v-heroi-titulo .v-linha + .v-linha > span { animation-delay: 260ms; }
+  .js .v-heroi-apoio, .js .v-heroi-acoes {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: v-chegar 520ms var(--v-ease) forwards;
+  }
+  .js .v-heroi-apoio { animation-delay: 420ms; }
+  .js .v-heroi-acoes { animation-delay: 500ms; }
+  .js .v-demo-figura {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: v-chegar 800ms var(--v-ease-expo) 300ms forwards;
+  }
+  /* Entrada das partes de cada seção ao rolar (o vitrine.js marca .v-visivel uma vez) */
+  .vitrine-js [data-revelar] {
+    transition: opacity 700ms var(--v-ease), transform 900ms var(--v-ease);
+  }
+  .vitrine-js [data-revelar]:not(.v-visivel) { opacity: 0; transform: translateY(1.5rem); }
+  .vitrine-js [data-revelar="2"] { transition-delay: 80ms; }
+  .vitrine-js [data-revelar="3"] { transition-delay: 160ms; }
+  /* O contador de estoque baixo da demonstração pulsa quando muda */
+  .v-contador-pulso { animation: v-pulso 450ms var(--v-ease); }
+  /* Imagem em movimento: a fachada desliza devagar dentro da moldura enquanto a página rola */
+  @supports (animation-timeline: view()) {
+    .v-foto-grande img {
+      animation: v-deriva linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+@keyframes v-subir { to { transform: none; } }
+@keyframes v-chegar { to { opacity: 1; transform: none; } }
+@keyframes v-pulso { 40% { transform: scale(1.3); } }
+@keyframes v-deriva {
+  from { transform: scale(1.08) translateY(-3%); }
+  to { transform: scale(1.08) translateY(3%); }
+}
