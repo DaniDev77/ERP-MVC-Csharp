@@ -50,7 +50,8 @@
 
 <p class="auth-footer">
     Ainda não tem conta?
-    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Criar conta grátis</a>
+    @* Texto sem "grátis": ao lado do site com preços, a palavra sugeria que o sistema é gratuito (só o texto mudou) *@
+    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Criar conta</a>
 </p>
 
 @section Scripts {
