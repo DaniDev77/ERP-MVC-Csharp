@@ -55,6 +55,9 @@ builder.Services.AddAuthorizationBuilder()
 
 // Serviços de venda/compra, busca do comprador por CPF/código e de usuário logado
 builder.Services.AddScoped<PedidoService>();
+// Novo: venda direta (sem pedido) e a lista de municípios do IBGE (singleton: o arquivo é lido uma vez)
+builder.Services.AddScoped<VendaService>();
+builder.Services.AddSingleton<MunicipioService>();
 builder.Services.AddScoped<BuscaCompradorService>();
 builder.Services.AddScoped<UsuarioLogadoService>();
 
