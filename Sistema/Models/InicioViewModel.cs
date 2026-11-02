@@ -40,7 +40,12 @@ namespace Sistema.Models
 
         public List<Produto> EstoqueBaixo { get; set; } = new();
 
-        public List<Pedido> UltimosPedidos { get; set; } = new();
+        // Alterado: antes era List<Pedido> (compras e vendas na mesma tabela). Agora junta as compras
+        // confirmadas e as vendas, já com os nomes prontos
+        public List<Movimentacao> UltimosPedidos { get; set; } = new();
+
+        // Novo: ADM = pedidos de clientes aguardando confirmação na loja toda; Padrão = os próprios pedidos pendentes
+        public int PedidosPendentes { get; set; }
 
         // Gráfico de vendas por dia do mês, até hoje: pontos já prontos para o <polyline> do SVG
         public string PontosVendasPorDia { get; set; } = string.Empty;
