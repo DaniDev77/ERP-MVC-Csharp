@@ -224,6 +224,81 @@ namespace Sistema.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Sistema.Models.Compra", b =>
+                {
+                    b.Property<int>("CompraId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CompraId"));
+
+                    b.Property<string>("Cidade")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("CodigoMunicipio")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CompradorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DataHora")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("PedidoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Uf")
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.HasKey("CompraId");
+
+                    b.HasIndex("CompradorId");
+
+                    b.HasIndex("DataHora");
+
+                    b.HasIndex("PedidoId")
+                        .IsUnique()
+                        .HasFilter("[PedidoId] IS NOT NULL");
+
+                    b.ToTable("Compra", (string)null);
+                });
+
+            modelBuilder.Entity("Sistema.Models.CompraItem", b =>
+                {
+                    b.Property<int>("CompraItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CompraItemId"));
+
+                    b.Property<int>("CompraId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PrecoUnitario")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProdutoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("int");
+
+                    b.HasKey("CompraItemId");
+
+                    b.HasIndex("CompraId");
+
+                    b.HasIndex("ProdutoId");
+
+                    b.ToTable("CompraItem", (string)null);
+                });
+
             modelBuilder.Entity("Sistema.Models.Fonecedor", b =>
                 {
                     b.Property<Guid>("FonecedorId")
@@ -284,27 +359,52 @@ namespace Sistema.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PedidoId"));
 
+                    b.Property<string>("Cidade")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("CodigoMunicipio")
+                        .HasColumnType("int");
+
                     b.Property<int>("CompradorId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("DataDecisao")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("DataHora")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Tipo")
+                    b.Property<int?>("DecididoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Motivo")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Total")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("VendedorId")
-                        .HasColumnType("int");
+                    b.Property<string>("Uf")
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
 
                     b.HasKey("PedidoId");
 
                     b.HasIndex("CompradorId");
 
-                    b.HasIndex("VendedorId");
+                    b.HasIndex("DecididoPorId");
+
+                    b.HasIndex("Status", "DataHora");
 
                     b.ToTable("Pedido", (string)null);
                 });
@@ -418,6 +518,13 @@ namespace Sistema.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Cidade")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("CodigoMunicipio")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -427,6 +534,12 @@ namespace Sistema.Data.Migrations
 
                     b.Property<string>("IdentityUserId")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("LocalizacaoRecusada")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LocalizacaoRespondidaEm")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -439,6 +552,10 @@ namespace Sistema.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Uf")
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
                     b.HasKey("UsuarioId");
 
                     b.HasIndex("AppUserId")
@@ -450,6 +567,79 @@ namespace Sistema.Data.Migrations
                     b.HasIndex("IdentityUserId");
 
                     b.ToTable("Usuario", (string)null);
+                });
+
+            modelBuilder.Entity("Sistema.Models.Venda", b =>
+                {
+                    b.Property<int>("VendaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VendaId"));
+
+                    b.Property<string>("Cidade")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("CodigoMunicipio")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CompradorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DataHora")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Uf")
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<int>("VendedorId")
+                        .HasColumnType("int");
+
+                    b.HasKey("VendaId");
+
+                    b.HasIndex("CompradorId");
+
+                    b.HasIndex("DataHora");
+
+                    b.HasIndex("VendedorId");
+
+                    b.ToTable("Venda", (string)null);
+                });
+
+            modelBuilder.Entity("Sistema.Models.VendaItem", b =>
+                {
+                    b.Property<int>("VendaItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VendaItemId"));
+
+                    b.Property<decimal>("PrecoUnitario")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProdutoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VendaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("VendaItemId");
+
+                    b.HasIndex("ProdutoId");
+
+                    b.HasIndex("VendaId");
+
+                    b.ToTable("VendaItem", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -503,6 +693,43 @@ namespace Sistema.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Sistema.Models.Compra", b =>
+                {
+                    b.HasOne("Sistema.Models.Usuario", "Comprador")
+                        .WithMany()
+                        .HasForeignKey("CompradorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Models.Pedido", "Pedido")
+                        .WithOne("Compra")
+                        .HasForeignKey("Sistema.Models.Compra", "PedidoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Comprador");
+
+                    b.Navigation("Pedido");
+                });
+
+            modelBuilder.Entity("Sistema.Models.CompraItem", b =>
+                {
+                    b.HasOne("Sistema.Models.Compra", "Compra")
+                        .WithMany("Itens")
+                        .HasForeignKey("CompraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Models.Produto", "Produto")
+                        .WithMany()
+                        .HasForeignKey("ProdutoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Compra");
+
+                    b.Navigation("Produto");
+                });
+
             modelBuilder.Entity("Sistema.Models.Pedido", b =>
                 {
                     b.HasOne("Sistema.Models.Usuario", "Comprador")
@@ -511,14 +738,14 @@ namespace Sistema.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Sistema.Models.Usuario", "Vendedor")
+                    b.HasOne("Sistema.Models.Usuario", "DecididoPor")
                         .WithMany()
-                        .HasForeignKey("VendedorId")
+                        .HasForeignKey("DecididoPorId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Comprador");
 
-                    b.Navigation("Vendedor");
+                    b.Navigation("DecididoPor");
                 });
 
             modelBuilder.Entity("Sistema.Models.PedidoItem", b =>
@@ -575,7 +802,57 @@ namespace Sistema.Data.Migrations
                     b.Navigation("IdentityUser");
                 });
 
+            modelBuilder.Entity("Sistema.Models.Venda", b =>
+                {
+                    b.HasOne("Sistema.Models.Usuario", "Comprador")
+                        .WithMany()
+                        .HasForeignKey("CompradorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Models.Usuario", "Vendedor")
+                        .WithMany()
+                        .HasForeignKey("VendedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Comprador");
+
+                    b.Navigation("Vendedor");
+                });
+
+            modelBuilder.Entity("Sistema.Models.VendaItem", b =>
+                {
+                    b.HasOne("Sistema.Models.Produto", "Produto")
+                        .WithMany()
+                        .HasForeignKey("ProdutoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Models.Venda", "Venda")
+                        .WithMany("Itens")
+                        .HasForeignKey("VendaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Produto");
+
+                    b.Navigation("Venda");
+                });
+
+            modelBuilder.Entity("Sistema.Models.Compra", b =>
+                {
+                    b.Navigation("Itens");
+                });
+
             modelBuilder.Entity("Sistema.Models.Pedido", b =>
+                {
+                    b.Navigation("Compra");
+
+                    b.Navigation("Itens");
+                });
+
+            modelBuilder.Entity("Sistema.Models.Venda", b =>
                 {
                     b.Navigation("Itens");
                 });
