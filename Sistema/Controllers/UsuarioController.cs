@@ -298,6 +298,17 @@ public class UsuarioController : Controller
             return View("Delete", usuario);
         }
 
+        // Novo: quem tem pedido, compra ou venda no histórico não pode ser apagado (as chaves são Restrict).
+        // Antes o banco recusava e a tela mostrava erro 500
+        var temHistorico = await _context.Pedidos.AnyAsync(p => p.CompradorId == usuario.UsuarioId || p.DecididoPorId == usuario.UsuarioId)
+            || await _context.Compras.AnyAsync(c => c.CompradorId == usuario.UsuarioId)
+            || await _context.Vendas.AnyAsync(v => v.CompradorId == usuario.UsuarioId || v.VendedorId == usuario.UsuarioId);
+        if (temHistorico)
+        {
+            ModelState.AddModelError(string.Empty, "Este usuário tem pedidos, compras ou vendas registrados e não pode ser excluído. Para tirar o acesso, troque a função dele.");
+            return View("Delete", usuario);
+        }
+
         _context.Usuarios.Remove(usuario);
         await _context.SaveChangesAsync();
         TempData["Sucesso"] = "Usuário excluído.";

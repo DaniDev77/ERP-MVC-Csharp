@@ -35,14 +35,16 @@ namespace Sistema.Controllers
 
             if (modelo.EhAdmin)
             {
-                // Pedidos do mês, trazidos só com o que os cálculos precisam
-                var pedidosMes = await context.Pedidos
-                    .Where(p => p.DataHora >= inicioMes && p.DataHora < fimMes)
-                    .Select(p => new { p.DataHora, p.Tipo, p.Total })
+                // Alterado: vendas e compras do mês vêm das tabelas Venda e Compra (só compras confirmadas contam),
+                // trazidas só com o que os cálculos precisam
+                var vendas = await context.Vendas
+                    .Where(v => v.DataHora >= inicioMes && v.DataHora < fimMes)
+                    .Select(v => new { v.DataHora, v.Total })
                     .ToListAsync();
-
-                var vendas = pedidosMes.Where(p => p.Tipo == TipoPedido.Venda).ToList();
-                var compras = pedidosMes.Where(p => p.Tipo == TipoPedido.Compra).ToList();
+                var compras = await context.Compras
+                    .Where(c => c.DataHora >= inicioMes && c.DataHora < fimMes)
+                    .Select(c => new { c.DataHora, c.Total })
+                    .ToListAsync();
                 modelo.ValorVendasMes = vendas.Sum(p => p.Total);
                 modelo.QtdVendasMes = vendas.Count;
                 modelo.ValorComprasMes = compras.Sum(p => p.Total);
@@ -70,28 +72,42 @@ namespace Sistema.Controllers
                     .Take(5)
                     .ToListAsync();
 
-                modelo.UltimosPedidos = await context.Pedidos
-                    .Include(p => p.Comprador)
-                    .Include(p => p.Vendedor)
-                    .OrderByDescending(p => p.DataHora)
+                // Alterado: "Últimos pedidos" junta as 6 vendas e as 6 compras mais recentes e fica com as 6 mais novas
+                var ultimasVendas = await context.Vendas
+                    .OrderByDescending(v => v.DataHora)
                     .Take(6)
+                    .Select(v => new Movimentacao { EhVenda = true, DataHora = v.DataHora, Cliente = v.Comprador!.Name, Vendedor = v.Vendedor!.Name, Total = v.Total })
                     .ToListAsync();
+                var ultimasCompras = await context.Compras
+                    .OrderByDescending(c => c.DataHora)
+                    .Take(6)
+                    .Select(c => new Movimentacao { EhVenda = false, DataHora = c.DataHora, Cliente = c.Comprador!.Name, Total = c.Total })
+                    .ToListAsync();
+                modelo.UltimosPedidos = ultimasVendas.Concat(ultimasCompras)
+                    .OrderByDescending(m => m.DataHora)
+                    .Take(6)
+                    .ToList();
+
+                // Novo: pedidos de clientes esperando a confirmação do ADM
+                modelo.PedidosPendentes = await context.Pedidos.CountAsync(p => p.Status == StatusPedido.Pendente);
             }
             else if (usuario != null)
             {
-                // Vendedor: as próprias vendas do mês. Padrão: as próprias compras do mês
-                var meus = context.Pedidos.Where(p => p.DataHora >= inicioMes && p.DataHora < fimMes);
+                // Vendedor: as próprias vendas do mês. Padrão: as próprias compras confirmadas do mês
+                // Alterado: lê das tabelas Venda e Compra
                 if (modelo.EhVendedor)
                 {
-                    var vendas = meus.Where(p => p.Tipo == TipoPedido.Venda && p.VendedorId == usuario.UsuarioId);
+                    var vendas = context.Vendas.Where(v => v.DataHora >= inicioMes && v.DataHora < fimMes && v.VendedorId == usuario.UsuarioId);
                     modelo.QtdVendasMes = await vendas.CountAsync();
-                    modelo.ValorVendasMes = await vendas.SumAsync(p => p.Total);
+                    modelo.ValorVendasMes = await vendas.SumAsync(v => v.Total);
                 }
                 else if (modelo.EhPadrao)
                 {
-                    var compras = meus.Where(p => p.Tipo == TipoPedido.Compra && p.CompradorId == usuario.UsuarioId);
+                    var compras = context.Compras.Where(c => c.DataHora >= inicioMes && c.DataHora < fimMes && c.CompradorId == usuario.UsuarioId);
                     modelo.QtdComprasMes = await compras.CountAsync();
-                    modelo.ValorComprasMes = await compras.SumAsync(p => p.Total);
+                    modelo.ValorComprasMes = await compras.SumAsync(c => c.Total);
+                    // Novo: os próprios pedidos ainda aguardando a loja
+                    modelo.PedidosPendentes = await context.Pedidos.CountAsync(p => p.CompradorId == usuario.UsuarioId && p.Status == StatusPedido.Pendente);
                 }
             }
 

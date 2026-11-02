@@ -12,14 +12,15 @@ using Sistema.Services;
 public class VendaController : Controller
 {
     private readonly ApplicationDbContext _context;
-    private readonly PedidoService _pedidos;
+    // Alterado: a venda direta (sem pedido) passou para o VendaService e grava na tabela Venda
+    private readonly VendaService _vendas;
     private readonly UsuarioLogadoService _usuarioLogado;
     private readonly BuscaCompradorService _buscaComprador;
 
-    public VendaController(ApplicationDbContext context, PedidoService pedidos, UsuarioLogadoService usuarioLogado, BuscaCompradorService buscaComprador)
+    public VendaController(ApplicationDbContext context, VendaService vendas, UsuarioLogadoService usuarioLogado, BuscaCompradorService buscaComprador)
     {
         _context = context;
-        _pedidos = pedidos;
+        _vendas = vendas;
         _usuarioLogado = usuarioLogado;
         _buscaComprador = buscaComprador;
     }
@@ -56,10 +57,11 @@ public class VendaController : Controller
 
         if (ModelState.IsValid && comprador != null)
         {
-            var (pedido, erro) = await _pedidos.RegistrarAsync(TipoPedido.Venda, comprador.UsuarioId, vendedor.UsuarioId, itens);
+            // Alterado: a venda vai direto para a tabela Venda (não passa por pedido) e copia a localização do comprador
+            var (venda, erro) = await _vendas.RegistrarAsync(comprador, vendedor.UsuarioId, itens);
             if (erro == null)
             {
-                TempData["Sucesso"] = $"Venda registrada: {pedido!.Itens.Count} produto(s), total {pedido.Total:C2}.";
+                TempData["Sucesso"] = $"Venda registrada: {venda!.Itens.Count} produto(s), total {venda.Total:C2}.";
                 return RedirectToAction(nameof(Create));
             }
             ModelState.AddModelError(string.Empty, erro);
