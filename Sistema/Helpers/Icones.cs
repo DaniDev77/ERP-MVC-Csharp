@@ -5,7 +5,8 @@ namespace Sistema.Helpers
     public static class Icones
     {
         // Moldura comum: 24x24, traço que acompanha a cor do texto (currentColor); o tamanho final vem do CSS
-        private const string Moldura = "<svg class=\"nav-icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">{0}</svg>";
+        // Alterado (redesign B, parecer R5): traço de 1,8 para 1,5, mais leve ao lado da Geist; nomes e assinaturas iguais
+        private const string Moldura = "<svg class=\"nav-icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">{0}</svg>";
 
         private static readonly Dictionary<string, string> Desenhos = new()
         {

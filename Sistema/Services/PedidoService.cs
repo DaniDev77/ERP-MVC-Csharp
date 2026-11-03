@@ -44,7 +44,8 @@ namespace Sistema.Services
                     return (null, "Produto não encontrado.");
 
                 // Não aceita pedir mais do que existe hoje. Não é reserva: o estoque é conferido de novo na confirmação
-                if (produto.Estoque < quantidade)
+                // Alterado (direção D, B2): mesma regra única de falta de estoque (FaltaEstoque)
+                if (FaltaEstoque(produto.Estoque, quantidade))
                     return (null, $"Estoque insuficiente para {produto.Name}: restam {produto.Estoque} unidade(s).");
 
                 // Guarda o preço atual: é o valor que o cliente viu e que vale na confirmação
@@ -113,7 +114,8 @@ namespace Sistema.Services
             {
                 if (!produtos.TryGetValue(item.ProdutoId, out var produto))
                     faltas.Add($"produto {item.ProdutoId} não existe mais");
-                else if (produto.Estoque < item.Quantidade)
+                // Alterado (direção D, B2): mesma regra única de falta de estoque (FaltaEstoque)
+                else if (FaltaEstoque(produto.Estoque, item.Quantidade))
                     faltas.Add($"{produto.Name}: pedido {item.Quantidade}, em estoque {produto.Estoque}");
             }
             if (faltas.Count > 0)
@@ -182,7 +184,20 @@ namespace Sistema.Services
             return await DecidirAsync(pedido, StatusPedido.Cancelado, compradorId, null);
         }
 
+        // Novo (direção D, B2): regra única de falta de estoque. Usada ao criar, ao confirmar e no aviso da fila de Pedidos
+        public static bool FaltaEstoque(int estoque, int quantidade) => estoque < quantidade;
+
+        // Novo (direção D, B2): itens de pedidos PENDENTES que hoje não seriam confirmados por falta de estoque.
+        // Chave = PedidoItemId; valor = estoque atual do produto. É só aviso: não reserva nada, e a ConfirmarAsync
+        // confere de novo dentro da transação. Cada pedido é avaliado sozinho, como na confirmação
+        public static Dictionary<int, int> FaltasDeEstoque(IEnumerable<Pedido> pedidos) =>
+            pedidos.Where(p => p.Status == StatusPedido.Pendente)
+                   .SelectMany(p => p.Itens)
+                   .Where(i => i.Produto != null && FaltaEstoque(i.Produto.Estoque, i.Quantidade))
+                   .ToDictionary(i => i.PedidoItemId, i => i.Produto!.Estoque);
+
         // Texto do status para mensagens e telas
+        // (Corrigido, revisão D1/D2, achado 4: este comentário tinha ficado acima do bloco da B2)
         public static string NomeStatus(StatusPedido status) => status switch
         {
             StatusPedido.Pendente => "Pendente",

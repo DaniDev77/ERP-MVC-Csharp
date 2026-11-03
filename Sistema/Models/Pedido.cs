@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+// NotMapped: PedidoItem.Subtotal é calculado e não vira coluna (direção D, B4)
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Sistema.Models
 {
@@ -74,5 +76,9 @@ namespace Sistema.Models
         public int Quantidade { get; set; }
 
         public decimal PrecoUnitario { get; set; }
+
+        // Novo (direção D, B4): valor da linha com o preço congelado no pedido. Calculado; não vai para o banco
+        [NotMapped]
+        public decimal Subtotal => Quantidade * PrecoUnitario;
     }
 }

@@ -54,5 +54,20 @@ namespace Sistema.Models
 
         // Vendas somadas de cada dia do mês, do dia 1 até hoje (o gráfico de colunas do início)
         public decimal[] VendasPorDia { get; set; } = Array.Empty<decimal>();
+
+        // Novo (direção D, B7): os pendentes mais antigos para a fila do Início do ADM (só leitura)
+        public List<PedidoNaFila> FilaPendentes { get; set; } = new();
+    }
+
+    // Novo (direção D, B7): uma linha da fila do Início do ADM, só com as colunas que a fila mostra
+    public class PedidoNaFila
+    {
+        public int PedidoId { get; set; }
+        public DateTime DataHora { get; set; }
+        public string Cliente { get; set; } = string.Empty;
+        public int Unidades { get; set; }
+        public decimal Total { get; set; }
+        public string? Cidade { get; set; }
+        public string? Uf { get; set; }
     }
 }

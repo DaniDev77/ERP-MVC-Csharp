@@ -3,6 +3,10 @@ namespace Sistema.Models
     // Novo: tela de gerenciamento de pedidos do ADM (Pedido/Index)
     public class PedidosAdminViewModel
     {
+        // Novo (direção D, B2): itens pendentes com estoque menor que a quantidade pedida (chave = PedidoItemId,
+        // valor = estoque atual). Itens sem falta não entram. Só aviso; a confirmação confere de novo
+        public IReadOnlyDictionary<int, int> EstoqueCurto { get; set; } = new Dictionary<int, int>();
+
         // Filtro de status: "pendente" (padrão), "confirmado", "recusado", "cancelado" ou "todos"
         public string Status { get; set; } = "pendente";
 

@@ -7,19 +7,38 @@ using Sistema.Models;
 
 namespace Sistema.ViewComponents
 {
-    // Novo (HF-008): item "Pedidos" do menu do ADM com a quantidade de pedidos aguardando confirmação
+    // Novo (HF-008): item "Pedidos" do menu do ADM com a quantidade de pedidos aguardando confirmação.
+    // Alterado (direção D, B1): o mesmo item serve o menu lateral e a aba "Pedidos" do rodapé do celular.
+    // Autorização e contagem rodam uma vez por requisição; a segunda chamada lê o resultado guardado
     public class PedidosPendentesViewComponent(ApplicationDbContext context, IAuthorizationService authorizationService) : ViewComponent
     {
-        public async Task<IViewComponentResult> InvokeAsync()
-        {
-            // Defesa extra: mesmo chamado dentro de @if (podeAdmin), só o ADM recebe o item
-            if (!(await authorizationService.AuthorizeAsync(UserClaimsPrincipal, Politicas.Admin)).Succeeded)
-                return Content(string.Empty);
+        // Chave privada do cache da requisição (objeto, para não colidir com chaves de texto de outros códigos)
+        private static readonly object ChaveCache = new();
 
-            // Só a contagem, de todos os pendentes, sem período (índice Status + DataHora); não carrega os pedidos.
-            // É o mesmo número da aba "Pendentes" com periodo=todos e do aviso da Home
-            var pendentes = await context.Pedidos.CountAsync(p => p.Status == StatusPedido.Pendente);
-            return View(pendentes);
+        // modo "menu" (padrão, Default.cshtml) ou "aba" (Aba.cshtml); qualquer outro valor cai no menu
+        public async Task<IViewComponentResult> InvokeAsync(string modo = "menu")
+        {
+            var pendentes = await ContarAsync();
+            // null = não é ADM: nada aparece, nos dois modos (defesa extra além do @if (podeAdmin))
+            if (pendentes == null)
+                return Content(string.Empty);
+            return View(modo == "aba" ? "Aba" : "Default", pendentes.Value);
+        }
+
+        private async Task<int?> ContarAsync()
+        {
+            if (HttpContext.Items.TryGetValue(ChaveCache, out var guardado))
+                return (int?)guardado;
+
+            int? resultado = null;
+            if ((await authorizationService.AuthorizeAsync(UserClaimsPrincipal, Politicas.Admin)).Succeeded)
+                // Todos os pendentes, sem período (índice Status + DataHora): o mesmo número da aba "Pendentes"
+                // com periodo=todos e do aviso da Home; não carrega os pedidos
+                resultado = await context.Pedidos.CountAsync(p => p.Status == StatusPedido.Pendente);
+
+            // Guarda também o "não é ADM" (null), para a segunda chamada não autorizar de novo
+            HttpContext.Items[ChaveCache] = resultado;
+            return resultado;
         }
     }
 }
