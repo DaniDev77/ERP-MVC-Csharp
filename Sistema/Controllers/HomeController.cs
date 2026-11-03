@@ -90,6 +90,23 @@ namespace Sistema.Controllers
 
                 // Novo: pedidos de clientes esperando a confirmação do ADM
                 modelo.PedidosPendentes = await context.Pedidos.CountAsync(p => p.Status == StatusPedido.Pendente);
+
+                // Novo (direção D, B7): os 5 pendentes mais antigos (índice Status + DataHora), só as colunas que a fila mostra
+                modelo.FilaPendentes = await context.Pedidos
+                    .Where(p => p.Status == StatusPedido.Pendente)
+                    .OrderBy(p => p.DataHora)
+                    .Take(5)
+                    .Select(p => new PedidoNaFila
+                    {
+                        PedidoId = p.PedidoId,
+                        DataHora = p.DataHora,
+                        Cliente = p.Comprador!.Name,
+                        Unidades = p.Itens.Sum(i => i.Quantidade),
+                        Total = p.Total,
+                        Cidade = p.Cidade,
+                        Uf = p.Uf
+                    })
+                    .ToListAsync();
             }
             else if (usuario != null)
             {

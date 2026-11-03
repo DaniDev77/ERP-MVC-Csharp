@@ -61,6 +61,9 @@ public class PedidoController(ApplicationDbContext context, PedidoService pedido
             .Take(200)
             .ToListAsync();
 
+        // Novo (direção D, B2): aviso "só N em estoque" pela mesma regra da confirmação, sem consulta extra
+        modelo.EstoqueCurto = PedidoService.FaltasDeEstoque(modelo.Pedidos);
+
         return View(modelo);
     }
 
@@ -78,10 +81,12 @@ public class PedidoController(ApplicationDbContext context, PedidoService pedido
         if (erro == null)
             TempData["Sucesso"] = $"Pedido nº {id} confirmado. Compra nº {compra!.CompraId} registrada e estoque atualizado.";
         else
-            TempData["Erro"] = erro;
+            // Alterado (direção D, B5): o erro fica na tela até ser fechado; o número diz qual pedido falhou
+            TempData["Erro"] = $"Pedido nº {id}: {erro}";
 
-        // Volta para a mesma lista e com os mesmos filtros
-        return RedirectToAction(nameof(Index), new { status, periodo });
+        // Volta para a mesma lista e com os mesmos filtros.
+        // Alterado (direção D, B5): no erro, a âncora leva a lista até o pedido (o sucesso tira o pedido dos pendentes)
+        return RedirectToAction(nameof(Index), null, new { status, periodo }, erro == null ? null : $"pedido-{id}");
     }
 
     // POST: PEDIDO/Recusar/5 — o estoque não muda (nunca foi baixado)
@@ -98,7 +103,8 @@ public class PedidoController(ApplicationDbContext context, PedidoService pedido
         if (erro == null)
             TempData["Sucesso"] = $"Pedido nº {id} recusado.";
         else
-            TempData["Erro"] = erro;
+            // Alterado (direção D, B5): o número diz qual pedido falhou
+            TempData["Erro"] = $"Pedido nº {id}: {erro}";
 
         return RedirectToAction(nameof(Index), new { status, periodo });
     }
@@ -136,7 +142,8 @@ public class PedidoController(ApplicationDbContext context, PedidoService pedido
         if (erro == null)
             TempData["Sucesso"] = $"Pedido nº {id} cancelado.";
         else
-            TempData["Erro"] = erro;
+            // Alterado (direção D, B5): o número diz qual pedido falhou
+            TempData["Erro"] = $"Pedido nº {id}: {erro}";
 
         return RedirectToAction(nameof(Meus));
     }
