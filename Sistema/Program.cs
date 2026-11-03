@@ -86,10 +86,11 @@ app.Use(async (context, next) =>
     context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
     // Política de conteúdo: scripts só do próprio site (bloqueia script injetado por XSS).
-    // Estilos inline ficam liberados porque algumas views usam style="..."; as fontes vêm do Google Fonts.
+    // Estilos inline ficam liberados porque algumas views usam style="...".
+    // Alterado (redesign Fase 1, R4): as fontes (Geist) agora ficam em wwwroot/fonts; o Google Fonts saiu da CSP
     context.Response.Headers["Content-Security-Policy"] =
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-        "font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; form-action 'self'; " +
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
+        "font-src 'self'; img-src 'self' data:; form-action 'self'; " +
         "base-uri 'self'; frame-ancestors 'none'";
     await next();
 });
