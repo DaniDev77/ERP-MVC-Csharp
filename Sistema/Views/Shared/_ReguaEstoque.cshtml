@@ -9,7 +9,8 @@
     var preenchido = escala == 0 ? 0 : Math.Clamp((int)Math.Round(estoque * 100.0 / escala), 0, 100);
     var marco = escala == 0 ? 0 : Math.Clamp((int)Math.Round(minimo * 100.0 / escala), 0, 100);
 }
-<span class="regua @(estoque <= minimo ? "regua-baixo" : "")" aria-hidden="true">
+@* Alterado (redesign B): zerado ganha o trilho no tom pálido negativo (.regua-zero); saudável é azul-caneta e o mínimo, âmbar *@
+<span class="regua @(estoque == 0 ? "regua-zero" : estoque <= minimo ? "regua-baixo" : "")" aria-hidden="true">
     <span class="regua-fill" style="width: @(preenchido)%"></span>
     <span class="regua-marco" style="left: @(marco)%"></span>
 </span>

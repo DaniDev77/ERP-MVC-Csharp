@@ -1,0 +1,51 @@
+@* Novo (direção D, RD1 e RD2): abas fixas no rodapé do celular e do tablet (abaixo de 1100px; o layout.css esconde no desktop).
+   Recebe as permissões já calculadas pelo _Layout: nenhuma autorização nova aqui (cada AuthorizeAsync é uma consulta).
+   Classe própria (.abas-rodape / .aba-rodape), e não .abas, que é a dos filtros de status. Fica fora do #menu e do
+   .sidebar-nav, então a busca do menu não indexa estas abas.
+   Por perfil, nesta ordem (o ADM passa nas políticas de venda e compra):
+     ADM      → Início, Pedidos (ViewComponent, modo "aba"), Vender (Venda/Create), Produtos (Produto/Index), Menu
+     Vendedor → Início, Vender (Venda/Create), Desempenho (Desempenho/Vendedor; o Index é só ADM), Menu
+     Cliente  → Início, Comprar (Compra/Create), Pedidos (Pedido/Meus), Menu
+     Sem função (aguardando liberação) → Início e Menu *@
+@model (bool Admin, bool Vender, bool Comprar, bool MeuDesempenho)
+@{
+    // Mesma regra do Item() do _Layout: controller (e action, quando porAction) e Produto/Index não acende em Estoque baixo
+    bool EhAtivo(string controller, string? action = null) =>
+        string.Equals((string?)ViewContext.RouteData.Values["controller"], controller, StringComparison.OrdinalIgnoreCase)
+        && (action == null || string.Equals((string?)ViewContext.RouteData.Values["action"], action, StringComparison.OrdinalIgnoreCase));
+
+    // Uma aba: ícone numa pílula e o rótulo embaixo; a atual leva "ativo" e aria-current="page"; todo link com area ""
+    string Aba(string controller, string action, string rotulo, string icone, bool porAction = false)
+    {
+        var ativo = EhAtivo(controller, porAction ? action : null) && (porAction || !EhAtivo("Produto", "EstoqueBaixo"));
+        return $"<a class=\"aba-rodape {(ativo ? "ativo" : "")}\" href=\"{Url.Action(action, controller, new { area = "" })}\" {(ativo ? "aria-current=\"page\"" : "")}>"
+             + $"<span class=\"aba-icone\">{Icones.Get(icone)}</span><span class=\"aba-rotulo\">{rotulo}</span></a>";
+    }
+}
+<nav class="abas-rodape" aria-label="Atalhos">
+    @Html.Raw(Aba("Home", "Index", "Início", "inicio"))
+    @if (Model.Admin)
+    {
+        @* RD1 e B1: a aba "Pedidos" do ADM vem do ViewComponent (contagem e autorização em cache da requisição; "99+" só aqui) *@
+        @await Component.InvokeAsync("PedidosPendentes", new { modo = "aba" })
+        @Html.Raw(Aba("Venda", "Create", "Vender", "venda"))
+        @Html.Raw(Aba("Produto", "Index", "Produtos", "produtos"))
+    }
+    else if (Model.Vender)
+    {
+        @Html.Raw(Aba("Venda", "Create", "Vender", "venda"))
+        @if (Model.MeuDesempenho)
+        {
+            @Html.Raw(Aba("Desempenho", "Vendedor", "Desempenho", "desempenho", porAction: true))
+        }
+    }
+    else if (Model.Comprar)
+    {
+        @Html.Raw(Aba("Compra", "Create", "Comprar", "compra"))
+        @Html.Raw(Aba("Pedido", "Meus", "Pedidos", "recibo", porAction: true))
+    }
+    @* "Menu" abre a mesma gaveta da lateral (RD3: mais um abridor, com trava contra reabrir e foco de volta) *@
+    <button type="button" class="aba-rodape" aria-controls="menu" aria-expanded="false" data-menu-abrir>
+        <span class="aba-icone">@Html.Raw(Icones.Get("menu"))</span><span class="aba-rotulo">Menu</span>
+    </button>
+</nav>

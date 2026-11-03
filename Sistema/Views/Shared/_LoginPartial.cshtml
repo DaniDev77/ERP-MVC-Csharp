@@ -3,23 +3,19 @@
 @inject SignInManager<IdentityUser> SignInManager
 @inject UsuarioLogadoService UsuarioLogado
 
-@* Canto direito da topbar: saudação, avatar com iniciais e o menu do usuário; para visitantes, entrar e criar conta *@
+@* Alterado (redesign B, D3): linha da conta no rodapé da sidebar (antes ficava no canto da topbar): avatar com iniciais,
+   nome e função, e o menu do usuário abrindo para cima; para visitantes, entrar e criar conta *@
 @if (SignInManager.IsSignedIn(User))
 {
     var usuario = await UsuarioLogado.ObterAsync(User);
     var nome = usuario?.Name ?? User.Identity?.Name ?? "Conta";
     var primeiroNome = nome.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? nome;
     var funcao = usuario?.Funcao?.Name is string f ? Visual.NomeFuncao(f) : "Sem cadastro";
-    var hora = DateTime.Now.Hour;
-    var saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
 
-    <div class="topbar-saudacao">
-        <span>@saudacao,</span>
-        <strong>@primeiroNome</strong>
-    </div>
-
+    @* Alterado (redesign B): sai a saudação, que já ficava escondida na topbar antiga *@
     <div class="menu-acoes">
-        <button type="button" class="user-btn" data-menu-acoes aria-haspopup="true" aria-expanded="false" aria-controls="menuUsuario" aria-label="Menu da conta de @nome">
+        @* Alterado (redesign B, WCAG 2.5.3): o nome acessível começa pelo texto visível (nome e função) *@
+        <button type="button" class="user-btn" data-menu-acoes aria-haspopup="true" aria-expanded="false" aria-controls="menuUsuario" aria-label="@primeiroNome, @funcao: menu da conta">
             <span class="avatar" style="--h: @Visual.Matiz(nome)" aria-hidden="true">@Visual.Iniciais(nome)</span>
             <span class="user-btn-texto">
                 <strong>@primeiroNome</strong>
@@ -27,7 +23,8 @@
             </span>
             @Html.Raw(Icones.Get("chevron"))
         </button>
-        <div class="menu-acoes-lista" id="menuUsuario" hidden>
+        @* Alterado (redesign B): no rodapé da sidebar o menu abre para cima (.abre-cima) *@
+        <div class="menu-acoes-lista abre-cima" id="menuUsuario" hidden>
             <div class="menu-acoes-cabeca">
                 <strong>@nome</strong>
                 <span>@(usuario?.Email ?? User.Identity?.Name)</span>

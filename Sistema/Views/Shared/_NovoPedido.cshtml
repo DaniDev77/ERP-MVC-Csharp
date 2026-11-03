@@ -9,17 +9,19 @@
 
 @* Tela de PDV compartilhada por Venda e Compra: catálogo de produtos em cards à esquerda e o carrinho à direita.
    O carrinho usa as mesmas 8 linhas fixas do formulário (Linhas[i].ProdutoId / Linhas[i].Quantidade);
-   o site.js preenche essas linhas ao clicar em "Adicionar". Sem JS, as linhas aparecem com os selects de sempre.
-   O total é só uma prévia: o servidor recalcula ao salvar. *@
+   o site.js preenche essas linhas ao clicar num produto. Sem JS, as linhas aparecem com os selects de sempre.
+   O total é só uma prévia: o servidor recalcula ao salvar.
+   Alterado (direção D, RD11): o cartão inteiro soma +1 (o botão existente é esticado só por CSS, com JS); o total é
+   uma etiqueta de preço; no celular, a barra fixa abre a venda numa folha que é o MESMO #carrinho (nada é clonado) *@
 <form asp-action="Create" method="post" class="pdv" id="formPedido">
     <div asp-validation-summary="ModelOnly" class="alert alert-danger pdv-erros" role="alert"></div>
 
     @* ---------- Catálogo ---------- *@
-    <section class="ui-card pdv-catalogo" aria-labelledby="titulo-catalogo">
-        <div class="ui-card-header">
+    <section class="pdv-catalogo" aria-labelledby="titulo-catalogo">
+        <div class="pdv-catalogo-topo">
             <div>
-                <h2 class="ui-card-title" id="titulo-catalogo">Produtos</h2>
-                <p class="ui-card-sub">@produtos.Count @(produtos.Count == 1 ? "produto disponível" : "produtos disponíveis")</p>
+                <h2 class="pdv-catalogo-titulo" id="titulo-catalogo">Produtos</h2>
+                <p class="pdv-catalogo-sub">@produtos.Count @(produtos.Count == 1 ? "produto disponível" : "produtos disponíveis")</p>
             </div>
             @if (produtos.Any())
             {
@@ -43,25 +45,30 @@
                 @foreach (var p in produtos)
                 {
                     var baixo = p.Estoque <= minimo;
+                    @* Direção D: cartão denso, sem a miniatura (nome, preço e estoque com a régua). Os data-* do cartão continuam
+                       todos aqui: o site.js lê nome, preço, estoque, matiz e iniciais para montar a linha do carrinho *@
                     <article class="pdv-produto" data-pdv-produto data-id="@p.ProdutoId" data-nome="@p.Name"
                              data-preco="@p.Preco.ToString(CultureInfo.InvariantCulture)" data-estoque="@p.Estoque"
                              data-matiz="@Visual.Matiz(p.Name)" data-iniciais="@Visual.Iniciais(p.Name)" data-filtro="@p.Name @p.Descricao">
-                        <div class="pdv-produto-img">
-                            <partial name="_ProdutoThumb" model='new ProdutoThumb { Nome = p.Name, Tamanho = "thumb-card" }' />
-                            <span class="chip chip-brand pdv-no-carrinho" data-pdv-no-carrinho hidden></span>
-                        </div>
                         <div class="pdv-produto-corpo">
                             <h3 class="pdv-produto-nome">@p.Name</h3>
                             <span class="pdv-produto-desc">@p.Descricao</span>
-                            <div class="pdv-produto-rodape">
-                                <div>
-                                    <strong class="pdv-preco num">@p.Preco.ToString("C2", pt)</strong>
+                            @* "N no carrinho" (site.js), em fluxo para não cobrir o nome *@
+                            <span class="chip chip-brand pdv-no-carrinho" data-pdv-no-carrinho hidden></span>
+                        </div>
+                        <div class="pdv-produto-rodape">
+                            <div class="pdv-produto-valores">
+                                <strong class="pdv-preco num">@p.Preco.ToString("C2", pt)</strong>
+                                @* Régua de estoque com o tique do mínimo; o número continua em texto ao lado *@
+                                <span class="pdv-estoque-linha">
+                                    <partial name="_ReguaEstoque" model="p.Estoque" />
                                     <span class="pdv-estoque @(baixo ? "baixo" : "")">@p.Estoque em estoque</span>
-                                </div>
-                                <button type="button" class="btn btn-soft btn-icon pdv-add" data-pdv-add aria-label="Adicionar @p.Name ao carrinho" title="Adicionar">
-                                    @Html.Raw(Icones.Get("mais"))
-                                </button>
+                                </span>
                             </div>
+                            @* RD11: este botão é o único controle do cartão; o CSS estica a área de toque dele sobre o cartão inteiro *@
+                            <button type="button" class="btn btn-soft btn-icon pdv-add" data-pdv-add aria-label="Adicionar @p.Name @(venda ? "à venda" : "ao pedido")" title="Adicionar">
+                                @Html.Raw(Icones.Get("mais"))
+                            </button>
                         </div>
                     </article>
                 }
@@ -73,16 +80,15 @@
         }
     </section>
 
-    @* ---------- Carrinho ---------- *@
+    @* ---------- Carrinho (e, no celular com JS, a folha da venda) ---------- *@
     <aside class="ui-card pdv-carrinho" id="carrinho" aria-labelledby="titulo-carrinho" tabindex="-1">
-        <div class="ui-card-header">
-            @* Redesign: o carrinho é lido como um cupom (itens em linhas, total no pé); sai a bolha preta do título *@
-            <h2 class="ui-card-title" id="titulo-carrinho">
-                @Html.Raw(Icones.Get("recibo"))
-                @(venda ? "Cupom da venda" : "Cupom da compra")
-            </h2>
-            @* Redesign: contagem de itens em selo neutro *@
-            <span class="chip sem-ponto" data-carrinho-qtd aria-live="polite">0 itens</span>
+        <div class="ui-card-header pdv-carrinho-topo">
+            @* Direção D: "Venda atual" na venda e "Resumo do pedido" na compra do cliente (a loja ainda vai confirmar) *@
+            <h2 class="ui-card-title" id="titulo-carrinho">@(venda ? "Venda atual" : "Resumo do pedido")</h2>
+            @* RD11: "N de 8 produtos" vem das linhas do form (site.js); sem JS, diz só o limite *@
+            <span class="pdv-limite num" data-pdv-limite>Até @Model.Linhas.Count produtos</span>
+            @* Fecha a folha da venda no celular; só aparece com a folha aberta (site.js) *@
+            <button type="button" class="icon-btn pdv-folha-fechar" data-pdv-folha-fechar aria-label="@(venda ? "Fechar a venda" : "Fechar o resumo do pedido")" hidden>@Html.Raw(Icones.Get("fechar"))</button>
         </div>
 
         @if (venda)
@@ -133,31 +139,31 @@
 
             @* Carrinho vazio (controlado pelo site.js) *@
             <div class="carrinho-vazio" data-carrinho-vazio>
-                <img src="~/img/vazio-carrinho.svg" alt="" width="140" height="99" />
-                <strong>O carrinho está vazio</strong>
-                <span>Toque em <b>+</b> num produto para adicioná-lo.</span>
+                <strong>@(venda ? "Nenhum produto na venda" : "Nenhum produto no pedido")</strong>
+                <span>Toque num produto ou busque pelo nome para começar.</span>
             </div>
         </div>
 
         <div class="pdv-resumo">
+            @* Direção D: total numa etiqueta de preço de 30px (amarelo = venda em aberto); zerado, fica cinza e sem etiqueta.
+               A contagem de itens (data-carrinho-qtd) passou para o rótulo do total *@
             <div class="pdv-total">
-                <span>Total</span>
-                <strong class="num" id="pedidoTotal" aria-live="polite">R$ 0,00</strong>
+                <span>Total · <span data-carrinho-qtd aria-live="polite">0 itens</span></span>
+                <strong class="num etiqueta-preco zerado" id="pedidoTotal" aria-live="polite">R$ 0,00</strong>
             </div>
             <button type="submit" class="btn btn-primary btn-lg w-100" data-pedido-enviar>
-                @* Alterado (HF-001): na compra do cliente o botão envia um pedido, que a loja ainda vai confirmar *@
+                @* HF-001: na compra do cliente o botão envia um pedido, que a loja ainda vai confirmar *@
                 @Html.Raw(Icones.Get("ok"))<span>@(venda ? "Finalizar venda" : "Enviar pedido")</span>
             </button>
             <p class="pdv-nota">@Html.Raw(Icones.Get("info"))@(venda ? "O estoque é baixado ao salvar." : "O estoque só é baixado quando a loja confirmar o pedido.") Até @Model.Linhas.Count produtos diferentes por pedido.</p>
         </div>
     </aside>
 
-    @* Celular: barra flutuante com o total que leva ao carrinho (aparece quando há itens; site.js) *@
-    <a class="pdv-barra" href="#carrinho" data-pdv-barra hidden>
-        <span class="pdv-barra-info">
-            <span data-pdv-barra-qtd>0 itens</span>
-            <strong class="num" data-pdv-barra-total>R$ 0,00</strong>
-        </span>
-        <span class="btn btn-on-brand btn-sm">@Html.Raw(Icones.Get("carrinho"))<span>Ver carrinho</span></span>
-    </a>
+    @* Celular: barra fixa com o total, acima das abas; aparece quando há itens (site.js). Alterado (direção D, RD11): virou
+       botão que abre a folha da venda (o mesmo #carrinho) e recebe o foco de volta ao fechar *@
+    <button type="button" class="pdv-barra" data-pdv-barra aria-controls="carrinho" aria-haspopup="dialog" aria-expanded="false" hidden>
+        <span class="pdv-barra-info"><span data-pdv-barra-qtd>0 itens</span></span>
+        <strong class="num etiqueta-preco etiqueta-preco-p" data-pdv-barra-total>R$ 0,00</strong>
+        <span class="btn btn-primary btn-sm pdv-barra-acao">@(venda ? "Ver a venda" : "Ver o pedido")</span>
+    </button>
 </form>

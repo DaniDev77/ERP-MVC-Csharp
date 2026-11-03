@@ -17,7 +17,8 @@
     var descricao = (ViewData["Descricao"] as string) ?? "";
 }
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+@* Alterado (redesign B, D5 e parecer R2): sem data-theme fixo; o theme-init.js grava o tema antes de pintar *@
+<html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
     @* viewport-fit=cover: a barra fixa de chamada do celular respeita a área segura (env(safe-area-inset-bottom)) *@
@@ -42,10 +43,9 @@
     @* Aplica o tema salvo antes de pintar (arquivo próprio: a CSP não aceita script inline) *@
     <script src="~/js/theme-init.js" asp-append-version="true"></script>
     <link rel="icon" href="~/img/logo.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    @* A mesma URL de fontes das outras cascas: o navegador reaproveita o cache ao ir para o login *@
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    @* Alterado (redesign B, D2 e parecer R3): fonte Geist local, a mesma das outras cascas (o cache vale ao ir para o login);
+       mesmo endereço do @font-face, com crossorigin *@
+    <link rel="preload" href="~/fonts/geist/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     @* Design system do app (os fragmentos da vitrine usam as classes reais) e, por último, o CSS próprio da vitrine *@
     <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />

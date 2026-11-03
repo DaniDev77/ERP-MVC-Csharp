@@ -1,7 +1,12 @@
-@* Casca do sistema: sidebar branca fixa (drawer no celular), topbar com busca, tema e usuário, e o conteúdo *@
+@* Casca do sistema. Alterado (direção D "Balcão"): no desktop (≥ 1100px) não há barra de topo; a lateral de 248px fica
+   no mesmo chão do conteúdo (marca, busca, menu com contadores e, no rodapé, conta e tema) e o trabalho fica em painéis.
+   Abaixo de 1100px: barra de 56px (marca, busca e conta, que abrem a gaveta) e abas por perfil no rodapé (RD2) *@
 @using Microsoft.AspNetCore.Authorization
 @using Sistema.Authorization
+@using Sistema.Services
 @inject IAuthorizationService AuthorizationService
+@* Novo (direção D, B6 e RD4): a conta da barra do topo lê o mesmo usuário do _LoginPartial (cache por requisição, sem consulta extra) *@
+@inject UsuarioLogadoService UsuarioLogado
 @{
     // Políticas que decidem o que cada função enxerga no menu (ADM passa em todas as de venda e compra)
     var podeAdmin = (await AuthorizationService.AuthorizeAsync(User, Politicas.Admin)).Succeeded;
@@ -9,6 +14,11 @@
     var podeComprar = (await AuthorizationService.AuthorizeAsync(User, Politicas.Padrao)).Succeeded;
     var veMeuDesempenho = (await AuthorizationService.AuthorizeAsync(User, Politicas.SomenteVendedor)).Succeeded;
     var logado = User.Identity?.IsAuthenticated == true;
+
+    // Novo (direção D): nome e iniciais para o botão da conta na barra do topo (só para quem entrou)
+    var usuarioTopo = logado ? await UsuarioLogado.ObterAsync(User) : null;
+    var nomeTopo = usuarioTopo?.Name ?? User.Identity?.Name ?? "Conta";
+    var primeiroNomeTopo = nomeTopo.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? nomeTopo;
 
     // Marca a seção da página atual (pelo controller e, quando informada, pela action)
     bool EhAtivo(string controller, string? action = null) =>
@@ -23,19 +33,20 @@
     }
 }
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+@* Sem data-theme fixo (parecer R2): o theme-init.js grava o tema (escolha salva ou o do aparelho) antes de pintar *@
+<html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @* Alterado (direção D, RD2): viewport-fit=cover, para as abas do rodapé respeitarem a área segura do aparelho *@
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <title>@ViewData["Title"] · Sistema</title>
     @* Aplica o tema salvo antes de pintar (arquivo próprio: a CSP não aceita script inline) *@
     <script src="~/js/theme-init.js" asp-append-version="true"></script>
     <link rel="icon" href="~/img/logo.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    @* Redesign: uma família só, IBM Plex Sans (texto, títulos e números) e IBM Plex Mono para códigos; mesmo domínio liberado na CSP *@
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    @* Fonte Geist local (D2 e parecer R3). Mesmo endereço do @font-face do base.css (sem asp-append-version, para não
+       baixar duas vezes); crossorigin é obrigatório em fonte *@
+    <link rel="preload" href="~/fonts/geist/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     @* Design system próprio, em camadas: tokens → base → componentes → casca → páginas *@
     <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
@@ -44,18 +55,34 @@
     <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/pages.css" asp-append-version="true" />
 </head>
-<body>
+@* Novo (direção D, RD2): .tem-abas reserva o espaço das abas do rodapé (conteúdo, barra do PDV e toasts) para quem entrou *@
+<body class="@(logado ? "tem-abas" : null)">
     <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
     <div class="app">
-        @* ---------- Sidebar ---------- *@
+        @* ---------- Lateral (no desktop) e gaveta (abaixo de 1100px) ---------- *@
         <aside class="sidebar" id="menu" aria-label="Menu lateral">
-            <div class="d-flex align-items-center">
+            @* Marca e botão de fechar a gaveta na mesma linha *@
+            <div class="sidebar-topo">
                 <a class="sidebar-marca" asp-area="" asp-controller="Home" asp-action="Index" aria-label="Sistema, ir para o início">
                     <partial name="_Logo" />
                 </a>
-                <button type="button" class="icon-btn sidebar-fechar me-3" aria-label="Fechar menu" data-menu-fechar>@Html.Raw(Icones.Get("fechar"))</button>
+                <button type="button" class="icon-btn sidebar-fechar" aria-label="Fechar o menu" data-menu-fechar>@Html.Raw(Icones.Get("fechar"))</button>
             </div>
+
+            @if (logado)
+            {
+                @* Busca rápida no alto da lateral, numa instância só e fora do <nav> (RD4): o site.js indexa os links do
+                   .sidebar-nav; a busca não pode estar lá dentro. Abaixo de 1100px o botão de busca da barra do topo abre a
+                   gaveta já com o foco aqui. Só leva a telas do menu (o texto não promete produtos) *@
+                <div class="sidebar-busca input-icon" role="search">
+                    @Html.Raw(Icones.Get("buscar"))
+                    <input type="search" class="form-control" placeholder="Ir para… (ex.: produtos)" aria-label="Buscar uma tela do sistema"
+                           autocomplete="off" role="combobox" aria-expanded="false" aria-controls="buscaResultados" data-busca-global />
+                    <kbd aria-hidden="true">/</kbd>
+                    <div class="menu-acoes-lista" id="buscaResultados" role="listbox" hidden></div>
+                </div>
+            }
 
             <nav class="sidebar-nav" aria-label="Menu principal">
                 @if (logado)
@@ -72,8 +99,9 @@
                     }
                     @if (podeComprar)
                     {
-                        @Html.Raw(Item("Compra", "Create", "Registrar compra", "compra"))
-                        @* Novo (HF-001): o cliente acompanha os próprios pedidos *@
+                        @* D4: "Fazer compra", o mesmo nome da tela *@
+                        @Html.Raw(Item("Compra", "Create", "Fazer compra", "compra"))
+                        @* HF-001: o cliente acompanha os próprios pedidos *@
                         @Html.Raw(Item("Pedido", "Meus", "Meus pedidos", "recibo", porAction: true))
                     }
                     @if (veMeuDesempenho)
@@ -82,11 +110,11 @@
                     }
                     @if (podeAdmin)
                     {
-                        @* Novo (HF-001 e HF-003): gerenciamento de pedidos e painel por localidade, só ADM *@
-                        @* Alterado (HF-008): o item "Pedidos" vem do ViewComponent, com o contador de pendentes *@
+                        @* HF-008: o item "Pedidos" vem do ViewComponent, com o contador de pendentes (o mesmo número da aba, B1) *@
                         @await Component.InvokeAsync("PedidosPendentes")
                         @Html.Raw(Item("Desempenho", "Index", "Desempenho", "desempenho", porAction: true))
-                        @Html.Raw(Item("Desempenho", "Localidades", "Compras por localidade", "local", porAction: true))
+                        @* D4 e HF-007: "Localidades" (a tela também mostra vendas) *@
+                        @Html.Raw(Item("Desempenho", "Localidades", "Localidades", "local", porAction: true))
                         @await Component.InvokeAsync("EstoqueBaixo")
                     }
                 }
@@ -106,63 +134,67 @@
                     <div class="nav-grupo">Conta</div>
                     @Html.Raw(Item("Perfil", "Index", "Meu perfil", "perfil"))
                 }
-                @if (!logado)
-                {
-                    <a class="nav-item-x" asp-area="Identity" asp-page="/Account/Login">@Html.Raw(Icones.Get("perfil"))<span>Entrar</span></a>
-                }
+                @* O visitante vê "Entrar" e "Criar conta" uma vez só, no rodapé da lateral (_LoginPartial) *@
             </nav>
 
-            @* Atalho para a ação mais frequente de quem está logado *@
-            @* Redesign: o card de "upsell" virou um botão principal simples, fora do <nav> (a busca global só indexa os links do nav) *@
-            @if (podeVender || podeComprar)
-            {
-                <div class="sidebar-rodape">
-                    <a class="btn btn-primary sidebar-acao" asp-area="" asp-controller="@(podeVender ? "Venda" : "Compra")" asp-action="Create">@Html.Raw(Icones.Get("mais"))<span>@(podeVender ? "Registrar venda" : "Registrar compra")</span></a>
-                </div>
-            }
-        </aside>
-
-        <div class="main-area">
-            @* ---------- Topbar ---------- *@
-            <header class="topbar">
-                <button type="button" class="icon-btn topbar-menu" aria-controls="menu" aria-expanded="false" aria-label="Abrir menu" data-menu-abrir>
-                    @Html.Raw(Icones.Get("menu"))
-                </button>
-
-                @if (logado)
-                {
-                    @* Busca rápida: leva às telas do menu (site.js) *@
-                    <div class="topbar-busca input-icon position-relative" role="search">
-                        @Html.Raw(Icones.Get("buscar"))
-                        <input type="search" class="form-control" placeholder="Ir para… (ex.: produtos)" aria-label="Buscar uma tela do sistema"
-                               autocomplete="off" role="combobox" aria-expanded="false" aria-controls="buscaResultados" data-busca-global />
-                        <kbd aria-hidden="true">/</kbd>
-                        <div class="menu-acoes-lista" id="buscaResultados" role="listbox" hidden></div>
-                    </div>
-                }
-
-                <div class="topbar-direita">
+            @* Rodapé fora da área que rola, com a conta e o tema. Fora do <nav>: a busca global não indexa estes links.
+               Alterado (direção D): sai o atalho "Registrar venda"/"Fazer compra" (o item já está no menu e, no celular, nas abas) *@
+            <div class="sidebar-rodape">
+                <div class="sidebar-conta">
+                    @* Uma instância só do _LoginPartial (ele tem o #menuUsuario e o logout); no celular fica dentro da gaveta (RD4) *@
+                    <partial name="_LoginPartial" />
                     <button type="button" class="icon-btn" data-tema-alternar aria-pressed="false" aria-label="Usar tema escuro">
                         <span class="icone-lua">@Html.Raw(Icones.Get("lua"))</span>
                         <span class="icone-sol">@Html.Raw(Icones.Get("sol"))</span>
                     </button>
-                    <partial name="_LoginPartial" />
                 </div>
+            </div>
+        </aside>
+
+        <div class="main-area">
+            @* ---------- Barra de 56px: só abaixo de 1100px (o layout.css esconde no desktop) ---------- *@
+            @* Alterado (direção D): marca, busca e conta. Busca e conta são abridores da gaveta ([data-menu-abrir], RD3 e RD4):
+               a busca abre já com o foco no campo da lateral; a conta abre a gaveta com o menu e o _LoginPartial *@
+            <header class="topbar">
+                <a class="topbar-marca" asp-area="" asp-controller="Home" asp-action="Index" aria-label="Sistema, ir para o início">
+                    <partial name="_Logo" />
+                </a>
+                @if (logado)
+                {
+                    <button type="button" class="icon-btn" aria-controls="menu" aria-expanded="false" aria-label="Buscar uma tela do sistema"
+                            data-menu-abrir data-menu-foco="busca">@Html.Raw(Icones.Get("buscar"))</button>
+                    <button type="button" class="topbar-conta" aria-controls="menu" aria-expanded="false"
+                            aria-label="Abrir o menu e a conta de @primeiroNomeTopo" data-menu-abrir>
+                        <span class="avatar" style="--h: @Visual.Matiz(nomeTopo)" aria-hidden="true">@Visual.Iniciais(nomeTopo)</span>
+                    </button>
+                }
+                else
+                {
+                    @* RD2: o visitante não tem abas; o "Entrar" fica na gaveta, então a barra mostra o botão do menu *@
+                    <button type="button" class="icon-btn" aria-controls="menu" aria-expanded="false" aria-label="Abrir o menu" data-menu-abrir>
+                        @Html.Raw(Icones.Get("menu"))
+                    </button>
+                }
             </header>
 
-            @* Redesign: conteúdo e rodapé ficam numa "folha" branca sobre a moldura (ver .sheet no layout.css) *@
-            <div class="sheet">
-                <main class="content" id="conteudo" role="main" tabindex="-1">
-                    @RenderBody()
-                </main>
+            @* Alterado (direção D): sem a folha branca; o conteúdo fica no chão e cada tela usa painéis *@
+            <main class="content" id="conteudo" role="main" tabindex="-1">
+                @RenderBody()
+            </main>
 
-                <footer class="app-footer">
-                    <span>Sistema · vendas e estoque</span>
-                    <time datetime="@DateTime.Today.ToString("yyyy-MM-dd")">@DateTime.Today.ToString("dddd, dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("pt-BR"))</time>
-                </footer>
-            </div>
+            <footer class="app-footer">
+                <span>Sistema · vendas e estoque</span>
+                <time datetime="@DateTime.Today.ToString("yyyy-MM-dd")">@DateTime.Today.ToString("dddd, dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("pt-BR"))</time>
+            </footer>
         </div>
     </div>
+
+    @* Novo (direção D, RD1 e RD2): abas do rodapé (abaixo de 1100px), fora do #menu e do .sidebar-nav; só para quem entrou.
+       Recebem as permissões já calculadas acima: nenhuma autorização nova no partial *@
+    @if (logado)
+    {
+        <partial name="_AbasRodape" model="(podeAdmin, podeVender, podeComprar, veMeuDesempenho)" />
+    }
 
     @* Mensagens de TempData como toasts *@
     <partial name="_Toast" />

@@ -1,5 +1,7 @@
 @model KpiCard
-@* Card de indicador: rótulo + bolha colorida em cima, número grande, rodapé com selo *@
+@* Card de indicador: rótulo em cima, número grande e rodapé com selo *@
+@* Alterado (redesign B): dentro do .kpi-grid vira uma célula da faixa dividida, sem ícone; Icone e Tom do modelo
+   continuam aceitos e não são desenhados (Models/Ui/Componentes.cs fica intocado, parecer 7.1-2) *@
 @if (Model.Url != null)
 {
     <a class="ui-card ui-card-link hover-lift kpi @(Model.Alerta ? "kpi-alerta" : "")" href="@Model.Url">

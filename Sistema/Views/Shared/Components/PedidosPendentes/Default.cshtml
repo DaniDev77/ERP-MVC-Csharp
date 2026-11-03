@@ -12,6 +12,8 @@
     @Html.Raw(Icones.Get("recibo"))<span>Pedidos</span>
     @if (Model > 0)
     {
-        <span class="contador" aria-hidden="true">@Model</span>
+        @* Alterado (direção D, B1): o contador do menu passa ao amarelo "em aberto" (.contador-aberto), o mesmo da aba.
+           Contrato do HF-008 intacto: o número inteiro no fim, separado do rótulo por espaço, com aria-hidden, nunca "99+" *@
+        <span class="contador contador-aberto" aria-hidden="true">@Model</span>
     }
 </a>

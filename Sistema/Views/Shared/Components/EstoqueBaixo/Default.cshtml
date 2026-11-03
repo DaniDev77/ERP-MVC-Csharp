@@ -1,6 +1,7 @@
 @model List<Sistema.Models.Produto>
 
 @* Estoque baixo no menu: só aparece quando há o que repor, com a contagem num selo vermelho *@
+@* Alterado (redesign B, HF-008): o .contador-danger agora é o par pálido negativo com linha (o visual mudou só no components.css) *@
 @if (Model.Count > 0)
 {
     var ativo = string.Equals((string?)ViewContext.RouteData.Values["action"], "EstoqueBaixo", StringComparison.OrdinalIgnoreCase);

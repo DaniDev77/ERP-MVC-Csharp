@@ -3,72 +3,111 @@
 @{
     ViewData["Title"] = "Meus pedidos";
     var pt = new CultureInfo("pt-BR");
+    // Novo (direção D): o subtítulo diz quantos pedidos há e quantos ainda esperam a loja (contagem, não dinheiro)
+    var aguardando = Model.Count(p => p.Status == StatusPedido.Pendente);
+    var subtitulo = Model.Count == 0
+        ? "Seus pedidos ficam pendentes até a loja confirmar. Enquanto estiver pendente, você pode cancelar."
+        : $"{Model.Count} {(Model.Count == 1 ? "pedido" : "pedidos")}"
+          + (aguardando > 0 ? $" · {aguardando} aguardando a loja" : "")
+          + ". Enquanto um pedido estiver pendente, você pode cancelar.";
 }
 
-@* Novo (back-end, HF-001): o cliente acompanha os próprios pedidos e cancela os pendentes. Visual provisório *@
+@* Direção D (HF-001): cada pedido do cliente vira um recibo, com o status escrito, a hora da decisão e o motivo da loja *@
 <partial name="_PageHeader" model='new PageHeader {
-    Titulo = "Meus pedidos", Descricao = "Seus pedidos ficam pendentes até a loja confirmar. Enquanto estiver pendente, você pode cancelar.",
+    Titulo = "Meus pedidos", Descricao = subtitulo,
     Icone = "recibo", AcaoTexto = "Fazer compra", AcaoUrl = Url.Action("Create", "Compra"), AcaoIcone = "carrinho" }' />
 
-<div class="ui-card table-card">
-    @if (!Model.Any())
-    {
+@if (!Model.Any())
+{
+    @* Vazio com o caminho para a primeira compra *@
+    <section class="ui-card recibos-vazio">
         <partial name="_EmptyState" model='new EmptyState {
             Imagem = "~/img/vazio-carrinho.svg", Titulo = "Você ainda não fez pedidos",
-            Texto = "Escolha os produtos e envie o pedido. A loja confirma e você acompanha por aqui.",
+            Texto = "Escolha os produtos em Fazer compra. O pedido aparece aqui e fica aguardando até a loja confirmar.",
             AcaoTexto = "Fazer compra", AcaoUrl = Url.Action("Create", "Compra"), AcaoIcone = "carrinho" }' />
-    }
-    else
-    {
-        <div class="table-wrap">
-            <table class="table-ui table-stack" id="tabelaMeusPedidos">
-                <thead>
-                    <tr>
-                        <th scope="col">Pedido</th>
-                        <th scope="col">Itens</th>
-                        <th scope="col" class="num">Total</th>
-                        <th scope="col">Status</th>
-                        <th scope="col" class="acoes-col"><span class="visually-hidden">Ações</span></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var p in Model)
+    </section>
+}
+else
+{
+    @* Lista de recibos (uma coluna de até 760px). O id tabelaMeusPedidos fica no contêiner e cada pedido mantém pedido-N.
+       role="list": o list-style none faz o Safari/VoiceOver não anunciar a lista *@
+    <ol class="recibos" id="tabelaMeusPedidos" role="list">
+        @foreach (var p in Model)
+        {
+            var enviado = p.DataHora.ToString("dd/MM 'às' HH:mm");
+            var decidido = p.DataDecisao?.ToString("dd/MM 'às' HH:mm");
+            <li class="ui-card recibo" id="pedido-@p.PedidoId">
+                <div class="recibo-cab">
+                    <div class="recibo-cab-texto">
+                        <h2 class="recibo-titulo">Pedido nº @p.PedidoId</h2>
+                        @* Linha do tempo: quando foi enviado e, se já houve decisão, quando (DataDecisao) *@
+                        <p class="recibo-sub num">
+                            @if (p.Status == StatusPedido.Pendente)
+                            {
+                                <text>Enviado em @enviado. A loja ainda vai confirmar ou recusar.</text>
+                            }
+                            else if (decidido != null)
+                            {
+                                <text>Enviado em @enviado · @(p.Status == StatusPedido.Cancelado ? "cancelado por você" : p.Status == StatusPedido.Confirmado ? "confirmado" : "recusado") em @decidido</text>
+                            }
+                            else
+                            {
+                                <text>Enviado em @enviado</text>
+                            }
+                        </p>
+                    </div>
+                    @* Direção D: o status vem escrito na visão do cliente. Pendente é a etiqueta amarela ("Aguardando a loja");
+                       Confirmado e Recusado usam o selo do Pilulas.cs; Cancelado é o selo neutro "Cancelado por você" *@
+                    @if (p.Status == StatusPedido.Pendente)
                     {
-                        <tr id="pedido-@p.PedidoId">
-                            <td class="cell-head">
-                                <span class="cell-title">Nº @p.PedidoId</span>
-                                <span class="cell-sub"><time datetime="@p.DataHora.ToString("yyyy-MM-ddTHH:mm")">@p.DataHora.ToString("dd/MM/yyyy 'às' HH:mm")</time></span>
-                            </td>
-                            <td data-label="Itens">
-                                @foreach (var i in p.Itens)
-                                {
-                                    <div class="cell-sub">@i.Quantidade × @(i.Produto?.Name ?? "Produto")</div>
-                                }
-                            </td>
-                            <td data-label="Total" class="num fw-semibold">@p.Total.ToString("C2", pt)</td>
-                            <td data-label="Status">
-                                @Html.Raw(Pilulas.StatusPedido(p.Status))
-                                @if (p.DataDecisao != null)
-                                {
-                                    <span class="cell-sub">em @p.DataDecisao.Value.ToString("dd/MM 'às' HH:mm")</span>
-                                }
-                                @if (p.Status == StatusPedido.Recusado && !string.IsNullOrEmpty(p.Motivo))
-                                {
-                                    <span class="cell-sub">Motivo: @p.Motivo</span>
-                                }
-                            </td>
-                            <td class="acoes-col">
-                                @if (p.Status == StatusPedido.Pendente)
-                                {
-                                    <form asp-action="Cancelar" asp-route-id="@p.PedidoId" method="post">
-                                        <button type="submit" class="btn btn-ghost-danger btn-sm" aria-label="Cancelar o pedido @p.PedidoId">@Html.Raw(Icones.Get("fechar"))<span>Cancelar</span></button>
-                                    </form>
-                                }
-                            </td>
-                        </tr>
+                        <span class="pill pill-alerta">Aguardando a loja</span>
                     }
-                </tbody>
-            </table>
-        </div>
-    }
-</div>
+                    else if (p.Status == StatusPedido.Cancelado)
+                    {
+                        <span class="pill">Cancelado por você</span>
+                    }
+                    else
+                    {
+                        @Html.Raw(Pilulas.StatusPedido(p.Status))
+                    }
+                </div>
+
+                @* Motivo da loja só em Recusado, inteiro e quebrando linha, sem pre-line (HF-006) *@
+                @if (p.Status == StatusPedido.Recusado)
+                {
+                    <p class="motivo"><span class="motivo-rot">Motivo da loja</span>@(string.IsNullOrEmpty(p.Motivo) ? "A loja não informou o motivo." : p.Motivo)</p>
+                }
+
+                @* Direção D (RD12 e R7): preço congelado no pedido (i.PrecoUnitario), valor da linha em i.Subtotal (B4) e o total
+                   gravado pelo servidor (p.Total). Nada de dinheiro é somado ou multiplicado aqui *@
+                <ul class="recibo-itens" role="list" aria-label="Itens do pedido nº @p.PedidoId">
+                    @foreach (var i in p.Itens)
+                    {
+                        <li class="recibo-item">
+                            <div>
+                                <p class="recibo-item-nome">@(i.Produto?.Name ?? "Produto")</p>
+                                <p class="recibo-item-sub">@i.Quantidade × @i.PrecoUnitario.ToString("C2", pt)</p>
+                            </div>
+                            <p class="recibo-item-valor">@i.Subtotal.ToString("C2", pt)</p>
+                        </li>
+                    }
+                </ul>
+                <p class="recibo-total"><span>Total, com os preços do dia do pedido</span><strong class="num">@p.Total.ToString("C2", pt)</strong></p>
+
+                @if (p.Status == StatusPedido.Pendente)
+                {
+                    @* Direção D (RD10): cancelar pede confirmação num details nativo (funciona sem JS). O form fica dentro do details:
+                       POST com anti-forgery (form tag helper), asp-route-id e só em Pendente. O summary alterna dois spans (R6) e o
+                       botão final começa pelo texto visível (WCAG 2.5.3) *@
+                    <details class="cancelar">
+                        <summary class="btn btn-outline-danger"><span class="fechado">Cancelar o pedido</span><span class="aberto">Manter o pedido</span></summary>
+                        <form asp-action="Cancelar" asp-route-id="@p.PedidoId" method="post" class="cancelar-painel">
+                            <p>A loja deixa de analisar o pedido nº @p.PedidoId. Para comprar de novo, faça um novo pedido.</p>
+                            <button type="submit" class="btn btn-danger">Cancelar o pedido nº @p.PedidoId</button>
+                        </form>
+                    </details>
+                }
+            </li>
+        }
+    </ol>
+}

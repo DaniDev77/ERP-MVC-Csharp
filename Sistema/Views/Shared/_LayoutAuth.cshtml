@@ -1,7 +1,8 @@
 @* Casca das telas de acesso: à esquerda, painel na cor da moldura com a marca, ilustração e a proposta do sistema;
    à direita, o formulário centralizado. No celular, só o formulário numa folha *@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+@* Alterado (redesign B, D5 e parecer R2): sem data-theme fixo; o theme-init.js grava o tema antes de pintar *@
+<html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,10 +10,8 @@
     <title>@ViewData["Title"] · Sistema</title>
     <script src="~/js/theme-init.js" asp-append-version="true"></script>
     <link rel="icon" href="~/img/logo.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    @* Redesign: IBM Plex Sans e Plex Mono, as mesmas fontes da casca principal *@
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    @* Alterado (redesign B, D2 e parecer R3): fonte Geist local no lugar do Google Fonts; mesmo endereço do @font-face, com crossorigin *@
+    <link rel="preload" href="~/fonts/geist/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/base.css" asp-append-version="true" />

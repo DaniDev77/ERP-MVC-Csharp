@@ -4,8 +4,9 @@
     ViewData["Title"] = "Registrar venda";
 }
 
+@* Redesign B (Fase 2, HF-001): descrição mais curta, no tom das outras telas do PDV; "Meu desempenho" segue como ação secundária *@
 <partial name="_PageHeader" model='new PageHeader {
-    Titulo = "Registrar venda", Descricao = "Informe o cliente, adicione os produtos e finalize. O estoque é baixado ao salvar.", Icone = "venda",
+    Titulo = "Registrar venda", Descricao = "Informe o cliente, adicione os produtos e finalize. O estoque baixa ao salvar.", Icone = "venda",
     SecundariaTexto = "Meu desempenho", SecundariaUrl = Url.Action("Vendedor", "Desempenho"), SecundariaIcone = "desempenho" }' />
 
 <partial name="_NovoPedido" model="Model" />

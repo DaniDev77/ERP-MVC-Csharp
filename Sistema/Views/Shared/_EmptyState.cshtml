@@ -1,7 +1,11 @@
 @model EmptyState
-@* Estado vazio: ilustração própria, título curto, explicação e chamada para ação *@
+@* Estado vazio: título curto, explicação e chamada para ação *@
 <div class="empty-state @(Model.Compacto ? "compacto" : "")">
-    <img src="@Url.Content(Model.Imagem)" alt="" width="220" height="160" loading="lazy" />
+    @* Alterado (redesign B): o bloco vazio mantém o quadro e uma frase; a ilustração só aparece no modo não compacto (primeiro uso) *@
+    @if (!Model.Compacto)
+    {
+        <img src="@Url.Content(Model.Imagem)" alt="" width="96" height="70" loading="lazy" />
+    }
     <h2>@Model.Titulo</h2>
     @if (!string.IsNullOrEmpty(Model.Texto))
     {

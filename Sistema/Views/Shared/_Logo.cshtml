@@ -1,10 +1,11 @@
-@* Redesign: marca em verde-petróleo chapado; três barras de estoque em pé numa prateleira (a gôndola) *@
+@* Alterado (direção D, RD6): a marca é a etiqueta de preço amarela (--tag), com contorno e duas linhas de preço em tinta
+   (--on-tag) e o furo no tom do chão (--frame). As cores vêm das classes .logo-tag, .logo-furo e .logo-linhas do
+   components.css (nada de --accent, que virou tinta). O mesmo desenho do favicon wwwroot/img/logo.svg *@
 <span class="logo" aria-hidden="true">
-    <svg viewBox="0 0 24 24" fill="none">
-        <rect x="5" y="11" width="3.5" height="7" rx="1" fill="currentColor" opacity=".7" />
-        <rect x="10.25" y="7.5" width="3.5" height="10.5" rx="1" fill="currentColor" opacity=".85" />
-        <rect x="15.5" y="4" width="3.5" height="14" rx="1" fill="currentColor" />
-        <path d="M3 20.25h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    <svg viewBox="0 0 24 24">
+        <path class="logo-tag" d="M2.6 12 7.9 5.5c.4-.45.95-.7 1.55-.7h9.3a2.2 2.2 0 0 1 2.2 2.2v10a2.2 2.2 0 0 1-2.2 2.2h-9.3c-.6 0-1.15-.25-1.55-.7L2.6 12Z" />
+        <circle class="logo-furo" cx="8.6" cy="12" r="1.7" />
+        <path class="logo-linhas" d="M12.6 10h5.2M12.6 14h3.6" />
     </svg>
 </span>
 <span class="marca-texto">

@@ -1,5 +1,7 @@
-@* Toasts das mensagens de TempData (Sucesso/Erro). O site.js fecha sozinho após 5s;
-   sem JS, eles continuam visíveis e podem ser fechados pelo botão *@
+@* Toasts das mensagens de TempData (Sucesso/Erro).
+   Alterado (direção D, RD5): o sucesso some sozinho em 6s (pausa com o mouse ou o foco do teclado); o erro fica na tela até
+   ser fechado no X, com role="alert" e sem barra de tempo. Sem JS, os dois ficam visíveis e podem ser fechados pelo botão.
+   O TempData["Erro"] aparece só aqui (nenhuma tela repete a mesma mensagem num aviso próprio) *@
 @{
     var sucesso = TempData["Sucesso"] as string;
     var erro = TempData["Erro"] as string;
@@ -18,17 +20,18 @@
     }
     @if (erro != null)
     {
+        @* Alterado (direção D): título que diz o que houve (antes "Algo deu errado"); o texto do servidor diz qual pedido e por quê (B5) *@
         <div class="toast-x toast-erro" role="alert" data-toast>
             <span class="bubble bubble-danger" aria-hidden="true">@Html.Raw(Icones.Get("alerta"))</span>
             <div class="toast-x-corpo">
-                <strong class="toast-x-titulo">Algo deu errado</strong>
+                <strong class="toast-x-titulo">Não foi possível concluir</strong>
                 <span class="toast-x-texto">@erro</span>
             </div>
-            <button type="button" class="toast-x-fechar" aria-label="Fechar aviso" data-toast-fechar>@Html.Raw(Icones.Get("fechar"))</button>
+            <button type="button" class="toast-x-fechar" aria-label="Fechar aviso de erro" data-toast-fechar>@Html.Raw(Icones.Get("fechar"))</button>
         </div>
     }
 </div>
-@* Modelo usado pelo site.js para criar toasts na hora (ex.: limite do carrinho) *@
+@* Modelo usado pelo site.js para criar toasts na hora (ex.: limite do carrinho). O site.js põe role="alert" no tipo erro (RD5) *@
 <template id="toast-modelo">
     <div class="toast-x" role="status" data-toast>
         <span class="bubble" aria-hidden="true"></span>

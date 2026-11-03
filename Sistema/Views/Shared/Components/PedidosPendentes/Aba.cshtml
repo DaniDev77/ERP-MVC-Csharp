@@ -1,0 +1,22 @@
+@model int
+@* Novo (direção D, B1; versão mínima do back-end, refinada pelo front): aba "Pedidos" do rodapé do celular, só ADM.
+   Mesmo número do menu, sem consulta nova. Fica fora do #menu e do .sidebar-nav: a busca do menu não indexa esta aba *@
+@{
+    var rota = ViewContext.RouteData.Values;
+    var ativo = string.Equals((string?)rota["controller"], "Pedido", StringComparison.OrdinalIgnoreCase)
+             && string.Equals((string?)rota["action"], "Index", StringComparison.OrdinalIgnoreCase);
+}
+@* Alterado (direção D, front): o mesmo markup das outras abas do _AbasRodape (ícone numa pílula e rótulo embaixo).
+   O link aparece sempre para o ADM; o contador só com N > 0; o aria-label leva o número real (RD1) *@
+<a class="aba-rodape @(ativo ? "ativo" : "")" asp-area="" asp-controller="Pedido" asp-action="Index"
+   aria-current="@(ativo ? "page" : null)" aria-label="@(Model > 0 ? $"Pedidos, {Model} aguardando confirmação" : null)">
+    <span class="aba-icone">
+        @Html.Raw(Icones.Get("recibo"))
+        @if (Model > 0)
+        {
+            @* Na aba cabe pouco: acima de 99 aparece "99+", e o número real fica no aria-label. Amarelo = em aberto *@
+            <span class="contador contador-aberto" aria-hidden="true">@(Model > 99 ? "99+" : Model.ToString())</span>
+        }
+    </span>
+    <span class="aba-rotulo">Pedidos</span>
+</a>

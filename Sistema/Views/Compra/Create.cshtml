@@ -4,17 +4,18 @@
     ViewData["Title"] = "Fazer compra";
 }
 
-@* Alterado (back-end, HF-001): a compra agora vira um pedido pendente; o texto explica que o estoque só baixa na confirmação *@
+@* Alterado (back-end, HF-001): a compra agora vira um pedido pendente; o texto explica que o estoque só baixa na confirmação.
+   Redesign B (Fase 2): descrição mais curta; "Meus pedidos" segue como ação secundária *@
 <partial name="_PageHeader" model='new PageHeader {
-    Titulo = "Fazer compra", Descricao = "Escolha os produtos e as quantidades e envie o pedido. A loja confirma e você acompanha em Meus pedidos.", Icone = "compra",
+    Titulo = "Fazer compra", Descricao = "Escolha os produtos e envie o pedido. A loja confirma e você acompanha em Meus pedidos.", Icone = "compra",
     SecundariaTexto = "Meus pedidos", SecundariaUrl = Url.Action("Meus", "Pedido"), SecundariaIcone = "recibo" }' />
 
 @* Novo (back-end, HF-002): só aparece enquanto o cliente não informou nem recusou a localização *@
 @if (ViewBag.Localizacao is Sistema.Models.LocalizacaoViewModel localizacao)
 {
-    <div class="mb-4">
-        <partial name="_Localizacao" model="localizacao" />
-    </div>
+    @* Redesign B (parecer R8): faixa compacta de duas linhas acima do PDV; a chave é só de view e é definida logo antes do partial *@
+    ViewData["LocalizacaoCompacta"] = true;
+    <partial name="_Localizacao" model="localizacao" />
 }
 
 <partial name="_NovoPedido" model="Model" />

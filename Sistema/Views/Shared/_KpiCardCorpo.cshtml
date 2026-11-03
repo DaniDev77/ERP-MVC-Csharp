@@ -4,7 +4,8 @@
 <div class="kpi-topo">
     <span class="kpi-rotulo">@Model.Rotulo</span>
 </div>
-<div class="kpi-valor">@Model.Valor</div>
+@* Alterado (redesign B): valor em dinheiro (começa com "R$") em peso 600; contagens ficam em 400. Só apresentação *@
+<div class="kpi-valor @(Model.Valor.StartsWith("R$") ? "dinheiro" : "")">@Model.Valor</div>
 @if (Model.Rodape != null || Model.Selo != null)
 {
     <div class="kpi-rodape">

@@ -10,115 +10,214 @@
         ("recusado", "Recusados", StatusPedido.Recusado), ("cancelado", "Cancelados", StatusPedido.Cancelado), ("todos", "Todos", null)
     };
     int Qtd(StatusPedido? s) => s == null ? Model.Contagem.Values.Sum() : Model.Contagem.GetValueOrDefault(s.Value);
+
+    // Novo (direção D, RD13): o subtítulo diz quantos aguardam pela contagem do período (Model.Contagem) e avisa
+    // "no período" quando o período não é "todos", para não contradizer o contador do menu (todos os pendentes)
+    var aguardando = Qtd(StatusPedido.Pendente);
+    var noPeriodo = Model.Periodo != "todos" ? " no período" : "";
+    var subtitulo = (aguardando switch
+    {
+        0 => $"Nenhum pedido aguardando decisão{noPeriodo}.",
+        1 => $"1 pedido aguardando decisão{noPeriodo}.",
+        _ => $"{aguardando} pedidos aguardando decisão{noPeriodo}."
+    }) + " A compra só é registrada, e o estoque só baixa, quando você confirma.";
+
+    // Novo (direção D, RD12): "aguardando há X" é só apresentação, com o mesmo relógio que grava o pedido (DateTime.Now)
+    string Espera(DateTime desde)
+    {
+        var t = DateTime.Now - desde;
+        if (t.TotalMinutes < 1) return "menos de 1 min";
+        if (t.TotalHours < 1) return $"{(int)t.TotalMinutes} min";
+        if (t.TotalDays < 1) return $"{(int)t.TotalHours} h" + (t.Minutes > 0 ? $" {t.Minutes} min" : "");
+        var dias = (int)t.TotalDays;
+        return dias == 1 ? "1 dia" : $"{dias} dias";
+    }
 }
 
-@* Novo (back-end, HF-001): gerenciamento de pedidos do ADM. Visual provisório com os componentes existentes, a refinar pelo front-end *@
-<partial name="_PageHeader" model='new PageHeader {
-    Titulo = "Pedidos", Descricao = "Pedidos dos clientes. A compra só é registrada, e o estoque só é baixado, quando você confirma.", Icone = "recibo" }' />
+@* Direção D: título-substantivo e uma frase que diz quantos esperam e o que o Confirmar faz *@
+<partial name="_PageHeader" model='new PageHeader { Titulo = "Pedidos", Descricao = subtitulo, Icone = "recibo" }' />
 
-<nav class="segmented mb-3" aria-label="Filtrar pedidos por status">
-    @foreach (var (valor, texto, s) in abas)
-    {
-        <a class="@(Model.Status == valor ? "ativo" : "")" asp-action="Index" asp-route-status="@valor" asp-route-periodo="@Model.Periodo"
-           aria-current="@(Model.Status == valor ? "page" : null)">@texto <span class="contador">@Qtd(s)</span></a>
-    }
-</nav>
-
-<div class="periodo-barra">
-    <nav class="segmented" aria-label="Período">
-        <a class="@(Model.Periodo == "todos" ? "ativo" : "")" asp-action="Index" asp-route-status="@Model.Status" asp-route-periodo="todos" aria-current="@(Model.Periodo == "todos" ? "page" : null)">Tudo</a>
-        @foreach (var (valor, texto) in Periodos.Opcoes)
+@* Direção D (RD13): status em filtros-pílula e período em trilho, na mesma barra. Os dois continuam links GET com
+   status e período, aria-current e o contador no fim do texto. Só o de Pendentes, com N > 0, ganha o contador amarelo *@
+<div class="fila-barra">
+    <nav class="abas fila-abas" aria-label="Filtrar pedidos por status">
+        @foreach (var (valor, texto, s) in abas)
         {
-            <a class="@(Model.Periodo == valor ? "ativo" : "")" asp-action="Index" asp-route-status="@Model.Status" asp-route-periodo="@valor" aria-current="@(Model.Periodo == valor ? "page" : null)">@texto</a>
+            var n = Qtd(s);
+            <a class="@(Model.Status == valor ? "ativo" : "")" asp-action="Index" asp-route-status="@valor" asp-route-periodo="@Model.Periodo"
+               aria-current="@(Model.Status == valor ? "page" : null)">@texto <span class="contador @(s == StatusPedido.Pendente && n > 0 ? "contador-aberto" : "")">@n</span></a>
         }
     </nav>
-    @if (Model.Periodo != "todos")
-    {
-        <span class="chip sem-ponto periodo-datas">
-            @Html.Raw(Icones.Get("calendario"))
-            @Model.Inicio.ToString("dd/MM/yyyy") — @Model.Fim.AddDays(-1).ToString("dd/MM/yyyy")
-        </span>
-    }
+    <div class="fila-periodo">
+        <nav class="segmented" aria-label="Período">
+            <a class="@(Model.Periodo == "todos" ? "ativo" : "")" asp-action="Index" asp-route-status="@Model.Status" asp-route-periodo="todos" aria-current="@(Model.Periodo == "todos" ? "page" : null)">Tudo</a>
+            @foreach (var (valor, texto) in Periodos.Opcoes)
+            {
+                <a class="@(Model.Periodo == valor ? "ativo" : "")" asp-action="Index" asp-route-status="@Model.Status" asp-route-periodo="@valor" aria-current="@(Model.Periodo == valor ? "page" : null)">@texto</a>
+            }
+        </nav>
+        @if (Model.Periodo != "todos")
+        {
+            <span class="chip sem-ponto periodo-datas">
+                @Html.Raw(Icones.Get("calendario"))
+                @Model.Inicio.ToString("dd/MM/yyyy") — @Model.Fim.AddDays(-1).ToString("dd/MM/yyyy")
+            </span>
+        }
+    </div>
 </div>
 
-<div class="ui-card table-card">
+@* Direção D: a fila fica num painel branco sobre o chão. O erro de Confirmar aparece só no toast fixo (RD5), nunca aqui *@
+<section class="ui-card fila-painel" aria-label="Lista de pedidos">
     @if (!Model.Pedidos.Any())
     {
+        @* Na aba Pendentes o vazio é uma boa notícia e leva a "Todos"; nas outras, sugere trocar o período *@
         <partial name="_EmptyState" model='new EmptyState {
-            Imagem = "~/img/tudo-certo.svg", Titulo = "Nenhum pedido aqui",
-            Texto = "Nenhum pedido com este status no período escolhido.", Compacto = true }' />
+            Imagem = "~/img/tudo-certo.svg",
+            Titulo = Model.Status == "pendente" ? "Nenhum pedido aguardando" : "Nenhum pedido aqui",
+            Texto = Model.Status == "pendente"
+                ? "Quando um cliente enviar um pedido, ele aparece aqui para você confirmar ou recusar."
+                : "Nenhum pedido com este status no período escolhido. Troque o período para ver pedidos mais antigos.",
+            SecundariaTexto = Model.Status == "pendente" ? "Ver todos os pedidos" : null,
+            SecundariaUrl = Model.Status == "pendente" ? Url.Action("Index", new { status = "todos", periodo = Model.Periodo }) : null,
+            Compacto = true }' />
     }
     else
     {
-        <div class="table-wrap">
-            <table class="table-ui table-stack" id="tabelaPedidos">
-                <thead>
-                    <tr>
-                        <th scope="col">Pedido</th>
-                        <th scope="col">Itens</th>
-                        <th scope="col">Local</th>
-                        <th scope="col" class="num">Total</th>
-                        <th scope="col">Status</th>
-                        <th scope="col" class="acoes-col"><span class="visually-hidden">Ações</span></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var p in Model.Pedidos)
-                    {
-                        var cliente = p.Comprador?.Name ?? "Cliente";
-                        <tr id="pedido-@p.PedidoId">
-                            <td class="cell-head">
-                                <div class="cell-main">
-                                    <span class="avatar" style="--h: @Visual.Matiz(cliente)" aria-hidden="true">@Visual.Iniciais(cliente)</span>
-                                    <div>
-                                        <span class="cell-title">Nº @p.PedidoId · @cliente</span>
-                                        <span class="cell-sub"><time datetime="@p.DataHora.ToString("yyyy-MM-ddTHH:mm")">@p.DataHora.ToString("dd/MM/yyyy 'às' HH:mm")</time></span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td data-label="Itens">
-                                @foreach (var i in p.Itens)
-                                {
-                                    <div class="cell-sub">@i.Quantidade × @(i.Produto?.Name ?? "Produto") <span class="num">(@i.PrecoUnitario.ToString("C2", pt))</span></div>
-                                }
-                            </td>
-                            <td data-label="Local" class="@(p.Uf == null ? "text-3" : "")">@(p.Uf == null ? "Não informado" : $"{p.Cidade} - {p.Uf}")</td>
-                            <td data-label="Total" class="num fw-semibold">@p.Total.ToString("C2", pt)</td>
-                            <td data-label="Status">
-                                @Html.Raw(Pilulas.StatusPedido(p.Status))
+        @* Lista ordenada (a ordem importa: pendentes do mais antigo ao mais novo). O id tabelaPedidos fica no contêiner e
+           cada pedido mantém o id pedido-N (âncora do erro do Confirmar, B5). role="list": o list-style none faz o
+           Safari/VoiceOver não anunciar a lista *@
+        <ol class="fila" id="tabelaPedidos" role="list">
+            @foreach (var p in Model.Pedidos)
+            {
+                var cliente = p.Comprador?.Name ?? "Cliente";
+                var pendente = p.Status == StatusPedido.Pendente;
+                // RD12: somar unidades é contagem, não dinheiro (o total em R$ vem do servidor, p.Total)
+                var unidades = p.Itens.Sum(i => i.Quantidade);
+                var local = p.Uf == null ? null : $"{p.Cidade} - {p.Uf}";
+                @* Direção D: à esquerda, quem pediu, a espera e a decisão; à direita, os itens com o preço do pedido e o total *@
+                <li class="pedido" id="pedido-@p.PedidoId">
+                    <div class="pedido-lado">
+                        <div class="pedido-quem">
+                            <span class="avatar" style="--h: @Visual.Matiz(cliente)" aria-hidden="true">@Visual.Iniciais(cliente)</span>
+                            <div class="pedido-quem-texto">
+                                <h2 class="pedido-nome">@cliente<span class="visually-hidden">, pedido nº @p.PedidoId</span></h2>
+                                <p class="pedido-sub">
+                                    Pedido nº @p.PedidoId
+                                    <span aria-hidden="true">·</span>
+                                    <span class="@(local == null ? "fila-sem-local" : "")">@(local ?? "Local não informado")</span>
+                                    <span aria-hidden="true">·</span>
+                                    <time datetime="@p.DataHora.ToString("yyyy-MM-ddTHH:mm")">@p.DataHora.ToString("dd/MM/yyyy 'às' HH:mm")</time>
+                                </p>
+                                <p class="pedido-estado">
+                                    @if (pendente && Model.Status != "todos")
+                                    {
+                                        @* Na aba Pendentes todos estão em aberto: o que importa é há quanto tempo *@
+                                        <span class="espera">@Html.Raw(Icones.Get("espera"))aguardando há @Espera(p.DataHora)</span>
+                                    }
+                                    else
+                                    {
+                                        @* Pendente vira a etiqueta amarela; Confirmado e Recusado, selos com glifo (só CSS, Pilulas.cs igual) *@
+                                        @Html.Raw(Pilulas.StatusPedido(p.Status))
+                                    }
+                                </p>
+                            </div>
+                        </div>
+
+                        @if (pendente)
+                        {
+                            @* Parecer R6: Confirmar e Recusar são forms irmãos, nunca aninhados, e os dois levam status e período para a
+                               lista voltar igual. O Recusar fica num details nativo (funciona sem JS). Com ele aberto, o Confirmar sai de
+                               cena só por CSS (RD9); o form continua no HTML *@
+                            <div class="fila-acoes">
+                                <form asp-action="Confirmar" asp-route-id="@p.PedidoId" method="post">
+                                    <input type="hidden" name="status" value="@Model.Status" />
+                                    <input type="hidden" name="periodo" value="@Model.Periodo" />
+                                    <button type="submit" class="btn btn-primary">@Html.Raw(Icones.Get("ok"))<span>Confirmar<span class="visually-hidden"> o pedido nº @p.PedidoId</span></span></button>
+                                </form>
+                                @* O texto do summary troca com dois spans alternados por details[open], e não com content: no CSS (R6) *@
+                                <details class="confirmar">
+                                    <summary class="btn btn-outline-danger">
+                                        <span class="fechado">Recusar<span class="visually-hidden"> o pedido nº @p.PedidoId</span></span>
+                                        <span class="aberto">Manter pedido<span class="visually-hidden"> nº @p.PedidoId</span></span>
+                                    </summary>
+                                    <form asp-action="Recusar" asp-route-id="@p.PedidoId" method="post" class="confirmar-painel">
+                                        <input type="hidden" name="status" value="@Model.Status" />
+                                        <input type="hidden" name="periodo" value="@Model.Periodo" />
+                                        <label class="form-label" for="motivo-@p.PedidoId">Motivo da recusa <span class="opcional">(opcional)</span></label>
+                                        <p class="form-text" id="motivo-dica-@p.PedidoId">O cliente vê este texto em Meus pedidos.</p>
+                                        @* Direção D (RD8): atalhos do motivo, vindos de MotivosRecusa (B3). type="button" é obrigatório: sem ele,
+                                           o toque recusaria o pedido sem motivo. Nasce com hidden; o site.js mostra e preenche o campo sem innerHTML *@
+                                        <div class="motivos" role="group" aria-label="Motivos frequentes" data-motivos hidden>
+                                            @foreach (var (rotulo, texto) in MotivosRecusa.Para(p, Model.EstoqueCurto))
+                                            {
+                                                <button type="button" class="chip-botao" data-motivo-texto="@texto">@rotulo</button>
+                                            }
+                                        </div>
+                                        @* HF-006: textarea permitido; o servidor junta tudo numa linha antes de contar os 300 caracteres *@
+                                        <textarea class="form-control" id="motivo-@p.PedidoId" name="motivo" maxlength="300" rows="3"
+                                                  aria-describedby="motivo-dica-@p.PedidoId motivo-cont-@p.PedidoId"></textarea>
+                                        <div class="confirmar-acoes">
+                                            @* Contador ligado por aria-describedby, sem aria-live (anunciar a cada tecla atrapalha) *@
+                                            <span class="form-text num" id="motivo-cont-@p.PedidoId" data-motivo-contador>Até 300 caracteres.</span>
+                                            <button type="submit" class="btn btn-danger">@Html.Raw(Icones.Get("fechar"))<span>Recusar pedido nº @p.PedidoId</span></button>
+                                        </div>
+                                    </form>
+                                </details>
+                            </div>
+                        }
+                        else
+                        {
+                            @* Quem decidiu e quando; o motivo inteiro, quebrando linha e sem pre-line (HF-006) *@
+                            <div class="decisao">
                                 @if (p.DataDecisao != null)
                                 {
-                                    <span class="cell-sub">@p.DataDecisao.Value.ToString("dd/MM 'às' HH:mm")@(p.DecididoPor != null ? " · " + p.DecididoPor.Name : "")</span>
+                                    <p>
+                                        @if (p.Status == StatusPedido.Cancelado)
+                                        {
+                                            <text>Cancelado pelo cliente em @p.DataDecisao.Value.ToString("dd/MM 'às' HH:mm").</text>
+                                        }
+                                        else
+                                        {
+                                            <text>@p.Status em @p.DataDecisao.Value.ToString("dd/MM 'às' HH:mm")@(p.DecididoPor != null ? " por " + p.DecididoPor.Name : "").</text>
+                                        }
+                                    </p>
                                 }
                                 @if (!string.IsNullOrEmpty(p.Motivo))
                                 {
-                                    <span class="cell-sub">Motivo: @p.Motivo</span>
+                                    <p class="motivo"><span class="motivo-rot">Motivo enviado ao cliente</span>@p.Motivo</p>
                                 }
-                            </td>
-                            <td class="acoes-col">
-                                @if (p.Status == StatusPedido.Pendente)
-                                {
-                                    @* Os dois formulários levam o filtro atual para a lista voltar igual depois da ação *@
-                                    <div class="row-actions">
-                                        <form asp-action="Confirmar" asp-route-id="@p.PedidoId" method="post">
-                                            <input type="hidden" name="status" value="@Model.Status" />
-                                            <input type="hidden" name="periodo" value="@Model.Periodo" />
-                                            <button type="submit" class="btn btn-primary btn-sm">@Html.Raw(Icones.Get("ok"))<span>Confirmar</span></button>
-                                        </form>
-                                        <form asp-action="Recusar" asp-route-id="@p.PedidoId" method="post">
-                                            <input type="hidden" name="status" value="@Model.Status" />
-                                            <input type="hidden" name="periodo" value="@Model.Periodo" />
-                                            <label class="visually-hidden" for="motivo-@p.PedidoId">Motivo da recusa do pedido @p.PedidoId</label>
-                                            <input type="text" class="form-control form-control-sm" id="motivo-@p.PedidoId" name="motivo" maxlength="300" placeholder="Motivo (opcional)" />
-                                            <button type="submit" class="btn btn-ghost-danger btn-sm">@Html.Raw(Icones.Get("fechar"))<span>Recusar</span></button>
-                                        </form>
+                            </div>
+                        }
+                    </div>
+
+                    @* Direção D (RD12 e R7): o preço de cada item é o congelado no pedido (i.PrecoUnitario), o valor da linha é
+                       i.Subtotal (B4) e o total é p.Total, do servidor. Nada de dinheiro é somado ou multiplicado aqui *@
+                    <div class="pedido-conta">
+                        <ul class="recibo-itens" role="list" aria-label="Itens do pedido nº @p.PedidoId">
+                            @foreach (var i in p.Itens)
+                            {
+                                <li class="recibo-item">
+                                    <div>
+                                        <p class="recibo-item-nome">@(i.Produto?.Name ?? "Produto")</p>
+                                        <p class="recibo-item-sub">
+                                            @i.Quantidade × @i.PrecoUnitario.ToString("C2", pt)
+                                            @* Direção D (RD7): o aviso vem do servidor (EstoqueCurto, a mesma regra da confirmação). Só em
+                                               Pendente, com texto (não só cor), e o Confirmar continua habilitado: quem decide é o servidor *@
+                                            @if (Model.EstoqueCurto.TryGetValue(i.PedidoItemId, out var resta))
+                                            {
+                                                <span aria-hidden="true">·</span>
+                                                <span class="falta">@(resta == 0 ? "esgotado" : $"só {resta} em estoque")</span>
+                                            }
+                                        </p>
                                     </div>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                                    <p class="recibo-item-valor">@i.Subtotal.ToString("C2", pt)</p>
+                                </li>
+                            }
+                        </ul>
+                        <p class="recibo-total"><span>Total · @unidades @(unidades == 1 ? "item" : "itens")</span><strong class="num">@p.Total.ToString("C2", pt)</strong></p>
+                    </div>
+                </li>
+            }
+        </ol>
     }
-</div>
+</section>

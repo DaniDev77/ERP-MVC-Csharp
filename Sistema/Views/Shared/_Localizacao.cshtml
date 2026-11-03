@@ -2,16 +2,31 @@
 
 @* Novo (back-end, HF-002): pedido de localização com consentimento (LGPD). Usado no Perfil e na tela de compra.
    Funciona sem JavaScript: trocar a UF e salvar recarrega com as cidades daquela UF.
-   Com JavaScript (site.js), o select de cidade é preenchido por GET Perfil/Cidades?uf=XX ao trocar a UF.
-   Visual provisório, a refinar pelo front-end. *@
+   Com JavaScript (site.js), o select de cidade é preenchido por GET Perfil/Cidades?uf=XX ao trocar a UF. *@
 @{
     var erro = ViewBag.LocalizacaoErro as string;
+    // Redesign B (Fase 2, parecer R8): modo compacto, em duas linhas, na tela de compra. Chave só de view, lida com "is true"
+    var compacta = ViewData["LocalizacaoCompacta"] is true;
 }
-<section class="ui-card" id="localizacao" aria-labelledby="titulo-localizacao">
-    <div class="ui-card-header">
-        <div>
-            <h2 class="ui-card-title" id="titulo-localizacao"><span class="bubble bubble-sm" aria-hidden="true">@Html.Raw(Icones.Get("local"))</span>Sua localização</h2>
-            <p class="ui-card-sub">
+@* Redesign B: um markup só para os dois modos. Completo = seção de configuração do Perfil (texto à esquerda, painel à direita);
+   compacto = faixa acima do PDV (texto em cima, campos embaixo). O id "localizacao" aparece uma vez por página *@
+<section class="@(compacta ? "loc-faixa" : "config-secao loc")" id="localizacao" aria-labelledby="titulo-localizacao">
+    <div class="@(compacta ? "loc-faixa-texto" : "config-head")">
+        @if (compacta)
+        {
+            <h2 id="titulo-localizacao">@Html.Raw(Icones.Get("local"))<span>Informe sua cidade <span class="opcional">(opcional)</span></span></h2>
+            @* Parecer R8: a finalidade fica visível antes dos campos, mais curta, sem tooltip nem "saiba mais" (LGPD, art. 9º) *@
+            @* Corrigido (revisão Fase 2, achado 1): o texto curto cita também a finalidade principal (de onde vêm as compras), como exige a LGPD *@
+            <p>
+                Usamos só o estado e a cidade, para saber de onde vêm as compras e planejar entregas e estoque. Não pedimos endereço nem a localização do aparelho.
+                Informar é opcional, e você pode mudar ou apagar em <a asp-controller="Perfil" asp-action="Index">Meu perfil</a>
+                (ao apagar, a cidade sai também das suas compras anteriores).
+            </p>
+        }
+        else
+        {
+            <h2 id="titulo-localizacao">Sua localização</h2>
+            <p class="loc-estado">
                 @if (Model.CidadeAtual != null)
                 {
                     <text>Informada: <strong>@Model.CidadeAtual</strong></text>
@@ -25,20 +40,22 @@
                     <text>Opcional</text>
                 }
             </p>
-        </div>
+            @* Finalidade explicada antes de pedir o dado (LGPD, art. 9º) *@
+            <p>
+                Usamos só o estado e a cidade, para entender de onde vêm as compras e planejar entregas e estoque.
+                Não pedimos endereço nem a localização do aparelho. Informar é opcional, e você pode mudar ou apagar a qualquer momento aqui em Meu perfil.
+                @* Corrigido (QA B2): deixa claro até onde vai o "apagar" *@
+                Ao apagar, a cidade sai também das suas compras anteriores.
+            </p>
+        }
     </div>
-    <div class="ui-card-body">
-        @* Finalidade explicada antes de pedir o dado (LGPD, art. 9º) *@
-        <p class="text-2">
-            Usamos só o estado e a cidade, para entender de onde vêm as compras e planejar entregas e estoque.
-            Não pedimos endereço nem a localização do aparelho. Informar é opcional, e você pode mudar ou apagar a qualquer momento aqui em Meu perfil.
-            @* Corrigido (QA B2): deixa claro até onde vai o "apagar" *@
-            Ao apagar, a cidade sai também das suas compras anteriores.
-        </p>
 
-        <form asp-controller="Perfil" asp-action="Localizacao" method="post" class="row g-3 align-items-end" data-localizacao>
+    <div class="@(compacta ? "loc-faixa-campos" : "config-painel")">
+        @* Contrato HF-002: os dois selects no mesmo form; data-loc-uf + data-cidades-url na UF; data-loc-cidade sem required fixo
+           (o site.js põe e tira); value = código IBGE; o .invalid-feedback logo depois do select. Redesign: grade própria no lugar do row/col *@
+        <form asp-controller="Perfil" asp-action="Localizacao" method="post" class="loc-form" data-localizacao>
             <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
-            <div class="col-sm-4">
+            <div class="loc-campo">
                 <label class="form-label" for="loc-uf">Estado (UF)</label>
                 <select class="form-select" id="loc-uf" name="Uf" required data-loc-uf data-cidades-url="@Url.Action("Cidades", "Perfil")">
                     <option value="">Escolha</option>
@@ -48,7 +65,7 @@
                     }
                 </select>
             </div>
-            <div class="col-sm-5">
+            <div class="loc-campo">
                 <label class="form-label" for="loc-cidade">Cidade</label>
                 <select class="form-select @(erro != null ? "is-invalid" : "")" id="loc-cidade" name="CodigoMunicipio" data-loc-cidade
                         aria-describedby="@(erro != null ? "loc-cidade-erro" : null)">
@@ -63,14 +80,16 @@
                     <div class="invalid-feedback" id="loc-cidade-erro">@erro</div>
                 }
             </div>
-            <div class="col-sm-3 d-grid">
+            <div class="loc-enviar">
                 <button type="submit" class="btn btn-primary">@Html.Raw(Icones.Get("ok"))<span>Salvar</span></button>
             </div>
         </form>
 
-        <form asp-controller="Perfil" asp-action="RecusarLocalizacao" method="post" class="mt-3">
+        @* Form irmão, nunca aninhado: "Prefiro não informar" / "Apagar minha localização" (campo returnUrl).
+           Redesign: apagar um dado já informado ganha o tom de perigo; recusar continua neutro *@
+        <form asp-controller="Perfil" asp-action="RecusarLocalizacao" method="post" class="loc-recusar">
             <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
-            <button type="submit" class="btn btn-ghost btn-sm">@(Model.CidadeAtual != null ? "Apagar minha localização" : "Prefiro não informar")</button>
+            <button type="submit" class="btn @(Model.CidadeAtual != null ? "btn-ghost-danger" : "btn-ghost") btn-sm">@(Model.CidadeAtual != null ? "Apagar minha localização" : "Prefiro não informar")</button>
         </form>
     </div>
 </section>
