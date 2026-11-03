@@ -1,8 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Redesign: marca em verde-petróleo chapado (a etiqueta de gôndola) com três barras de estoque numa prateleira, igual ao _Logo.cshtml -->
-  <rect width="32" height="32" rx="7" fill="#1B6C80"/>
-  <rect x="7" y="15" width="4.5" height="9" rx="1" fill="#fff" opacity=".7"/>
-  <rect x="13.75" y="10.5" width="4.5" height="13.5" rx="1" fill="#fff" opacity=".85"/>
-  <rect x="20.5" y="6" width="4.5" height="18" rx="1" fill="#fff"/>
-  <rect x="5" y="25.5" width="22" height="2" rx="1" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- Alterado (direção D, RD6): favicon na etiqueta de preço amarela (#FFD64A) com contorno e linhas em tinta (#1B1B18) e o furo claro; o mesmo desenho do _Logo.cshtml -->
+  <path d="M1.8 12 7.4 5.2c.45-.5 1.05-.8 1.7-.8H19.6a2.4 2.4 0 0 1 2.4 2.4v10.4a2.4 2.4 0 0 1-2.4 2.4H9.1c-.65 0-1.25-.3-1.7-.8L1.8 12Z" fill="#FFD64A" stroke="#1B1B18" stroke-width="1.5" stroke-linejoin="round"/>
+  <circle cx="8.3" cy="12" r="1.9" fill="#F4F4F1" stroke="#1B1B18" stroke-width="1.5"/>
+  <path d="M12.4 9.8h5.6M12.4 14.2h3.8" stroke="#1B1B18" stroke-width="1.9" stroke-linecap="round"/>
 </svg>

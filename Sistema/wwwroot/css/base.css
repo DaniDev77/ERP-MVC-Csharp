@@ -1,17 +1,46 @@
 /* =========================================================================
-   base.css · Tipografia, elementos HTML, foco e utilitários
+   base.css · Fontes, tipografia, elementos HTML, foco e utilitários
    Carregado depois do Bootstrap: o Bootstrap fica com grid e utilitários,
    a aparência vem daqui e de components.css
-   Redesign "moldura e folha": IBM Plex Sans, títulos em peso 600 e tamanhos de app
+   Redesign B "Moldura e folha 2.0": Geist local, títulos em peso 500
+   Alterado (direção D "Balcão"): corpo de 15px, h1 em 600, link de texto
+   sublinhado (o destaque virou tinta) e foco azul sem mudar o raio
    ========================================================================= */
+
+/* Novo (redesign B, D2 e parecer R3): fontes variáveis locais (licença SIL OFL em fonts/geist/OFL.txt).
+   O endereço é o mesmo do <link rel="preload"> dos layouts, para a fonte não baixar duas vezes */
+@font-face {
+  font-family: "Geist";
+  src: url("../fonts/geist/Geist-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("../fonts/geist/GeistMono-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Novo (redesign B): as peças do Bootstrap herdam fonte, cores e bordas dos tokens */
+:root {
+  --bs-body-font-family: var(--font-sans);
+  --bs-body-color: var(--text);
+  --bs-body-bg: var(--frame);
+  --bs-border-color: var(--border);
+  --bs-secondary-color: var(--muted);
+  --bs-emphasis-color: var(--text);
+}
 
 html { font-size: 16px; -webkit-text-size-adjust: 100%; }
 
-/* Fundo da página é a moldura (a folha branca fica no layout.css); fonte IBM Plex Sans */
+/* Alterado (direção D): fundo da página é o chão de pedra; corpo de 15px com entrelinha 1,47 */
 body {
   font-family: var(--font-sans);
   font-size: var(--fs-base);
-  line-height: 1.5;
+  line-height: 1.47;
   color: var(--text);
   background: var(--frame);
   -webkit-font-smoothing: antialiased;
@@ -20,17 +49,18 @@ body {
   transition: background-color var(--t-base) var(--ease), color var(--t-base) var(--ease);
 }
 
-/* Títulos: mesma família do texto, peso 600 e tamanhos de tela de trabalho (22/16/14) */
+/* Alterado (redesign B): títulos em peso 500 (o 600 fica só para dinheiro), tamanhos de tela de trabalho */
 h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
   font-family: var(--font-display);
   color: var(--text);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1.25;
   margin: 0;
 }
-h1, .h1 { font-size: var(--fs-2xl); }
+/* Alterado (direção D): o h1 leva o 600 (o outro lugar do 600 é o dinheiro); 24px, 22px no celular (components.css) */
+h1, .h1 { font-size: var(--fs-2xl); font-weight: 600; letter-spacing: -0.015em; }
 h2, .h2 { font-size: var(--fs-md); }
 h3, .h3 { font-size: var(--fs-base); }
 h4, h5, h6 { font-size: var(--fs-base); }
@@ -41,12 +71,16 @@ p:last-child { margin-bottom: 0; }
 /* Links na cor de destaque, sem sublinhado */
 a { color: var(--accent); text-decoration: none; transition: color var(--t-fast) var(--ease); }
 a:hover { color: var(--accent-ink); }
+/* Novo (direção D): com o destaque em tinta, o link solto no meio do texto se distingue pelo sublinhado (WCAG 1.4.1).
+   Só no conteúdo e só em link sem classe (botões, menus e listas têm classe própria) */
+main a:not([class]) { text-decoration: underline; text-decoration-color: var(--control); text-underline-offset: 3px; }
+main a:not([class]):hover { text-decoration-color: currentColor; }
 
 hr { border-color: var(--border); opacity: 1; }
 
 small, .small { font-size: var(--fs-sm); }
 
-/* Monoespaçada só para códigos, CPF e IDs: IBM Plex Mono */
+/* Monoespaçada só para códigos, CPF e IDs: Geist Mono */
 code, kbd, .mono {
   font-family: var(--font-mono);
   font-size: .92em;
@@ -56,16 +90,16 @@ code { color: var(--accent); }
 /* Números alinhados em colunas (KPIs, preços, tabelas) */
 .num, .tabular { font-variant-numeric: tabular-nums; }
 
-/* Seleção no tom pálido do destaque */
-::selection { background: #C7DDE2; color: #131416; }
+/* Alterado (parecer R1): seleção pelo token (antes eram duas cores soltas) */
+::selection { background: var(--accent-soft); color: var(--text); }
 
 /* ---------- Foco visível em tudo que é clicável ---------- */
 :focus { outline: none; }
-/* Contorno de foco no verde-petróleo do tema (6:1 no claro, 7,8:1 no escuro) */
+/* Alterado (direção D): contorno azul de 2px com 2px de afastamento (6,50:1 no claro, 8,15:1 no escuro).
+   Sai o border-radius daqui: ele deixava quadrado o foco dos botões em pílula; o contorno segue o raio do elemento */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 
 /* ---------- Skip-link: aparece só ao receber foco pelo teclado ---------- */
@@ -76,18 +110,21 @@ code { color: var(--accent); }
   top: -60px;
   z-index: 2000;
   padding: var(--s-2) var(--s-4);
-  border-radius: var(--r-control);
+  /* Alterado (direção D): pílula, como os outros botões */
+  border-radius: var(--r-pill);
   background: var(--primary-fill);
   color: var(--on-primary-fill);
-  font-weight: 600;
-  /* Sem sombra: o contraste do fundo já basta (botões são planos) */
+  font-weight: 500;
   box-shadow: none;
   transition: top var(--t-fast) var(--ease);
 }
 .skip-link:focus { top: var(--s-4); color: var(--on-primary-fill); }
 
+/* Novo (parecer R1): sem JS o botão de tema não funciona (o tema segue o aparelho); esconde em vez de mostrar um botão morto */
+html:not(.js) [data-tema-alternar] { display: none !important; }
+
 /* ---------- Utilitários próprios ---------- */
-/* Utilitários de cor apontam para os papéis novos (texto de apoio e estados) */
+/* Utilitários de cor apontam para os papéis (texto de apoio e estados) */
 .text-2 { color: var(--muted) !important; }
 .text-3 { color: var(--faint) !important; }
 .text-muted { color: var(--faint) !important; }

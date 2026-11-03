@@ -6,20 +6,23 @@
    Redesign "moldura e folha": peças planas (borda de 1px, sem sombra parada),
    raio 8 nos cards e 6 nos controles, cor só em dados, estados e foco.
    Todos os seletores antigos continuam existindo (classes geradas por C# e JS).
+   Alterado (direção D "Balcão"): o que se toca é pílula (botões e filtros) e o
+   que informa é retângulo (selos e etiquetas). Painel com raio 14, campo 10.
+   Amarelo (.pill-alerta, .contador-aberto, .etiqueta-preco) = em aberto.
    ========================================================================= */
 
 /* ===================== Botões ===================== */
-/* Altura padrão 36px (32 no pequeno, 40 no grande), raio 6, peso 500 */
+/* Alterado (direção D): pílula de 40px (34 no pequeno, 48 no grande), 15/500; 44px abaixo de 1100px (fim do arquivo) */
 .btn {
-  --btn-h: 36px;
+  --btn-h: var(--control-h);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--s-2);
   min-height: var(--btn-h);
-  padding: 0 14px;
+  padding: 0 18px;
   border: 1px solid transparent;
-  border-radius: var(--r-control);
+  border-radius: var(--r-pill);
   font-family: var(--font-sans);
   font-size: var(--fs-base);
   font-weight: 500;
@@ -31,14 +34,16 @@
               color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
 }
 .btn svg { width: 16px; height: 16px; flex: none; }
-.btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* Alterado (direção D): foco por contorno azul afastado 2px (segue a pílula), sem anel de sombra */
+.btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; box-shadow: none; }
 /* Resposta ao clique: o botão afunda 1px */
 .btn:active { transform: translateY(1px); }
 .btn:disabled, .btn.disabled { opacity: .5; pointer-events: none; }
 
-.btn-sm { --btn-h: 32px; padding: 0 var(--s-3); font-size: var(--fs-sm); border-radius: var(--r-sm); }
+/* Alterado (direção D): pequeno de 34px em 14px; grande de 48px em 16px ("Finalizar venda") */
+.btn-sm { --btn-h: 34px; padding: 0 14px; font-size: var(--fs-ui); }
 .btn-sm svg { width: 15px; height: 15px; }
-.btn-lg { --btn-h: 40px; padding: 0 var(--s-5); font-size: var(--fs-base); }
+.btn-lg { --btn-h: 48px; padding: 0 var(--s-6); font-size: 16px; }
 .btn-block, .w-100.btn { width: 100%; }
 
 /* Primário: quase preto com rótulo branco (invertido no tema escuro); sem sombra */
@@ -53,7 +58,7 @@
   background: var(--primary-fill-hover);
   border-color: var(--primary-fill-hover);
 }
-.btn-primary:focus-visible { box-shadow: var(--focus-ring); }
+.btn-primary:focus-visible { box-shadow: none; }
 .btn-primary:active { background: var(--action-active) !important; border-color: var(--action-active) !important; color: var(--on-primary-fill) !important; }
 
 /* Secundário: folha com borda de controle (substitui os outline do Bootstrap) */
@@ -63,10 +68,11 @@
   border-color: var(--control);
   box-shadow: none;
 }
+/* Alterado (direção D): no hover do contornado só a borda escurece até a tinta */
 .btn-secondary:hover, .btn-outline-secondary:hover, .btn-light:hover, .btn-outline-primary:hover {
   color: var(--text);
-  background: var(--raised);
-  border-color: var(--input-line);
+  background: var(--surface);
+  border-color: var(--text);
 }
 .btn-secondary:active, .btn-outline-secondary:active { background: var(--active) !important; color: var(--text) !important; }
 
@@ -76,19 +82,35 @@
 
 /* Fantasma: sem fundo; para ações dentro de tabelas e cards */
 .btn-ghost, .btn-link { color: var(--muted); background: transparent; border-color: transparent; box-shadow: none; }
-.btn-ghost:hover, .btn-link:hover { color: var(--text); background: var(--active); }
-.btn-link { color: var(--accent); font-weight: 500; }
+.btn-ghost:hover, .btn-link:hover { color: var(--text); background: var(--hover); }
+/* Alterado (direção D): o link-botão é tinta sublinhada (o destaque deixou de ser azul) */
+.btn-link { color: var(--text); font-weight: 500; text-decoration: underline; text-decoration-color: var(--control); text-underline-offset: 4px; }
+.btn-link:hover { background: transparent; text-decoration-color: currentColor; }
 
-/* Perigo: vermelho chapado com texto branco; versão fantasma para ações de linha */
-.btn-danger { color: #fff; background: var(--negative); border-color: transparent; box-shadow: none; }
-[data-theme="dark"] .btn-danger { color: #111314; }
-.btn-danger:hover { color: #fff; background: var(--danger-hover); }
-[data-theme="dark"] .btn-danger:hover { color: #111314; }
+/* Perigo: vermelho chapado; versão fantasma para ações de linha */
+/* Alterado (direção D): o fundo é o --danger-fill (6,54:1 com o branco; tinta no escuro), sem [data-theme] aqui (R1) */
+.btn-danger { color: var(--on-danger-fill); background: var(--danger-fill); border-color: transparent; box-shadow: none; }
+.btn-danger:hover { color: var(--on-danger-fill); background: var(--danger-hover); }
 .btn-ghost-danger { color: var(--negative); background: transparent; border-color: transparent; }
 .btn-ghost-danger:hover { color: var(--pill-negative-ink); background: var(--pill-negative-bg); }
+/* Novo (direção D): perigo contornado, para a ação que abre uma confirmação (Recusar, Cancelar o pedido) */
+.btn-outline-danger { color: var(--negative); background: var(--surface); border-color: var(--control); box-shadow: none; }
+.btn-outline-danger:hover { color: var(--negative); background: var(--surface); border-color: var(--negative); }
+.btn-outline-danger:active { color: var(--negative) !important; background: var(--pill-negative-bg) !important; border-color: var(--negative) !important; }
 
-/* Botão só com ícone: quadrado */
+/* Botão só com ícone: redondo */
 .btn-icon { width: var(--btn-h); padding: 0; }
+
+/* Novo (direção D): botão de texto sublinhado, para ações secundárias que não precisam de caixa */
+.btn-texto {
+  display: inline-flex; align-items: center; gap: 4px;
+  min-height: 32px; padding: 0 2px;
+  border: 0; background: none;
+  color: var(--text); font-size: var(--fs-ui); font-weight: 500;
+  text-decoration: underline; text-decoration-color: var(--control); text-underline-offset: 4px;
+  cursor: pointer;
+}
+.btn-texto:hover { color: var(--text); text-decoration-color: currentColor; }
 
 /* Carregando: o texto some e aparece o spinner (site.js põe a classe ao enviar o form) */
 .btn.is-loading { position: relative; color: transparent !important; pointer-events: none; }
@@ -104,7 +126,9 @@
   border-radius: 50%;
   animation: girar .7s linear infinite;
 }
-.btn-secondary.is-loading::after, .btn-outline-secondary.is-loading::after, .btn-soft.is-loading::after, .btn-ghost.is-loading::after {
+/* Alterado (direção D): o perigo contornado também gira na cor do texto (sobre o painel branco) */
+.btn-secondary.is-loading::after, .btn-outline-secondary.is-loading::after, .btn-soft.is-loading::after, .btn-ghost.is-loading::after,
+.btn-outline-danger.is-loading::after {
   border-color: var(--text);
   border-right-color: transparent;
   border-bottom-color: transparent;
@@ -122,9 +146,10 @@
 }
 .form-label .opcional { color: var(--faint); font-weight: 400; }
 
-/* Campo de 40px, borda de 3:1 (WCAG 1.4.11), raio 6, sem sombra */
+/* Campo de 40px, borda de 3:1 (WCAG 1.4.11), sem sombra */
+/* Alterado (direção D): raio 10 (token) e altura pelo --control-h (44px abaixo de 1100px, fim do arquivo) */
 .form-control, .form-select {
-  min-height: 40px;
+  min-height: var(--control-h);
   padding: 8px var(--s-3);
   font-size: var(--fs-base);
   color: var(--text);
@@ -138,13 +163,14 @@
 /* Placeholder em cinza que ainda passa 4.5:1 */
 .form-control::placeholder { color: var(--faint); opacity: 1; }
 .form-control:hover, .form-select:hover { border-color: var(--muted); }
-/* Foco: borda e anel no verde-petróleo */
+/* Alterado (direção D): foco com borda e contorno azul de 2px colado ao campo (o azul só existe no foco) */
 .form-control:focus, .form-select:focus {
   color: var(--text);
   background-color: var(--surface);
-  border-color: var(--accent);
-  box-shadow: var(--focus-ring);
-  outline: none;
+  border-color: var(--focus);
+  box-shadow: none;
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
 }
 .form-control:disabled, .form-control[readonly], .form-select:disabled {
   background-color: var(--raised);
@@ -153,10 +179,8 @@
   box-shadow: none;
 }
 textarea.form-control { min-height: 96px; }
-/* Seta do select clara no tema escuro */
-[data-theme="dark"] .form-select {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23b4b6b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-}
+/* Alterado (parecer R1): a seta do select vem do token --select-seta de cada tema (vale também sem JS) */
+.form-select { --bs-form-select-bg-img: var(--select-seta); }
 
 /* Campo com ícone à esquerda (ícone de 16px a 13px da borda) */
 .input-icon { position: relative; }
@@ -188,7 +212,7 @@ textarea.form-control { min-height: 96px; }
 
 .form-text { margin-top: 6px; font-size: var(--fs-xs); color: var(--faint); display: block; }
 
-/* Checkbox com borda de 3:1; marcado no verde-petróleo */
+/* Checkbox com borda de 3:1 */
 .form-check-input {
   width: 18px; height: 18px;
   border: 1px solid var(--input-line);
@@ -196,8 +220,10 @@ textarea.form-control { min-height: 96px; }
   background-color: var(--surface);
   cursor: pointer;
 }
-.form-check-input:checked { background-color: var(--accent-fill); border-color: var(--accent-fill); }
-.form-check-input:focus { box-shadow: var(--focus-ring); border-color: var(--accent); }
+/* Alterado (redesign B): marcado em tinta (o azul fica para dados e foco) */
+.form-check-input:checked { background-color: var(--primary-fill); border-color: var(--primary-fill); }
+/* Alterado (direção D): foco do checkbox no mesmo contorno azul dos campos */
+.form-check-input:focus { box-shadow: none; border-color: var(--focus); outline: 2px solid var(--focus); outline-offset: 2px; }
 .form-check-label { color: var(--muted); cursor: pointer; }
 
 /* Validação: borda vermelha e mensagem com ícone (classes do jquery.validate e do Bootstrap) */
@@ -207,7 +233,9 @@ textarea.form-control { min-height: 96px; }
   background-image: none;
   padding-right: var(--s-3);
 }
-.form-control.input-validation-error:focus, .form-control.is-invalid:focus { box-shadow: 0 0 0 3px rgba(196, 36, 42, .22); }
+/* Alterado (parecer R1): anel do campo inválido pelo token de cada tema */
+/* Alterado (direção D): no foco, o campo inválido mantém a borda vermelha e o contorno azul de foco */
+.form-control.input-validation-error:focus, .form-control.is-invalid:focus { box-shadow: var(--invalid-ring); border-color: var(--negative); }
 .field-validation-error, span.text-danger:not(:empty) {
   display: flex;
   align-items: center;
@@ -241,7 +269,8 @@ textarea.form-control { min-height: 96px; }
 .form-section { padding: var(--s-6); border-top: 1px solid var(--rule); }
 .form-section:first-child { border-top: 0; }
 .form-section-head { margin-bottom: var(--s-5); }
-.form-section-head h2 { font-size: var(--fs-md); font-weight: 600; display: flex; align-items: center; gap: var(--s-2); }
+/* Alterado (redesign B): título de seção 16/500 */
+.form-section-head h2 { font-size: var(--fs-md); font-weight: 500; display: flex; align-items: center; gap: var(--s-2); }
 /* Ícone do título da seção: pequeno e cinza */
 .form-section-head h2 svg { width: 16px; height: 16px; color: var(--faint); }
 .form-section-head p { margin: 4px 0 0; color: var(--muted); font-size: var(--fs-base); }
@@ -271,7 +300,8 @@ textarea.form-control { min-height: 96px; }
 }
 .ui-card-header.sem-linha { border-bottom: 0; padding-bottom: 0; }
 /* Título de card 16px peso 600; ícone, quando houver, pequeno e cinza */
-.ui-card-title { font-size: var(--fs-md); font-weight: 600; display: flex; align-items: center; gap: var(--s-2); }
+/* Alterado (redesign B): título de card 16/500 */
+.ui-card-title { font-size: var(--fs-md); font-weight: 500; display: flex; align-items: center; gap: var(--s-2); }
 .ui-card-title > svg { width: 16px; height: 16px; color: var(--faint); }
 .ui-card-sub { margin: 2px 0 0; font-size: var(--fs-sm); color: var(--muted); }
 .ui-card-footer {
@@ -313,66 +343,135 @@ textarea.form-control { min-height: 96px; }
   border: 1px solid transparent;
 }
 .chip svg, .pill svg { width: 13px; height: 13px; }
-/* Ponto de 6px como glifo do estado */
-.chip::before, .pill::before {
-  content: "";
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: .8;
-}
-.chip.sem-ponto::before { display: none; }
-/* Destaque (ADM no Pilulas.cs, venda) no tom pálido do verde-petróleo */
-.chip-brand, .pill-forte { color: var(--accent-ink); background: var(--accent-soft); border-color: transparent; }
+/* Alterado (redesign B): sai o ponto antes do texto */
+.chip::before, .pill::before { content: none; }
+/* Alterado (direção D): o selo de status é retângulo (raio 4, 12/600), porque informa; o que é pílula se toca */
+.pill { height: 22px; gap: 4px; padding: 0 8px; border: 0; border-radius: var(--r-tag); font-weight: 600; }
+/* Destaque (venda, marca) no tom pálido neutro (o --accent virou tinta) */
+.chip-brand { color: var(--accent-ink); background: var(--accent-soft); border-color: transparent; }
+/* Alterado (redesign B): ADM (pill-forte do Pilulas.cs) em tinta contornada, sem cor de marca */
+.pill-forte { color: var(--text); background: var(--surface); box-shadow: inset 0 0 0 1px var(--text); }
 .chip-success { color: var(--pill-positive-ink); background: var(--pill-positive-bg); border-color: var(--pill-positive-line); }
-.chip-warning, .pill-alerta { color: var(--pill-warning-ink); background: var(--pill-warning-bg); border-color: var(--pill-warning-line); }
-.chip-danger, .pill-erro { color: var(--pill-negative-ink); background: var(--pill-negative-bg); border-color: var(--pill-negative-line); }
-/* Informação e vendedor (pill-azul do Pilulas.cs): neutro com borda, para não virar um segundo destaque */
-.chip-info, .pill-azul { color: var(--text); background: var(--surface); border-color: var(--control); }
+/* Alterado (direção D): "Confirmado" (Pilulas.StatusPedido) é o selo verde com ✓; o glifo vem do CSS e o Pilulas.cs não muda */
+.pill-ok { color: var(--pill-positive-ink); background: var(--pill-positive-bg); }
+.chip-warning { color: var(--pill-warning-ink); background: var(--pill-warning-bg); border-color: var(--pill-warning-line); }
+/* Alterado (direção D): "Recusado" é o selo vermelho com ×; o .chip-danger continua o par pálido */
+.chip-danger { color: var(--pill-negative-ink); background: var(--pill-negative-bg); border-color: var(--pill-negative-line); }
+.pill-erro { color: var(--pill-negative-ink); background: var(--pill-negative-bg); }
+/* Glifo do selo (máscara em data: URI, permitida pela CSP img-src 'self' data:); a cor é a do texto do selo */
+.pill-ok::before, .pill-erro::before {
+  content: "";
+  flex: none;
+  width: 12px; height: 12px;
+  background: currentColor;
+  -webkit-mask: var(--glifo) center / contain no-repeat;
+          mask: var(--glifo) center / contain no-repeat;
+}
+.pill-ok { --glifo: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='m5 12.5 4.5 4.5L19 7.5'/%3e%3c/svg%3e"); }
+.pill-erro { --glifo: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'%3e%3cpath d='M7 7l10 10M17 7 7 17'/%3e%3c/svg%3e"); }
+/* Novo (direção D): etiqueta amarela = em aberto, alguém precisa agir (Pendente e "Aguardando liberação" do Pilulas.cs).
+   A ponta e o furo de etiqueta de preço vêm do clip-path e do ::before; o texto é tinta sobre amarelo (12,3:1) */
+.pill-alerta {
+  gap: 5px;
+  padding: 0 9px 0 11px;
+  border-radius: 0 var(--r-tag) var(--r-tag) 0;
+  color: var(--on-tag);
+  background: var(--tag);
+  clip-path: polygon(7px 0, 100% 0, 100% 100%, 7px 100%, 0 50%);
+}
+.pill-alerta::before { content: ""; flex: none; width: 5px; height: 5px; border-radius: 50%; background: var(--surface); }
+/* Informação e vendedor (pill-azul do Pilulas.cs): neutro contornado, para não virar um segundo destaque */
+.chip-info { color: var(--text); background: var(--surface); border-color: var(--control); }
+.pill-azul { color: var(--text); background: var(--surface); box-shadow: inset 0 0 0 1px var(--control); }
 /* Tons antigos que chegam pelo SeloTom do KpiCard */
 .chip-violet, .chip-slate { color: var(--pill-neutral-ink); background: var(--pill-neutral-bg); }
 
-/* Contador (menu e abas): neutro, 12px */
+/* Novo (direção D): chip que se toca (motivos rápidos da recusa): pílula contornada, 34px (44 abaixo de 1100px) */
+.chip-botao {
+  display: inline-flex; align-items: center;
+  min-height: 34px; padding: 0 12px;
+  border: 1px solid var(--control); border-radius: var(--r-pill);
+  background: var(--surface); color: var(--text);
+  font-size: var(--fs-ui); font-weight: 400; line-height: 1.2;
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease);
+}
+.chip-botao:hover { border-color: var(--text); }
+
+/* Contador (menu e filtros) */
+/* Alterado (direção D): retângulo de raio 4, 12/600, neutro */
 .contador {
   display: inline-grid;
   place-items: center;
-  min-width: 20px; height: 20px;
+  min-width: 22px; height: 20px;
   padding: 0 6px;
-  border-radius: var(--r-pill);
+  border-radius: var(--r-tag);
   font-size: var(--fs-xs);
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
   background: var(--active);
   color: var(--text);
 }
-/* Contador de fila que pede ação (estoque baixo): vermelho chapado */
-.contador-danger { background: var(--negative); color: #fff; }
-[data-theme="dark"] .contador-danger { color: #111314; }
+/* Alterado (HF-008, parecer R1): estoque baixo é alerta, no par pálido negativo (8,6:1 no claro e 7,0:1 no escuro) */
+.contador-danger { background: var(--pill-negative-bg); color: var(--pill-negative-ink); }
+/* Alterado (direção D, B1): pedidos aguardando decisão = em aberto, no amarelo de etiqueta com tinta (12,3:1).
+   .contador-acao continua como apelido do mesmo tom */
+.contador-aberto, .contador-acao { background: var(--tag); color: var(--on-tag); }
+
+/* Novo (direção D): total em etiqueta de preço (PDV). A ponta e o furo vêm do clip-path e do ::before;
+   o amarelo diz "venda em aberto". Com o total zerado, vira número cinza sem etiqueta (.zerado) */
+.etiqueta-preco {
+  display: inline-flex; align-items: center; gap: 12px; flex: none;
+  padding: 6px 16px 6px 18px;
+  border-radius: 0 8px 8px 0;
+  background: var(--tag); color: var(--on-tag);
+  font-size: var(--fs-3xl); font-weight: 600; line-height: 1.15; letter-spacing: -0.01em;
+  white-space: nowrap; font-variant-numeric: tabular-nums;
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 14px 100%, 0 50%);
+}
+.etiqueta-preco::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); }
+.etiqueta-preco-p { gap: 8px; padding: 4px 12px 4px 14px; font-size: 18px; clip-path: polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%); }
+.etiqueta-preco-p::before { width: 6px; height: 6px; }
+.etiqueta-preco.zerado { padding-left: 0; padding-right: 0; background: transparent; color: var(--faint); clip-path: none; }
+.etiqueta-preco.zerado::before { display: none; }
+
+/* ===================== Logo (etiqueta de preço) ===================== */
+/* Alterado (direção D, RD6): a marca vira a etiqueta amarela com contorno e linhas em tinta e o furo no tom do chão.
+   Saiu do layout.css para cá, porque os 3 layouts (sistema, acesso e vitrine) usam o _Logo */
+.logo { display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; }
+.logo svg { width: 32px; height: 32px; }
+.logo .logo-tag { fill: var(--tag); stroke: var(--on-tag); stroke-width: 1.5; stroke-linejoin: round; }
+.logo .logo-furo { fill: var(--frame); stroke: var(--on-tag); stroke-width: 1.5; }
+.logo .logo-linhas { fill: none; stroke: var(--on-tag); stroke-width: 1.6; stroke-linecap: round; }
+.marca-texto { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.marca-nome { font-family: var(--font-sans); font-weight: 600; font-size: 16px; letter-spacing: -0.01em; color: var(--text); }
+.marca-sub { font-size: var(--fs-xs); color: var(--muted); font-weight: 400; }
 
 /* ===================== Bolha de ícone ===================== */
-/* Bolha neutra (sem quadrado colorido); os tons de estado ficam só para toasts e avisos */
+/* Alterado (redesign B): a "bolha" vira glifo puro, sem caixa de fundo (nunca ícone em quadrado colorido).
+   A classe continua porque o #toast-modelo e o site.js usam .bubble e bubble-success/-danger/-warning */
 .bubble {
-  --bubble: 32px;
+  --bubble: 20px;
   display: inline-grid;
   place-items: center;
   flex: none;
   width: var(--bubble); height: var(--bubble);
-  border-radius: var(--r-control);
   color: var(--muted);
-  background: var(--raised);
+  background: transparent;
 }
 .bubble svg { width: 18px; height: 18px; }
-.bubble-sm { --bubble: 28px; }
+.bubble-sm { --bubble: 18px; }
 .bubble-sm svg { width: 16px; height: 16px; }
-.bubble-lg { --bubble: 40px; }
+.bubble-lg { --bubble: 24px; }
 .bubble-lg svg { width: 20px; height: 20px; }
 /* Tons do Tom do KpiCard (brand, violet, slate, info) viram neutros */
-.bubble-brand, .bubble-info, .bubble-slate, .bubble-violet { color: var(--muted); background: var(--raised); }
-.bubble-success { color: var(--pill-positive-ink); background: var(--pill-positive-bg); }
-.bubble-warning { color: var(--pill-warning-ink); background: var(--pill-warning-bg); }
-.bubble-danger { color: var(--pill-negative-ink); background: var(--pill-negative-bg); }
-/* Bolha sólida: fundo do botão principal */
-.bubble-solid { color: var(--on-primary-fill); background: var(--primary-fill); }
+.bubble-brand, .bubble-info, .bubble-slate, .bubble-violet { color: var(--muted); }
+/* Estados: só a cor do glifo, com texto AA */
+.bubble-success { color: var(--positive); }
+.bubble-warning { color: var(--warning); }
+.bubble-danger { color: var(--negative); }
+.bubble-solid { color: var(--text); }
 /* Nos títulos de seção e de card a bolha vira só o ícone cinza de 16px (sem caixa repetida em cada título) */
 .form-section-head h2 .bubble, .ui-card-title .bubble {
   --bubble: auto;
@@ -394,10 +493,10 @@ textarea.form-control { min-height: 96px; }
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 600;
-  color: hsl(var(--h) 45% 24%);
-  background: hsl(var(--h) 32% 88%);
+  /* Alterado (parecer R1): saturação e luminosidade vêm dos tokens de cada tema (sem [data-theme] aqui) */
+  color: hsl(var(--h) var(--ident-ink));
+  background: hsl(var(--h) var(--ident-bg));
 }
-[data-theme="dark"] .avatar { color: hsl(var(--h) 40% 84%); background: hsl(var(--h) 22% 22%); }
 .avatar-sm { width: 28px; height: 28px; font-size: 11px; }
 .avatar-lg { width: 48px; height: 48px; font-size: 17px; }
 /* Avatar grande do perfil: anel da cor da folha, sem sombra */
@@ -414,13 +513,13 @@ textarea.form-control { min-height: 96px; }
   width: 40px; height: 40px;
   border-radius: var(--r-control);
   overflow: hidden;
-  color: hsl(var(--h) 45% 24%);
+  /* Alterado (parecer R1): matiz liso com saturação e luminosidade dos tokens de cada tema */
+  color: hsl(var(--h) var(--ident-ink));
   font-family: var(--font-sans);
   font-weight: 600;
   font-size: 14px;
-  background: hsl(var(--h) 26% 90%);
+  background: hsl(var(--h) var(--thumb-bg));
 }
-[data-theme="dark"] .thumb { color: hsl(var(--h) 40% 84%); background: hsl(var(--h) 20% 20%); }
 /* Caixa discreta no canto, na mesma cor do texto */
 .thumb svg { position: absolute; right: -6px; bottom: -6px; width: 60%; height: 60%; opacity: .14; color: currentColor; }
 .thumb span { position: relative; }
@@ -434,21 +533,36 @@ textarea.form-control { min-height: 96px; }
 /* ===================== Régua de estoque (elemento próprio do Sistema) ===================== */
 /* Trilho fino com o estoque preenchido e um tique no mínimo (Produto.EstoqueMinimo);
    neutro quando está bem, âmbar no mínimo, vazio quando zerado. O número fica em texto ao lado */
-.regua { position: relative; display: block; height: 6px; min-width: 72px; border-radius: 3px; background: var(--active); }
+/* Alterado (direção D): trilho cinza de 6px (--track); o preenchido é cinza médio e fica vermelho no mínimo */
+.regua { position: relative; display: block; height: 6px; min-width: 72px; border-radius: 3px; background: var(--track); }
 .regua-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--muted); }
-.regua-baixo .regua-fill { background: var(--warning); }
-.regua-marco { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--text); }
+.regua-baixo .regua-fill { background: var(--negative); }
+/* Estoque zerado: trilho no tom pálido negativo com linha (o número em texto ao lado diz "Sem estoque") */
+.regua-zero { background: var(--pill-negative-bg); box-shadow: inset 0 0 0 1px var(--pill-negative-line); }
+/* Alterado (direção D): o tique do mínimo passa 4px acima e abaixo do trilho */
+.regua-marco { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--text); }
 /* Célula com a régua e o número em texto */
 .estoque-cel { display: grid; grid-template-columns: minmax(72px, 120px) auto; align-items: center; gap: var(--s-3); }
 .estoque-cel .chip { justify-self: start; }
 
 /* ===================== Tabelas ===================== */
-.table-card { overflow: hidden; }
+/* Alterado (redesign B): padrão de lista da B, a tabela fica direto na folha (sem card em volta, sem overflow:hidden).
+   O recuo negativo de 8px deixa o texto alinhado ao título e o hover da linha sangra 8px para os lados */
+/* Alterado (direção D): sem a folha branca, a lista volta a ficar num painel branco (raio 14, borda de 1px) sobre o chão.
+   As telas das Fases 5 e 6 continuam usáveis até serem redesenhadas */
+.ui-card.table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); overflow: visible; margin-inline: 0; }
+.table-card .table-ui th:first-child, .table-card .table-ui td:first-child { padding-left: var(--s-5); }
+.table-card .table-ui th:last-child, .table-card .table-ui td:last-child { padding-right: var(--s-5); }
+.table-card .toolbar { padding: var(--s-4) var(--s-5); border-bottom: 1px solid var(--rule); }
+/* O cabeçalho e as linhas herdam o branco do painel; os cantos de baixo acompanham o raio */
+.table-card .table-wrap { border-radius: 0 0 var(--r-card) var(--r-card); }
 .table-wrap { width: 100%; overflow-x: auto; }
-.table-ui { width: 100%; margin: 0; border-collapse: separate; border-spacing: 0; color: var(--text); }
+/* Alterado (direção D): tabela em 14px (o corpo da página passou a 15px) */
+.table-ui { width: 100%; margin: 0; border-collapse: separate; border-spacing: 0; color: var(--text); font-size: var(--fs-ui); }
 /* Cabeçalho: 12px cinza, caixa normal, sem faixa; uma linha embaixo, a mais forte da tabela */
 .table-ui thead th {
-  position: sticky; top: 0;
+  /* Alterado (direção D): para no topo da janela (desktop) ou abaixo da barra de 56px (celular), pelo --sticky-top */
+  position: sticky; top: var(--sticky-top);
   padding: 10px var(--s-4);
   font-size: var(--fs-xs);
   font-weight: 400;
@@ -481,7 +595,10 @@ textarea.form-control { min-height: 96px; }
 .cell-main > div { min-width: 0; }
 .cell-title { display: block; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 a.cell-title:hover { color: var(--accent); }
-.cell-sub { display: block; font-size: var(--fs-xs); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Alterado (HF-001, achado B5 do QA): a linha de apoio quebra em vez de cortar ou empurrar a tabela para o lado */
+.cell-sub { display: block; font-size: var(--fs-xs); color: var(--muted); white-space: normal; overflow-wrap: anywhere; }
+/* Novo: quando a linha de apoio deve ficar numa linha só, com reticências */
+.cell-sub.corta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; }
 
 /* Ações de linha: botões fantasma com ícone */
 .row-actions { display: inline-flex; align-items: center; gap: 2px; }
@@ -492,10 +609,11 @@ a.cell-title:hover { color: var(--accent); }
 .table { --bs-table-bg: transparent; --bs-table-color: var(--text); --bs-table-border-color: var(--rule); color: var(--text); }
 
 /* Celular: cada linha vira um bloco de duas linhas; o rótulo vem do data-label da célula */
-@media (max-width: 767.98px) {
+/* Alterado (redesign B): só abaixo de 640px; no tablet a tabela mantém as colunas e rola dentro do .table-wrap */
+@media (max-width: 639.98px) {
   .table-ui.table-stack thead { display: none; }
   .table-ui.table-stack, .table-ui.table-stack tbody, .table-ui.table-stack tr, .table-ui.table-stack td { display: block; width: 100%; }
-  .table-card:has(.table-stack) { background: transparent; border: 0; overflow: visible; }
+  .table-card:has(.table-stack) { background: transparent; border: 0; overflow: visible; margin-inline: 0; }
   .table-ui.table-stack tbody { display: grid; gap: var(--s-3); }
   /* Bloco da linha com borda, sem sombra */
   .table-ui.table-stack tr {
@@ -534,14 +652,15 @@ a.cell-title:hover { color: var(--accent); }
 
 /* ===================== Alertas e avisos ===================== */
 /* Aviso plano: raio 6, par pálido por estado */
+/* Alterado (direção D): raio 12 e fundo do painel (o --raised quase some sobre o chão de pedra) */
 .alert {
   display: flex;
   align-items: flex-start;
   gap: var(--s-3);
   padding: var(--s-3) var(--s-4);
-  border-radius: var(--r-control);
+  border-radius: 12px;
   border: 1px solid var(--border);
-  background: var(--raised);
+  background: var(--surface);
   color: var(--text);
   font-size: var(--fs-sm);
 }
@@ -550,7 +669,7 @@ a.cell-title:hover { color: var(--accent); }
 .alert-success { color: var(--pill-positive-ink); background: var(--pill-positive-bg); border-color: var(--pill-positive-line); }
 .alert-danger { color: var(--pill-negative-ink); background: var(--pill-negative-bg); border-color: var(--pill-negative-line); }
 .alert-warning { color: var(--pill-warning-ink); background: var(--pill-warning-bg); border-color: var(--pill-warning-line); }
-.alert-info { color: var(--text); background: var(--raised); border-color: var(--border); }
+.alert-info { color: var(--text); background: var(--surface); border-color: var(--border); }
 /* Aviso da marca: tom pálido do destaque */
 .alert-brand { color: var(--accent-ink); background: var(--accent-soft); border-color: transparent; }
 .alert .alert-texto { color: var(--muted); }
@@ -559,10 +678,11 @@ a.cell-title:hover { color: var(--accent); }
 .alert-dismissible .btn-close { position: static; margin-left: auto; padding: 4px; }
 
 /* ===================== Toasts ===================== */
+/* Alterado (direção D, RD5): a pilha fica acima das abas do rodapé (--rodape-fixo é 0 no desktop e para o visitante) */
 .toast-stack {
   position: fixed;
   right: var(--s-6);
-  bottom: var(--s-6);
+  bottom: calc(var(--s-6) + var(--rodape-fixo));
   z-index: 1080;
   display: flex;
   flex-direction: column;
@@ -579,24 +699,32 @@ a.cell-title:hover { color: var(--accent); }
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: var(--r-card);
-  box-shadow: var(--shadow-lg);
+  /* Alterado (direção D): raio 12 */
+  border-radius: 12px;
+  /* Alterado (redesign B): a sombra única do que flutua */
+  box-shadow: var(--shadow-float);
   pointer-events: auto;
   animation: toast-entra 200ms var(--ease);
   position: relative;
   overflow: hidden;
 }
+/* Novo (direção D, RD5): o erro de estoque pode listar até 8 produtos; o texto rola por dentro e o toast
+   nunca passa da altura livre entre a barra do topo e as abas (390px) */
+.toast-x-texto { max-height: calc(100vh - var(--sticky-top) - var(--rodape-fixo) - 160px); overflow-y: auto; overflow-wrap: anywhere; }
 .toast-x.saindo { animation: toast-sai 180ms var(--ease) forwards; }
-.toast-x .bubble { --bubble: 28px; border-radius: var(--r-control); }
-.toast-x .bubble svg { width: 16px; height: 16px; }
+/* Alterado (redesign B): glifo de status de 20px, sem caixa, alinhado à primeira linha do texto */
+.toast-x .bubble { --bubble: 20px; margin-top: 2px; }
+.toast-x .bubble svg { width: 20px; height: 20px; }
 .toast-x-corpo { flex: 1; min-width: 0; padding-top: 3px; }
 .toast-x-titulo { display: block; font-weight: 600; font-size: var(--fs-sm); }
 .toast-x-texto { display: block; font-size: var(--fs-sm); color: var(--muted); }
+/* Alterado (direção D): botão de fechar redondo de 32px (44px abaixo de 1100px, fim do arquivo) */
 .toast-x-fechar {
   flex: none;
-  width: 28px; height: 28px;
+  width: 32px; height: 32px;
+  margin: -4px -6px -4px 0;
   display: inline-grid; place-items: center;
-  border: 0; border-radius: var(--r-control);
+  border: 0; border-radius: var(--r-pill);
   background: transparent; color: var(--faint);
   cursor: pointer;
 }
@@ -609,17 +737,22 @@ a.cell-title:hover { color: var(--accent); }
   height: 2px; width: 100%;
   background: var(--toast-cor, var(--accent));
   transform-origin: left;
-  animation: toast-tempo 5s linear forwards;
+  /* Alterado (direção D, RD5): 6s, o mesmo tempo do site.js */
+  animation: toast-tempo 6s linear forwards;
 }
-.toast-x:hover::after { animation-play-state: paused; }
+/* Alterado (direção D, RD5): a barra pausa com o mouse e com o foco do teclado, como o timer do site.js */
+.toast-x:hover::after, .toast-x:focus-within::after { animation-play-state: paused; }
+/* Novo (direção D, RD5): o erro fica na tela até ser fechado, então não tem barra de tempo */
+.toast-erro::after { content: none; }
 .toast-sucesso { --toast-cor: var(--positive); }
 .toast-erro { --toast-cor: var(--negative); }
 .toast-aviso { --toast-cor: var(--warning); }
 @keyframes toast-entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes toast-sai { to { opacity: 0; transform: translateX(16px); } }
 @keyframes toast-tempo { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+/* Alterado (direção D, RD5): no celular a pilha ocupa a largura e fica 12px acima das abas */
 @media (max-width: 575.98px) {
-  .toast-stack { right: 16px; left: 16px; bottom: 16px; width: auto; }
+  .toast-stack { right: 12px; left: 12px; bottom: calc(12px + var(--rodape-fixo)); width: auto; }
 }
 
 /* ===================== Cabeçalho de página ===================== */
@@ -635,9 +768,10 @@ a.cell-title:hover { color: var(--accent); }
 .page-header-texto { display: flex; align-items: center; gap: var(--s-3); min-width: 0; }
 /* A bolha de ícone ao lado do título saiu do design */
 .page-header-texto > .bubble { display: none; }
-.page-header h1 { font-size: var(--fs-2xl); font-weight: 600; }
+/* Alterado (direção D): h1 24/600 com o texto de apoio em 15px cinza */
+.page-header h1 { font-size: var(--fs-2xl); font-weight: 600; letter-spacing: -0.015em; text-wrap: balance; }
 .page-header-sub { margin: 4px 0 0; color: var(--muted); font-size: var(--fs-base); max-width: 720px; }
-.page-header-sub strong { color: var(--text); font-weight: 600; }
+.page-header-sub strong { color: var(--text); font-weight: 500; }
 .page-header-acoes { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .voltar {
   display: inline-flex; align-items: center; gap: 6px;
@@ -648,7 +782,8 @@ a.cell-title:hover { color: var(--accent); }
 .voltar svg { width: 15px; height: 15px; transform: rotate(180deg); }
 .voltar:hover { color: var(--text); }
 @media (max-width: 575.98px) {
-  .page-header h1 { font-size: 20px; }
+  /* Alterado (direção D): h1 de 22px no celular */
+  .page-header h1 { font-size: 22px; }
   .page-header-acoes, .page-header-acoes .btn { width: 100%; }
 }
 
@@ -667,48 +802,154 @@ a.cell-title:hover { color: var(--accent); }
 .toolbar .form-control { min-height: 32px; padding-top: 4px; padding-bottom: 4px; }
 .toolbar-info { font-size: var(--fs-sm); color: var(--muted); font-variant-numeric: tabular-nums; }
 @media (max-width: 767.98px) {
-  .table-card .toolbar { padding: 0 0 var(--s-4); border: 0; }
   .toolbar .busca { max-width: none; }
 }
+/* Alterado (direção D): só quando a tabela vira pilha de cartões (abaixo de 640px) a barra sai do painel e fica no chão */
+@media (max-width: 639.98px) {
+  .table-card:has(.table-stack) .toolbar { padding: 0 0 var(--s-4); border: 0; }
+}
 
-/* ===================== Abas (antes segmentadas, agora sublinhadas) ===================== */
-/* Abas sobre uma linha de 1px; a ativa ganha um traço de 2px no verde-petróleo */
+/* ===================== Trilho segmentado e abas sublinhadas ===================== */
+/* Alterado (redesign B): .segmented vira o trilho segmentado (período e tipo): fundo cinza,
+   a opção ativa numa pastilha branca. As abas sublinhadas dos estados de lista são a classe .abas */
+/* Alterado (direção D): trilho arredondado no tom --secondary-fill; a opção ativa é uma pílula branca contornada */
 .segmented {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
-  gap: var(--s-6);
-  padding: 0;
-  background: transparent;
-  border-radius: 0;
-  border-bottom: 1px solid var(--border);
+  gap: 2px;
+  max-width: 100%;
+  padding: 3px;
+  background: var(--secondary-fill);
+  border-radius: var(--r-pill);
 }
 .segmented a, .segmented button {
   display: inline-flex; align-items: center; gap: 8px;
-  height: 40px;
-  padding: 0;
-  margin-bottom: -1px;
-  border-radius: 0;
-  font-size: var(--fs-base);
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-ui);
   font-weight: 400;
   color: var(--muted);
   background: transparent;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+  transition: color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease);
 }
-.segmented a:hover { color: var(--text); border-bottom-color: var(--control); }
-/* No celular as abas rolam de lado em vez de quebrar linha */
-@media (max-width: 575.98px) {
-  .segmented { flex-wrap: nowrap; max-width: 100%; overflow-x: auto; scrollbar-width: none; gap: var(--s-5); }
-  .segmented a, .segmented button { flex: none; white-space: nowrap; }
-}
+.segmented a:hover { color: var(--text); background: var(--secondary-fill-hover); }
 .segmented .ativo, .segmented .active, .segmented [aria-current="page"] {
   color: var(--text);
   font-weight: 500;
-  background: transparent;
+  background: var(--surface);
+  border-color: var(--control);
   box-shadow: none;
-  border-bottom-color: var(--accent);
 }
+
+/* Alterado (direção D, RD13): os filtros de status viram pílulas contornadas. Continuam links GET com aria-current
+   e o contador no fim (a forma é só CSS). A escolhida fica com fundo --active e borda em tinta */
+.abas {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  max-width: 100%;
+  /* Corrigido (revisão D1/D2, achado 3): folga de 4px para o contorno de foco (2px + 2px de afastamento) não ser
+     cortado pelo overflow-x; a margem negativa mantém o alinhamento */
+  padding: 4px;
+  margin: -4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.abas::-webkit-scrollbar { display: none; }
+.abas a, .abas button {
+  flex: none;
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: var(--fs-ui);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.abas a:hover { color: var(--text); border-color: var(--text); }
+.abas .ativo, .abas [aria-current="page"] { color: var(--text); background: var(--active); border-color: var(--text); box-shadow: inset 0 0 0 .5px var(--text); }
+/* O número de cada filtro é texto cinza; só o de pendentes com N > 0 vira o contador amarelo (.contador-aberto) */
+.abas .contador:not(.contador-aberto) { min-width: 0; padding: 0; background: transparent; color: var(--muted); font-weight: 400; }
+.abas .ativo .contador:not(.contador-aberto), .abas [aria-current="page"] .contador:not(.contador-aberto) { color: var(--text); }
+
+/* No celular o trilho rola de lado dentro de si, sem rolagem na página */
+@media (max-width: 639.98px) {
+  .segmented { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .segmented a, .segmented button { flex: none; white-space: nowrap; }
+}
+
+/* ===================== Confirmação inline (details/summary) ===================== */
+/* Confirmação sem JS com details nativo (parecer R6). O painel fica em fluxo (sem position:absolute nem
+   display:contents), ocupa a largura toda da linha e cabe em 390px.
+   Alterado (direção D, RD10): o mesmo padrão serve o "Cancelar o pedido" de Meus pedidos (.cancelar) */
+.confirmar, .cancelar { min-width: 0; }
+.confirmar > summary, .cancelar > summary { list-style: none; width: max-content; max-width: 100%; }
+.confirmar > summary::-webkit-details-marker, .cancelar > summary::-webkit-details-marker { display: none; }
+/* O texto do summary troca por dois spans alternados (leitores de tela leem de forma regular), nunca por content: */
+.confirmar .aberto, .cancelar .aberto { display: none; }
+.confirmar[open] .fechado, .cancelar[open] .fechado { display: none; }
+.confirmar[open] .aberto, .cancelar[open] .aberto { display: inline; }
+/* Aberto dentro de uma linha flex: o details passa a ocupar a linha inteira e o painel aparece logo abaixo */
+.confirmar[open], .cancelar[open] { flex: 1 1 100%; }
+/* Alterado (direção D): painel no degrau --raised, raio 12, sem borda, até 640px */
+.confirmar-painel, .cancelar-painel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  max-width: 640px;
+  margin-top: 10px;
+  padding: var(--s-4);
+  background: var(--raised);
+  border-radius: 12px;
+}
+.confirmar-painel .form-label { margin-bottom: 0; }
+.confirmar-painel .form-text { margin-top: 0; }
+.confirmar-painel textarea { min-height: 88px; resize: vertical; }
+.cancelar-painel p { margin: 0; font-size: var(--fs-ui); }
+/* Alterado (direção D): pé do painel com o contador "N de 300" à esquerda e o botão final à direita */
+.confirmar-acoes { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 12px; }
+.confirmar-acoes .form-text { margin: 0; }
+/* Novo (direção D, RD8): motivos rápidos da recusa. Nascem com hidden e o site.js os mostra; o display:flex
+   não pode vencer o hidden do navegador (sem JS, botões que não fazem nada não aparecem) */
+.motivos { display: flex; flex-wrap: wrap; gap: 6px; }
+.motivos[hidden] { display: none; }
+@media (max-width: 639.98px) {
+  .confirmar > summary, .cancelar > summary { width: 100%; }
+  .confirmar-acoes .btn, .cancelar-painel .btn { width: 100%; }
+}
+
+/* ===================== Recibo (itens de um pedido) ===================== */
+/* Novo (direção D): substitui o .cupom da B. Serve a fila de Pedidos e Meus pedidos: nome do item, "Q × preço do
+   pedido" (i.PrecoUnitario) e o valor da linha (i.Subtotal, B4) à direita; total do servidor (p.Total, R7 e RD12) */
+.recibo-itens { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); margin: 0; padding: 0; }
+.recibo-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 2px 16px; padding: 5px 0; }
+.recibo-item p { margin: 0; }
+.recibo-item-nome { font-size: var(--fs-ui); overflow-wrap: anywhere; }
+.recibo-item-sub { font-size: var(--fs-sm); color: var(--muted); font-variant-numeric: tabular-nums; }
+.recibo-item-valor { font-size: var(--fs-ui); text-align: right; font-variant-numeric: tabular-nums; }
+/* Aviso "só N em estoque" (RD7): texto vermelho, nunca só cor */
+.falta { color: var(--negative); font-weight: 500; }
+.recibo-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin: 4px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+.recibo-total strong { font-size: var(--fs-md); font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+/* Motivo da recusa (HF-006): bloco no degrau --raised, inteiro e quebrando linha; nunca pre-line */
+.motivo { margin: 0; padding: 10px 12px; border-radius: var(--r-control); background: var(--raised); color: var(--text); font-size: var(--fs-ui); white-space: normal; overflow-wrap: anywhere; }
+.motivo-rot { display: block; margin-bottom: 2px; font-size: var(--fs-xs); color: var(--muted); }
 
 /* ===================== Estado vazio ===================== */
 /* O bloco mantém a moldura: ilustração pequena, título curto, uma frase e a ação */
@@ -724,7 +965,10 @@ a.cell-title:hover { color: var(--accent); }
 .empty-state p { max-width: 420px; color: var(--muted); margin-bottom: var(--s-5); }
 .empty-state .acoes { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s-2); }
 .empty-state.compacto { padding: var(--s-6) var(--s-4); }
-.empty-state.compacto img { width: 96px; margin-bottom: var(--s-3); }
+/* Alterado (redesign B): no modo compacto o _EmptyState não desenha a ilustração; a regra fica por segurança */
+.empty-state.compacto img { display: none; }
+/* Ilustração do primeiro uso: 96px */
+.empty-state img { width: 96px; }
 .sem-resultado { padding: var(--s-8) var(--s-4); text-align: center; color: var(--muted); }
 .sem-resultado img { width: 96px; display: block; margin: 0 auto var(--s-3); }
 
@@ -733,7 +977,8 @@ a.cell-title:hover { color: var(--accent); }
 .kpi { padding: var(--s-4) var(--s-5); display: flex; flex-direction: column; gap: var(--s-2); height: 100%; }
 .kpi-topo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
 .kpi-topo .bubble { display: none; }
-.kpi-rotulo { font-size: var(--fs-base); font-weight: 500; color: var(--muted); }
+/* Alterado (redesign B): rótulo 13px cinza acima do número */
+.kpi-rotulo { font-size: var(--fs-sm); font-weight: 400; color: var(--muted); }
 .kpi-valor {
   font-family: var(--font-sans);
   font-size: var(--fs-kpi);
@@ -744,6 +989,8 @@ a.cell-title:hover { color: var(--accent); }
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
+/* Novo (redesign B): valor em dinheiro em peso 600 (o _KpiCardCorpo põe .dinheiro quando o valor começa com "R$") */
+.kpi-valor.dinheiro { font-weight: 600; }
 .kpi-rodape { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: var(--fs-sm); color: var(--muted); margin-top: auto; }
 /* Selo do rodapé vira texto cinza; a cor só aparece no KPI em alerta */
 .kpi-rodape .chip { height: auto; padding: 0; background: transparent; border: 0; color: var(--text); font-weight: 500; font-size: var(--fs-sm); }
@@ -819,11 +1066,14 @@ a.cell-title:hover { color: var(--accent); }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-card);
-  box-shadow: var(--shadow-lg);
+  /* Alterado (redesign B): a sombra única do que flutua */
+  box-shadow: var(--shadow-float);
   text-align: left;
   animation: menu-entra 120ms var(--ease);
 }
 .menu-acoes-lista[hidden] { display: none; }
+/* Novo (redesign B): menu da conta no rodapé da sidebar abre para cima, alinhado à esquerda */
+.menu-acoes-lista.abre-cima { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; }
 .menu-acoes-lista a, .menu-acoes-lista button {
   display: flex; align-items: center; gap: 10px;
   width: 100%;
@@ -863,9 +1113,9 @@ a.cell-title:hover { color: var(--accent); }
   font-size: 12px; font-weight: 500; color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
-/* Passo feito em verde de estado; passo atual no verde-petróleo */
-.steps .feito .passo-marca { border-color: var(--positive); background: var(--positive); color: #fff; }
-[data-theme="dark"] .steps .feito .passo-marca { color: #111314; }
+/* Passo feito em verde de estado; passo atual no azul-caneta */
+/* Alterado (parecer R1): texto sobre o verde pelo token --on-positive, sem [data-theme] aqui */
+.steps .feito .passo-marca { border-color: var(--positive); background: var(--positive); color: var(--on-positive); }
 .steps .feito .passo-marca svg { width: 14px; height: 14px; }
 .steps .atual .passo-marca { border: 2px solid var(--accent); color: var(--accent); }
 .steps .atual { color: var(--text); font-weight: 500; }
@@ -888,4 +1138,19 @@ a.cell-title:hover { color: var(--accent); }
 .nav-pills .nav-link.active svg { color: var(--text); }
 
 /* Botão de fechar do Bootstrap visível no escuro */
-[data-theme="dark"] .btn-close { filter: invert(1) grayscale(1) brightness(1.8); }
+/* Alterado (parecer R1): o filtro vem do token de cada tema (vale também sem JS) */
+.btn-close { filter: var(--btn-close-filter); }
+
+/* ===================== Alvos de toque (direção D) ===================== */
+/* Novo (direção D): abaixo de 1100px (celular e tablet, mesmo ponto da casca) os controles têm 44px.
+   O --control-h passa a 44px no layout.css; aqui ficam os tamanhos fixos de cada peça */
+@media (max-width: 1099.98px) {
+  .btn-sm { --btn-h: 44px; }
+  /* 16px nos campos: o Safari do iPhone não dá zoom ao focar */
+  .form-control, .form-select { font-size: 16px; }
+  .abas a, .abas button { height: 44px; }
+  .segmented a, .segmented button { min-height: 40px; }
+  .chip-botao { min-height: 44px; }
+  .toast-x-fechar { width: 44px; height: 44px; margin: -10px -10px -10px 0; }
+  .menu-acoes-lista a, .menu-acoes-lista button { min-height: 44px; }
+}

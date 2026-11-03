@@ -1,4 +1,4 @@
-// Roda no <head>, antes de pintar a página: aplica o tema salvo (claro/escuro) para não piscar.
+// Roda no <head>, antes de pintar a página: aplica o tema (claro/escuro) para não piscar.
 // Fica em arquivo próprio porque a CSP não aceita script inline.
 (function () {
     "use strict";
@@ -7,6 +7,9 @@
     raiz.classList.add("js");
     var tema = null;
     try { tema = window.localStorage.getItem("sistema-tema"); } catch (e) { tema = null; }
-    // Padrão é o claro; o escuro é opcional, escolhido no botão da topbar
-    raiz.setAttribute("data-theme", tema === "dark" ? "dark" : "light");
+    // Alterado (redesign B, D5 e parecer R2): a escolha salva vale; sem escolha (ou valor inválido), segue o tema do aparelho
+    if (tema !== "dark" && tema !== "light") {
+        tema = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    raiz.setAttribute("data-theme", tema);
 })();

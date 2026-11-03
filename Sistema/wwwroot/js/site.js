@@ -8,7 +8,8 @@
     var $$ = function (sel, raiz) { return Array.prototype.slice.call((raiz || document).querySelectorAll(sel)); };
 
     // ---------------------------------------------------------------
-    // Toasts: fecham sozinhos após 5s (pausa com o mouse em cima)
+    // Toasts. Alterado (direção D, RD5): sucesso e aviso somem em 6s (pausa com o mouse ou o foco do teclado);
+    // o erro fica na tela até ser fechado no X, com role="alert" (inclusive o criado pelo mostrarToast)
     // ---------------------------------------------------------------
     var pilhaToasts = $("#toasts");
 
@@ -18,10 +19,15 @@
         setTimeout(function () { toast.remove(); }, 200);
     }
 
+    // Alterado (direção D, RD5): o tempo do JS (6s) é o mesmo da barra .toast-x::after do components.css
     function prepararToast(toast) {
-        var timer = setTimeout(function () { fecharToast(toast); }, 5000);
-        toast.addEventListener("mouseenter", function () { clearTimeout(timer); });
-        toast.addEventListener("mouseleave", function () { timer = setTimeout(function () { fecharToast(toast); }, 2500); });
+        var fixo = toast.classList.contains("toast-erro");
+        if (fixo) toast.setAttribute("role", "alert");
+        var timer = null;
+        var agendar = function (ms) { if (!fixo) { clearTimeout(timer); timer = setTimeout(function () { fecharToast(toast); }, ms); } };
+        agendar(6000);
+        ["mouseenter", "focusin"].forEach(function (ev) { toast.addEventListener(ev, function () { clearTimeout(timer); }); });
+        ["mouseleave", "focusout"].forEach(function (ev) { toast.addEventListener(ev, function () { agendar(2500); }); });
         var botao = $("[data-toast-fechar]", toast);
         if (botao) botao.addEventListener("click", function () { fecharToast(toast); });
     }
@@ -61,35 +67,46 @@
     }
 
     // ---------------------------------------------------------------
-    // Sidebar como drawer no celular: abre no hambúrguer, fecha no fundo, no X ou com Esc
+    // Sidebar como drawer abaixo de 1100px: abre por qualquer [data-menu-abrir], fecha no fundo, no X ou com Esc
+    // Alterado (direção D, RD3): vários abridores (busca e conta na barra do topo, aba "Menu" no rodapé).
+    // Com a gaveta aberta, um segundo clique fecha em vez de criar outro fundo, e o foco volta para quem abriu
     // ---------------------------------------------------------------
-    var botaoMenu = $("[data-menu-abrir]");
+    var botoesMenu = $$("[data-menu-abrir]");
     var sidebar = $("#menu");
-    if (botaoMenu && sidebar) {
-        var fundo = null;
+    if (botoesMenu.length && sidebar) {
+        var fundo = null, quemAbriu = null;
+        var marcar = function (aberto) { botoesMenu.forEach(function (b) { b.setAttribute("aria-expanded", aberto ? "true" : "false"); }); };
         var fecharMenu = function (devolverFoco) {
             document.body.classList.remove("menu-aberto");
-            botaoMenu.setAttribute("aria-expanded", "false");
+            marcar(false);
             if (fundo) { fundo.remove(); fundo = null; }
-            if (devolverFoco) botaoMenu.focus();
+            if (devolverFoco && quemAbriu) quemAbriu.focus();
+            quemAbriu = null;
         };
-        botaoMenu.addEventListener("click", function () {
-            document.body.classList.add("menu-aberto");
-            botaoMenu.setAttribute("aria-expanded", "true");
-            fundo = document.createElement("div");
-            fundo.className = "drawer-fundo";
-            fundo.addEventListener("click", function () { fecharMenu(true); });
-            document.body.appendChild(fundo);
-            var primeiro = $(".sidebar-nav a", sidebar);
-            if (primeiro) primeiro.focus();
+        botoesMenu.forEach(function (botao) {
+            botao.addEventListener("click", function () {
+                // Já aberta: fecha, em vez de criar um segundo .drawer-fundo (o primeiro ficaria órfão cobrindo a página)
+                if (document.body.classList.contains("menu-aberto")) { fecharMenu(true); return; }
+                quemAbriu = botao;
+                document.body.classList.add("menu-aberto");
+                marcar(true);
+                fundo = document.createElement("div");
+                fundo.className = "drawer-fundo";
+                fundo.addEventListener("click", function () { fecharMenu(true); });
+                document.body.appendChild(fundo);
+                // data-menu-foco="busca": o botão de busca da barra do topo abre a gaveta já no campo de busca (RD4)
+                var alvo = botao.getAttribute("data-menu-foco") === "busca" ? $("[data-busca-global]") : $(".sidebar-nav a", sidebar);
+                if (alvo) alvo.focus();
+            });
         });
         $$("[data-menu-fechar]").forEach(function (b) { b.addEventListener("click", function () { fecharMenu(true); }); });
         document.addEventListener("keydown", function (e) {
             if (e.key === "Escape" && document.body.classList.contains("menu-aberto")) fecharMenu(true);
         });
         // Se a janela crescer com o menu aberto, desfaz o estado de drawer
+        // Alterado (redesign B): breakpoint de 992 para 1100px, o mesmo do layout.css
         window.addEventListener("resize", function () {
-            if (window.innerWidth >= 992 && document.body.classList.contains("menu-aberto")) fecharMenu(false);
+            if (window.innerWidth >= 1100 && document.body.classList.contains("menu-aberto")) fecharMenu(false);
         });
     }
 
@@ -105,9 +122,16 @@
             b.title = escuro ? "Tema claro" : "Tema escuro";
         });
     }
+    // Novo (redesign B, D5 e parecer R2): o clique no botão vira escolha (true mesmo com o localStorage bloqueado)
+    var escolhaNestaPagina = false;
+    function temEscolha() {
+        if (escolhaNestaPagina) return true;
+        try { var t = window.localStorage.getItem("sistema-tema"); return t === "dark" || t === "light"; } catch (e) { return false; }
+    }
     $$("[data-tema-alternar]").forEach(function (b) {
         b.addEventListener("click", function () {
             var novo = temaAtual() === "dark" ? "light" : "dark";
+            escolhaNestaPagina = true;
             document.documentElement.setAttribute("data-theme", novo);
             try { window.localStorage.setItem("sistema-tema", novo); } catch (e) { /* armazenamento bloqueado: vale só nesta página */ }
             atualizarBotoesTema();
@@ -115,6 +139,19 @@
         });
     });
     atualizarBotoesTema();
+    // Novo (redesign B, D5 e parecer R2): sem escolha salva, acompanha a troca de tema do aparelho com a página aberta
+    var temaAparelho = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
+    if (temaAparelho) {
+        var aoMudarAparelho = function (e) {
+            if (temEscolha()) return;
+            document.documentElement.setAttribute("data-theme", e.matches ? "dark" : "light");
+            atualizarBotoesTema();
+            // O gráfico se redesenha com as cores do tema novo
+            document.dispatchEvent(new CustomEvent("sistema:tema"));
+        };
+        if (temaAparelho.addEventListener) temaAparelho.addEventListener("change", aoMudarAparelho);
+        else if (temaAparelho.addListener) temaAparelho.addListener(aoMudarAparelho);
+    }
 
     // ---------------------------------------------------------------
     // Menus suspensos (usuário na topbar e "três pontos" nas tabelas)
@@ -214,9 +251,17 @@
             if (!buscaGlobal.parentElement.contains(e.target)) { listaBusca.hidden = true; buscaGlobal.setAttribute("aria-expanded", "false"); }
         });
         // Atalho "/" foca a busca (fora de campos de texto)
+        // Alterado (direção D): abaixo de 1100px a busca fica na gaveta fechada (fora do Tab); o atalho abre a gaveta pelo
+        // botão de busca da barra do topo, que já leva o foco ao campo (RD3 e RD4)
         document.addEventListener("keydown", function (e) {
             var alvo = e.target.tagName;
-            if (e.key === "/" && alvo !== "INPUT" && alvo !== "TEXTAREA" && alvo !== "SELECT") { e.preventDefault(); buscaGlobal.focus(); }
+            // Com a folha da venda aberta (diálogo do PDV), o atalho não abre a gaveta por baixo dela
+            if (e.key === "/" && alvo !== "INPUT" && alvo !== "TEXTAREA" && alvo !== "SELECT" && !document.body.classList.contains("folha-venda-aberta")) {
+                e.preventDefault();
+                var abridorBusca = $("[data-menu-abrir][data-menu-foco='busca']");
+                if (window.innerWidth < 1100 && abridorBusca && !document.body.classList.contains("menu-aberto")) abridorBusca.click();
+                else buscaGlobal.focus();
+            }
         });
     }
 
@@ -261,6 +306,31 @@
     });
 
     // ---------------------------------------------------------------
+    // Novo (direção D, RD8): motivos rápidos da recusa (Pedido/Index) e contador "N de 300".
+    // Sem JS o grupo continua escondido (hidden) e a dica fica estática. O campo é achado pelo próprio form (não por id),
+    // o texto vem do data-motivo-texto (sem innerHTML), é cortado no maxLength (o maxlength não limita valor posto por
+    // script) e o evento input atualiza o contador. O servidor continua aceitando qualquer texto de até 300 (HF-006)
+    // ---------------------------------------------------------------
+    $$("[data-motivos]").forEach(function (grupo) {
+        var form = grupo.closest("form");
+        var campo = form ? form.elements.namedItem("motivo") : null;
+        if (!campo) return;
+        var contador = $("[data-motivo-contador]", form);
+        var limite = campo.maxLength > 0 ? campo.maxLength : 300;
+        var contar = function () { if (contador) contador.textContent = campo.value.length + " de " + limite + " caracteres"; };
+        grupo.hidden = false;
+        $$("[data-motivo-texto]", grupo).forEach(function (b) {
+            b.addEventListener("click", function () {
+                campo.value = (b.getAttribute("data-motivo-texto") || "").slice(0, limite);
+                campo.dispatchEvent(new Event("input", { bubbles: true }));
+                campo.focus();
+            });
+        });
+        campo.addEventListener("input", contar);
+        contar();
+    });
+
+    // ---------------------------------------------------------------
     // Spinner no botão de envio. Espera a validação do jQuery decidir:
     // se ela cancelou o envio (defaultPrevented), o botão não fica carregando
     // ---------------------------------------------------------------
@@ -299,6 +369,14 @@
         cards.forEach(function (c) { cardsPorId[c.getAttribute("data-id")] = c; });
         // Com JS, os selects ficam escondidos (o produto vem do card): tira do Tab para não focar algo invisível
         linhas.forEach(function (l) { $("[data-produto]", l).setAttribute("tabindex", "-1"); });
+        // Corrigido (revisão D1/D2, achado 2): Enter na busca de produtos (ou "Ir" no teclado do celular) enviava o
+        // #formPedido e registrava a venda ou o pedido sem revisão. Na busca, Enter só filtra
+        var campoBuscaPdv = $("[data-pdv-busca]", pedido);
+        if (campoBuscaPdv) {
+            campoBuscaPdv.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") e.preventDefault();
+            });
+        }
 
         var lerQtd = function (campo) {
             var q = parseInt(campo.value, 10);
@@ -349,8 +427,13 @@
             });
 
             total.textContent = moeda.format(soma);
+            // Novo (direção D): com o total zerado, o número fica cinza e sem a etiqueta amarela (nada em aberto ainda)
+            total.classList.toggle("zerado", soma === 0);
             var textoItens = unidades + (unidades === 1 ? " item" : " itens");
             if (qtdItens) qtdItens.textContent = textoItens;
+            // Novo (direção D, RD11): "N de 8 produtos" sai das linhas do formulário, nunca de um 8 escrito à mão
+            var limite = $("[data-pdv-limite]", pedido);
+            if (limite) limite.textContent = usadas + " de " + linhas.length + " produtos";
             // Barra flutuante do celular: mesmo total, só aparece com itens no carrinho
             var barra = $("[data-pdv-barra]", pedido);
             if (barra) {
@@ -425,6 +508,74 @@
         pedido.addEventListener("input", atualizar);
         pedido.addEventListener("change", atualizar);
         atualizar();
+
+        // -----------------------------------------------------------
+        // Novo (direção D, RD11): no celular (abaixo de 880px) a barra fixa abre a venda numa folha que sobe do rodapé.
+        // A folha é o MESMO #carrinho, dentro do #formPedido, só mudado por classe: nada é clonado, então os 8
+        // Linhas[i].ProdutoId/Quantidade e o Comprador continuam um só no form. Sem JS, o carrinho fica no fluxo.
+        // role="dialog" e aria-modal só enquanto a folha está aberta, com o foco preso dentro, Esc e o foco de volta na barra
+        // -----------------------------------------------------------
+        var carrinho = $("#carrinho", pedido);
+        var barraFolha = $("[data-pdv-barra]", pedido);
+        var fecharFolhaBtn = $("[data-pdv-folha-fechar]", pedido);
+        var estreito = window.matchMedia("(max-width: 879.98px)");
+        if (carrinho && barraFolha) {
+            // Erro do servidor dentro do carrinho (ex.: cliente não encontrado): o carrinho fica no fluxo, à vista, sem folha
+            if ($(".field-validation-error, .input-validation-error", carrinho)) pedido.classList.add("pdv-com-erro");
+            var fundoFolha = null;
+            var focaveis = function () {
+                return $$("a[href], button, input, select, textarea, [tabindex]", carrinho).filter(function (el) {
+                    return el.tabIndex >= 0 && !el.disabled && el.type !== "hidden" && el.getClientRects().length > 0;
+                });
+            };
+            var fecharFolha = function (devolverFoco) {
+                if (!carrinho.classList.contains("folha-aberta")) return;
+                carrinho.classList.remove("folha-aberta");
+                carrinho.removeAttribute("role");
+                carrinho.removeAttribute("aria-modal");
+                document.body.classList.remove("folha-venda-aberta");
+                barraFolha.setAttribute("aria-expanded", "false");
+                if (fecharFolhaBtn) fecharFolhaBtn.hidden = true;
+                if (fundoFolha) { fundoFolha.remove(); fundoFolha = null; }
+                if (devolverFoco) {
+                    // Se a venda ficou vazia, a barra some: o foco vai para a busca de produtos
+                    var volta = barraFolha.hidden ? $("[data-pdv-busca]", pedido) : barraFolha;
+                    if (volta) volta.focus();
+                }
+            };
+            var abrirFolha = function () {
+                carrinho.classList.add("folha-aberta");
+                carrinho.setAttribute("role", "dialog");
+                carrinho.setAttribute("aria-modal", "true");
+                document.body.classList.add("folha-venda-aberta");
+                barraFolha.setAttribute("aria-expanded", "true");
+                if (fecharFolhaBtn) fecharFolhaBtn.hidden = false;
+                fundoFolha = document.createElement("div");
+                fundoFolha.className = "folha-fundo";
+                fundoFolha.addEventListener("click", function () { fecharFolha(true); });
+                document.body.appendChild(fundoFolha);
+                (fecharFolhaBtn || carrinho).focus();
+            };
+            barraFolha.addEventListener("click", function () {
+                if (estreito.matches && !pedido.classList.contains("pdv-com-erro")) abrirFolha();
+                else carrinho.focus();
+            });
+            if (fecharFolhaBtn) fecharFolhaBtn.addEventListener("click", function () { fecharFolha(true); });
+            carrinho.addEventListener("keydown", function (e) {
+                if (!carrinho.classList.contains("folha-aberta")) return;
+                if (e.key === "Escape") { e.preventDefault(); fecharFolha(true); return; }
+                if (e.key !== "Tab") return;
+                // Foco preso na folha: do último volta ao primeiro, e vice-versa
+                var lista = focaveis();
+                if (!lista.length) return;
+                var primeiro = lista[0], ultimo = lista[lista.length - 1];
+                if (e.shiftKey && (document.activeElement === primeiro || document.activeElement === carrinho)) { e.preventDefault(); ultimo.focus(); }
+                else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primeiro.focus(); }
+            });
+            // Janela larga de novo (girar o tablet): a folha vira a coluna da direita
+            var aoMudarLargura = function () { if (!estreito.matches) fecharFolha(false); };
+            if (estreito.addEventListener) estreito.addEventListener("change", aoMudarLargura); else estreito.addListener(aoMudarLargura);
+        }
     }
 
     // ---------------------------------------------------------------
@@ -442,13 +593,13 @@
 
         var desenhar = function () {
             if (grafico) grafico.destroy();
-            // Redesign: barras do mês no verde-petróleo (a cor dos dados) e "hoje" em tinta; cores lidas dos tokens do tema
-            var corBarra = cor("--chart-bar") || "#1B6C80";
+            // Alterado (redesign B): barras do mês no azul-caneta (a cor dos dados) e "hoje" em tinta; cores lidas dos tokens do tema
+            var corBarra = cor("--chart-bar") || "#1D5FBF";
             var corHoje = cor("--chart-bar-hoje") || "#131416";
             var hoje = valores.length - 1;
 
-            // Redesign: mesma fonte da interface (IBM Plex Sans), com a Inter e a do sistema como reserva
-            window.Chart.defaults.font.family = "'IBM Plex Sans', Inter, system-ui, sans-serif";
+            // Alterado (redesign B, parecer R3): a mesma família do @font-face do base.css ("Geist"), com a do sistema como reserva
+            window.Chart.defaults.font.family = "Geist, system-ui, sans-serif";
             window.Chart.defaults.color = cor("--chart-text");
 
             grafico = new window.Chart(canvas, {
@@ -459,7 +610,7 @@
                         label: "Vendas",
                         data: valores,
                         backgroundColor: valores.map(function (_, i) { return i === hoje ? corHoje : corBarra; }),
-                        hoverBackgroundColor: cor("--chart-bar-hover") || "#12505F",
+                        hoverBackgroundColor: cor("--chart-bar-hover") || "#164A94",
                         // Redesign: colunas de canto reto na base e só 2px de raio no topo (a base fica apoiada no zero)
                         borderRadius: 2,
                         borderSkipped: "start",
@@ -469,7 +620,8 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    animation: { duration: 500 },
+                    // Alterado (redesign B, parecer 7.1-4): sem animação para quem pediu menos movimento no sistema
+                    animation: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : { duration: 500 },
                     interaction: { mode: "index", intersect: false },
                     plugins: {
                         legend: { display: false },

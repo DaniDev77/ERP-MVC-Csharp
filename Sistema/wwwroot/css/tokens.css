@@ -1,56 +1,111 @@
 /* =========================================================================
    tokens.css · Design tokens do Sistema (cores, tipo, raios, espaço, gráfico)
-   Tema claro em :root; tema escuro em [data-theme="dark"] (definido pelo theme-init.js)
+   Alterado (direção D "Balcão"): a lateral e o conteúdo ficam no mesmo chão de
+   pedra (#F4F4F1) e o trabalho fica em painéis brancos, num nível só. A cor só
+   aparece para estado: amarelo de etiqueta (--tag) = em aberto, alguém precisa
+   agir; verde = resolvido; vermelho = falhou ou falta; cinza = encerrado.
+   O azul fica só no foco. O --accent passa a ser tinta (parecer RD6).
+   Contrastes medidos (scratchpad/tools/contraste-d.mjs e contraste-d1.mjs):
+   todos os pares de texto e de controle passam AA nos dois temas.
 
-   Redesign "moldura e folha": a casca (sidebar + topbar) é uma moldura em L num
-   cinza-esverdeado bem leve, e o trabalho fica numa folha branca. A cor de
-   destaque é o verde-petróleo da etiqueta de gôndola, usada só em dados, foco,
-   logo e aba ativa. O botão principal é quase preto. Sem gradiente, sem sombra
-   em nada parado. Contrastes medidos: todos os textos passam AA (4.5:1).
+   Tema: claro em :root; escuro em [data-theme="dark"] (gravado pelo
+   theme-init.js) e, sem JS, pela media query prefers-color-scheme.
+   Regra (parecer R1): todo ajuste de tema é token e só aparece aqui.
    ========================================================================= */
 
 :root {
-  /* ---------- Papéis novos (o que as peças usam) ---------- */
-  /* Moldura em L (sidebar + topbar) e fundo da página: cinza-esverdeado tirado do verde-petróleo */
-  --frame: #EEF2F1;
-  /* Folha de trabalho, cards e campos */
+  /* ---------- Superfícies ---------- */
+  /* Alterado (direção D): chão de pedra para a lateral e o fundo das telas (era a moldura azul-acinzentada) */
+  --frame: #F4F4F1;
+  /* Painéis, cards e campos */
   --surface: #FFFFFF;
-  /* Um degrau de tom: rodapé de card, hover de linha, poço de dados */
-  --raised: #F4F6F6;
-  /* Pílula cinza do item ativo no menu e hover de botões discretos */
-  --active: #E3E8E7;
-  /* Linhas em três degraus: borda de card, régua de linha, borda de controle */
-  --border: #E6E9E9;
-  --rule: #F0F2F2;
-  --control: #CDCED1;
-  /* Borda dos campos de formulário: 3,3:1 sobre branco (WCAG 1.4.11) */
-  --input-line: #8A8D90;
-  /* Texto em três níveis (18,4:1 · 6,4:1 · 5,2:1 sobre branco) */
-  --text: #131416;
-  --muted: #5D5F60;
-  --faint: #6B6D6E;
-  /* Botão principal quase preto com rótulo branco (17,8:1) */
-  --primary-fill: #16181A;
-  --primary-fill-hover: #2B2E31;
-  --on-primary-fill: #FFFFFF;
-  /* Destaque verde-petróleo: dados, foco, aba ativa, logo (6,0:1 sobre branco) */
-  --accent: #1B6C80;
-  --accent-fill: #1B6C80;          /* fundo com texto branco (checkbox marcado, logo) */
-  --accent-soft: #E3F0F3;          /* fundo pálido do selo de destaque */
-  --accent-ink: #12505F;           /* texto sobre o fundo pálido */
-  /* Estados: texto AA e pares pálidos para selos */
-  --positive: #1E7B4F;
-  --negative: #C4242A;
-  --warning: #92400E;
-  --pill-positive-bg: #DCFAE5; --pill-positive-ink: #04250E; --pill-positive-line: #B5E8C6;
-  --pill-negative-bg: #FFEDEA; --pill-negative-ink: #831C1E; --pill-negative-line: #F6C9C4;
-  --pill-warning-bg:  #FFFBEB; --pill-warning-ink:  #92400E; --pill-warning-line:  #FDE68A;
-  --pill-neutral-bg:  #EBEDEE; --pill-neutral-ink:  #353736;
-  --focus-ring: 0 0 0 3px rgba(27, 108, 128, .28);
-  --overlay: rgba(19, 20, 22, .45);
+  /* Um degrau de tom: painel de recusa, motivo, poço de dados */
+  --raised: #F0F0EC;
+  /* Novo (direção D): fundo de hover dos itens de menu e dos botões discretos */
+  --hover: #EBEBE6;
+  /* Pílula do item ativo no menu, filtro escolhido e aba ativa do rodapé */
+  --active: #E6E5E0;
+  /* Linhas em três degraus: borda de painel, régua de linha, borda de controle */
+  --border: #E2E1DC;
+  --rule: #EEEEEA;
+  --control: #C9C8C2;
+  /* Borda dos campos de formulário: 3,51:1 sobre branco (WCAG 1.4.11) */
+  --input-line: #8A8983;
+  /* Novo (direção D): trilho da régua de estoque */
+  --track: #E6E5E0;
 
-  /* ---------- Apelidos dos nomes antigos (mantidos para nada quebrar) ---------- */
-  /* Os nomes antigos passam a apontar para os papéis novos */
+  /* ---------- Texto (17,26 · 7,27 · 5,53 sobre o painel) ---------- */
+  --text: #1B1B18;
+  --muted: #575751;
+  /* Meta e placeholder (4,84:1 sobre o --raised; não usar sobre o --active) */
+  --faint: #696962;
+
+  /* ---------- Ações ---------- */
+  /* Botão principal em tinta com rótulo branco (17,26:1) */
+  --primary-fill: #1B1B18;
+  --primary-fill-hover: #3A3A35;
+  --on-primary-fill: #FFFFFF;
+  /* Trilho segmentado (período) e fundo cinza de controles */
+  --secondary-fill: #ECEBE7;
+  --secondary-fill-hover: #E6E5E0;
+  /* Novo (direção D): botão de perigo (6,54:1 com o branco) */
+  --danger-fill: #B3261E;
+  --on-danger-fill: #FFFFFF;
+
+  /* ---------- Etiqueta "em aberto" (novo, direção D, parecer RD6) ---------- */
+  /* Amarelo de etiqueta de preço com tinta por cima (12,30:1). Só para o que espera alguém agir */
+  --tag: #FFD64A;
+  --on-tag: #1B1B18;
+
+  /* ---------- Destaque ---------- */
+  /* Alterado (direção D, RD6): o destaque deixa de ser azul e vira tinta; o azul fica só no foco */
+  --accent: #1B1B18;
+  --accent-fill: #1B1B18;
+  --accent-soft: #ECEBE7;
+  --accent-ink: #1B1B18;
+  /* Foco: 2px de contorno com 2px de afastamento (6,50:1 no painel, 5,89:1 no chão) */
+  --focus: #1F56C9;
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus);
+
+  /* ---------- Estados (texto AA) e pares pálidos para selos ---------- */
+  --positive: #1D7A46;
+  --negative: #BF2A2F;
+  /* Aviso âmbar em texto (6,85:1 no painel); o amarelo cheio é só a etiqueta */
+  --warning: #7A5300;
+  /* Texto sobre o vermelho e o verde cheios; o escuro só troca o valor (parecer R1) */
+  --on-negative: #FFFFFF;
+  --on-positive: #FFFFFF;
+  --danger-hover: #8F1E18;
+  /* Anel de foco de campo inválido */
+  --invalid-ring: 0 0 0 1px var(--negative);
+  /* Alterado (direção D): selos sem linha (a linha fica igual ao fundo) */
+  --pill-positive-bg: #E1F4E6; --pill-positive-ink: #0E4A27; --pill-positive-line: #E1F4E6;
+  --pill-negative-bg: #FBE9E8; --pill-negative-ink: #8A1D21; --pill-negative-line: #F3CFCC;
+  --pill-warning-bg:  #FFF1C2; --pill-warning-ink:  #5C4300; --pill-warning-line:  #FFF1C2;
+  --pill-neutral-bg:  #ECEBE7; --pill-neutral-ink:  #46463F;
+  --overlay: rgba(27, 27, 24, .42);
+
+  /* ---------- Ajustes de tema que antes ficavam fora dos tokens (parecer R1) ---------- */
+  /* Seta do select na cor do texto secundário de cada tema */
+  --select-seta: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23575751' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  /* Botão de fechar do Bootstrap: sem filtro no claro, invertido no escuro */
+  --btn-close-filter: none;
+  /* Avatar e miniatura: saturação e luminosidade do matiz de cada nome (Visual.Matiz) */
+  --ident-ink: 45% 26%;
+  --ident-bg: 50% 89%;
+  --thumb-bg: 40% 90%;
+  /* Ícones do botão de tema: lua no claro, sol no escuro */
+  --tema-lua: block;
+  --tema-sol: none;
+  /* Linha entre o painel e o formulário nas telas de acesso (só aparece no escuro) */
+  --auth-divisa: transparent;
+  /* Vitrine (até a Fase 8): campo do "palco" e filtro das fotos */
+  --vitrine-palco: #1B6C80;
+  --vitrine-palco-faixa: #1F7387;
+  --vitrine-palco-fundo: #15596A;
+  --vitrine-foto-filtro: none;
+
+  /* ---------- Apelidos dos nomes antigos (mantidos até a limpeza da Fase 7) ---------- */
   --bg: var(--frame);
   --surface-2: var(--raised);
   --surface-3: var(--active);
@@ -68,61 +123,69 @@
   --action-active: #000000;
   --surface-inverse: var(--primary-fill);
   --on-inverse: #FFFFFF;
-  --on-inverse-2: #C9CCCE;
+  --on-inverse-2: #CFCFC8;
   --inverse-line: rgba(255, 255, 255, .14);
   --inverse-soft: rgba(255, 255, 255, .08);
   --neutral-ink: var(--muted);
   --neutral-bg: var(--raised);
-  /* Escala "brand" antiga remapeada para a família do verde-petróleo */
-  --brand-50: #F1F6F6; --brand-100: #E3EEEF; --brand-200: #C7DDE2; --brand-300: #9CC4CE;
-  --brand-400: #5D9FB0; --brand-500: #2A8199; --brand-600: #1B6C80; --brand-700: #12505F;
-  --brand-800: #1D3A42; --brand-900: #131416; --brand-950: #0A0B0C;
-  /* Escala slate antiga remapeada para os neutros novos */
-  --slate-25: #FCFCFC; --slate-50: #F4F6F6; --slate-100: #EBEDEE; --slate-200: #E6E9E9;
-  --slate-300: #CDCED1; --slate-400: #8A8D90; --slate-500: #6B6D6E; --slate-600: #5D5F60;
-  --slate-700: #353736; --slate-800: #1F2123; --slate-900: #131416; --slate-950: #0A0B0C;
-  /* Estados com os nomes antigos (cor, texto, fundo pálido, linha) */
+  /* Alterado (direção D): a escala "brand" antiga vira a família neutra da pedra (sem azul de marca) */
+  --brand-50: #F7F7F4; --brand-100: #ECEBE7; --brand-200: #DADAD4; --brand-300: #B8B8B1;
+  --brand-400: #8E8E86; --brand-500: #696962; --brand-600: #1B1B18; --brand-700: #1B1B18;
+  --brand-800: #121210; --brand-900: #1B1B18; --brand-950: #0B0B0A;
+  /* Escala slate antiga remapeada para os neutros da pedra */
+  --slate-25: #FBFBF9; --slate-50: #F0F0EC; --slate-100: #ECEBE7; --slate-200: #E2E1DC;
+  --slate-300: #C9C8C2; --slate-400: #8A8983; --slate-500: #696962; --slate-600: #575751;
+  --slate-700: #46463F; --slate-800: #2A2A27; --slate-900: #1B1B18; --slate-950: #0B0B0A;
   --success: var(--positive); --success-ink: var(--positive); --success-bg: var(--pill-positive-bg); --success-line: var(--pill-positive-line);
   --warning-ink: var(--warning); --warning-bg: var(--pill-warning-bg); --warning-line: var(--pill-warning-line);
   --danger: var(--negative); --danger-ink: var(--pill-negative-ink); --danger-bg: var(--pill-negative-bg); --danger-line: var(--pill-negative-line);
-  --danger-hover: #A11D22;
   --info: var(--accent); --info-ink: var(--accent-ink); --info-bg: var(--accent-soft); --info-line: var(--brand-200);
 
-  /* ---------- Tipografia: uma família só, IBM Plex Sans ---------- */
-  --font-sans: "IBM Plex Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  /* Títulos usam a mesma família (antes era Plus Jakarta Sans) */
+  /* ---------- Tipografia: Geist (texto e números) e Geist Mono (CPF e códigos) ---------- */
+  --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: var(--font-sans);
-  /* Plex Mono só para códigos, CPF e IDs */
-  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-mono: "Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  /* Alterado (direção D): escala 12 · 13 · 14 (menu, tabela, chip) · 15 (corpo) · 17 (título de painel) · 24 (h1) · 30 (KPI e total) */
   --fs-xs: 12px;
   --fs-sm: 13px;
-  --fs-base: 14px;
-  --fs-md: 16px;
-  --fs-lg: 16px;
-  --fs-xl: 22px;
-  --fs-2xl: 22px;
-  --fs-3xl: 28px;
-  --fs-kpi: 28px;
+  --fs-ui: 14px;
+  --fs-base: 15px;
+  --fs-md: 17px;
+  --fs-lg: 18px;
+  --fs-xl: 24px;
+  --fs-2xl: 24px;
+  --fs-3xl: 30px;
+  --fs-kpi: 30px;
 
-  /* ---------- Raios: folha 16, card 8, controle 6, selo 4 ---------- */
+  /* ---------- Raios (direção D): painel 14, campo 10, etiqueta e selo 4, botão e filtro 999 ---------- */
   --r-xs: 4px;
-  --r-sm: 6px;
-  --r-control: 6px;
-  --r-card: 8px;
-  --r-lg: 8px;
-  --r-sheet: 16px;
+  --r-tag: 4px;
+  --r-sm: 8px;
+  --r-control: 10px;
+  --r-card: 14px;
+  --r-lg: 14px;
+  --r-sheet: 14px;
   --r-pill: 999px;
 
-  /* ---------- Sombras: só no que flutua (menus, toasts); nada parado tem sombra ---------- */
+  /* ---------- Sombras: só no que flutua (menus, toasts, gaveta, folha da venda) ---------- */
   --shadow-xs: none;
   --shadow-sm: none;
-  --shadow-md: 0 4px 16px rgba(19, 20, 22, .10);
-  --shadow-lg: 0 8px 28px rgba(19, 20, 22, .14);
+  --shadow-md: 0 4px 16px rgba(27, 27, 24, .10);
+  --shadow-lg: 0 8px 28px rgba(27, 27, 24, .14);
+  /* A sombra única do que flutua */
+  --shadow-float: 0 12px 32px rgba(27, 27, 24, .16);
 
-  /* ---------- Espaço (escala de 4px; um espaçamento único de 24px) ---------- */
+  /* ---------- Espaço (escala de 4px) ---------- */
   --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 20px;
   --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px;
-  --gap: 24px;
+  /* Alterado (direção D): gap de 16px entre painéis, como no protótipo */
+  --gap: 16px;
+  /* Padding da tela, do painel e alturas de controle e de linha */
+  --pad: 32px;
+  --card-pad: 20px;
+  /* Alterado (direção D): controle de 40px (44px abaixo de 1100px, no layout.css) e linha de tabela de 58px */
+  --control-h: 40px;
+  --row: 58px;
 
   /* ---------- Movimento: só resposta a ações ---------- */
   --t-fast: 120ms;
@@ -130,76 +193,179 @@
   --ease: cubic-bezier(.2, .8, .2, 1);
 
   /* ---------- Medidas da casca ---------- */
-  --sidebar-w: 228px;
-  --topbar-h: 48px;
-  --sheet-inset: 8px;
+  /* Alterado (direção D): lateral de 248px no mesmo chão; barra do topo de 56px abaixo de 1100px (RD2) */
+  --sidebar-w: 248px;
+  --topbar-h: 56px;
+  /* Novo (direção D, RD2): altura das abas do rodapé (sem a área segura do aparelho) */
+  --abas-h: 62px;
+  /* Alterado (direção D): sem moldura nem borda de 8px; o token fica em 0 para quem ainda o lê */
+  --sheet-inset: 0px;
   --content-max: 1320px;
+  /* Onde param os elementos fixos ao rolar: topo da janela no desktop; abaixo da barra de 56px no celular (layout.css) */
+  --sticky-top: 0px;
+  /* Novo (direção D, RD2): espaço ocupado pelas abas fixas no rodapé (0 no desktop e para o visitante; layout.css) */
+  --rodape-fixo: 0px;
 
-  /* ---------- Gráfico: cores lidas pelo site.js ---------- */
-  /* Barras do mês no verde-petróleo; "hoje" em tinta para se destacar */
-  --chart-bar: #1B6C80;
-  --chart-bar-hoje: #131416;
-  --chart-bar-hover: #12505F;
-  --chart-grid: #ECEEEE;
-  --chart-text: #5D5F60;
-  --chart-tooltip: #131416;
+  /* ---------- Gráfico: cores lidas pelo site.js (nomes são contrato) ---------- */
+  /* Alterado (direção D): barras do mês em cinza e "hoje" em tinta (a cor de "hoje" se decide na Fase 3, RD14) */
+  --chart-bar: #8E8E86;
+  --chart-bar-hoje: #1B1B18;
+  --chart-bar-hover: #575751;
+  --chart-grid: #ECEBE6;
+  --chart-text: #575751;
+  --chart-tooltip: #1B1B18;
+
+  /* ---------- Mapa de UFs (Fase 4): rampa sequencial de 5 faixas ---------- */
+  /* A rampa em tinta da direção D entra na Fase 4, com o contraste revalidado (RD16) */
+  --map-1: #E3ECF9; --map-2: #A9C4EE; --map-3: #6B97DE; --map-4: #2F6CC7; --map-5: #143F86;
 
   color-scheme: light;
 }
 
-/* ---------- Tema escuro: neutro de verdade (sai o azul-marinho) ---------- */
+/* Os controles nativos e a barra de rolagem seguem o tema escolhido (parecer R2) */
+:root[data-theme="light"] { color-scheme: light; }
+
+/* ---------- Tema escuro: pedra escura, painel um degrau acima do chão ----------
+   ATENÇÃO: este bloco existe duas vezes (aqui e na media query logo abaixo).
+   Ao mudar um valor, mude nos dois lugares (parecer R1 e RD6). */
 [data-theme="dark"] {
-  /* Moldura mais escura que a folha; superfícies separadas por degraus de luz */
-  --frame: #0A0B0C;
-  --surface: #111314;
-  --raised: #1A1C1E;
-  --active: #222527;
-  --border: #24272A;
-  --rule: #1C1E20;
-  --control: #3A3E42;
-  --input-line: #6E7276;
-  /* Texto: 16,8:1 · 9,2:1 · 6,3:1 sobre a folha */
-  --text: #F2F3F3;
-  --muted: #B4B6B8;
-  --faint: #949698;
-  /* Botão principal invertido: fundo claro, rótulo escuro */
-  --primary-fill: #F2F3F3;
-  --primary-fill-hover: #D9DBDC;
-  --on-primary-fill: #111314;
-  /* Destaque mais claro para manter 7,8:1 sobre a folha escura */
-  --accent: #5FB3C7;
-  --accent-fill: #2D8296;
-  --accent-soft: rgba(95, 179, 199, .14);
-  --accent-ink: #8FCBD9;
-  --positive: #3FC07A;
-  --negative: #EF6B74;
-  --warning: #E3A54A;
-  --pill-positive-bg: #172A1D; --pill-positive-ink: #5FD394; --pill-positive-line: #23422D;
-  --pill-negative-bg: #2C1A1D; --pill-negative-ink: #F28B92; --pill-negative-line: #4A2529;
-  --pill-warning-bg:  #2A2112; --pill-warning-ink:  #EDB766; --pill-warning-line:  #4A3818;
-  --pill-neutral-bg:  #222527; --pill-neutral-ink:  #C9CBCD;
-  --focus-ring: 0 0 0 3px rgba(95, 179, 199, .35);
+  --frame: #131312;
+  --surface: #1C1C1A;
+  --raised: #242422;
+  --hover: #292926;
+  --active: #2F2F2C;
+  --border: #2D2D2A;
+  --rule: #252523;
+  --control: #46463F;
+  --input-line: #7C7C75;
+  --track: #33332F;
+  --text: #EDEDE8;
+  --muted: #B3B3AC;
+  --faint: #9A9A93;
+  --primary-fill: #E6E6E0;
+  --primary-fill-hover: #FFFFFF;
+  --on-primary-fill: #1B1B18;
+  --secondary-fill: #242422;
+  --secondary-fill-hover: #2F2F2C;
+  --danger-fill: #F07A7F;
+  --on-danger-fill: #1B1B18;
+  --tag: #F0C640;
+  --on-tag: #1B1B18;
+  --accent: #EDEDE8;
+  --accent-fill: #E6E6E0;
+  --accent-soft: #2A2A27;
+  --accent-ink: #EDEDE8;
+  --focus: #8DB3FF;
+  --positive: #55C285;
+  --negative: #F07A7F;
+  --warning: #E3B341;
+  --on-negative: #1B1B18;
+  --on-positive: #131312;
+  --danger-hover: #F59A9E;
+  --pill-positive-bg: #16281D; --pill-positive-ink: #74D49D; --pill-positive-line: #16281D;
+  --pill-negative-bg: #2E1B1C; --pill-negative-ink: #F59A9E; --pill-negative-line: #4A2529;
+  --pill-warning-bg:  #2B2412; --pill-warning-ink:  #F0C640; --pill-warning-line:  #2B2412;
+  --pill-neutral-bg:  #2A2A27; --pill-neutral-ink:  #D0D0C9;
   --overlay: rgba(0, 0, 0, .6);
-
-  /* Apelidos que mudam no escuro */
-  --action-active: #BFC2C4;
-  --surface-inverse: #1A1C1E;
-  --on-inverse-2: #B4B6B8;
-  --danger-hover: #D9454E;
-  --info-line: rgba(95, 179, 199, .30);
-  --brand-200: #24474F; --brand-300: #5FB3C7; --brand-400: #5FB3C7; --brand-500: #5FB3C7;
-
-  /* Sombras um pouco mais fortes, só para o que flutua */
+  --select-seta: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23B3B3AC' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  --btn-close-filter: invert(1) grayscale(1) brightness(1.8);
+  --ident-ink: 45% 84%;
+  --ident-bg: 26% 24%;
+  --thumb-bg: 22% 22%;
+  --tema-lua: none;
+  --tema-sol: block;
+  --auth-divisa: var(--border);
+  --vitrine-palco: #15596A;
+  --vitrine-palco-faixa: #1A6475;
+  --vitrine-palco-fundo: #0F4A59;
+  --vitrine-foto-filtro: brightness(0.6);
+  --action-active: #CFCFC8;
+  --surface-inverse: #242422;
+  --on-inverse-2: #B3B3AC;
+  --info-line: #46463F;
+  --brand-200: #3A3A35; --brand-300: #B3B3AC; --brand-400: #B3B3AC; --brand-500: #B3B3AC;
   --shadow-md: 0 4px 16px rgba(0, 0, 0, .45);
   --shadow-lg: 0 8px 28px rgba(0, 0, 0, .55);
-
-  /* Gráfico no escuro: barras em petróleo claro e "hoje" em branco */
-  --chart-bar: #3E97AC;
-  --chart-bar-hoje: #F2F3F3;
-  --chart-bar-hover: #5FB3C7;
-  --chart-grid: #222527;
-  --chart-text: #B4B6B8;
+  --shadow-float: 0 12px 32px rgba(0, 0, 0, .55);
+  --chart-bar: #7D7D76;
+  --chart-bar-hoje: #EDEDE8;
+  --chart-bar-hover: #B3B3AC;
+  --chart-grid: #2A2A27;
+  --chart-text: #B3B3AC;
   --chart-tooltip: #000000;
-
+  --map-1: #1B2638; --map-2: #22385E; --map-3: #2D5290; --map-4: #5584D6; --map-5: #B5CEF8;
   color-scheme: dark;
+}
+
+/* Sem JS, o tema segue o aparelho (D5, parecer R1). Cópia exata do bloco acima;
+   o :not([data-theme="light"]) deixa a escolha "claro" do botão valer num aparelho escuro */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --frame: #131312;
+    --surface: #1C1C1A;
+    --raised: #242422;
+    --hover: #292926;
+    --active: #2F2F2C;
+    --border: #2D2D2A;
+    --rule: #252523;
+    --control: #46463F;
+    --input-line: #7C7C75;
+    --track: #33332F;
+    --text: #EDEDE8;
+    --muted: #B3B3AC;
+    --faint: #9A9A93;
+    --primary-fill: #E6E6E0;
+    --primary-fill-hover: #FFFFFF;
+    --on-primary-fill: #1B1B18;
+    --secondary-fill: #242422;
+    --secondary-fill-hover: #2F2F2C;
+    --danger-fill: #F07A7F;
+    --on-danger-fill: #1B1B18;
+    --tag: #F0C640;
+    --on-tag: #1B1B18;
+    --accent: #EDEDE8;
+    --accent-fill: #E6E6E0;
+    --accent-soft: #2A2A27;
+    --accent-ink: #EDEDE8;
+    --focus: #8DB3FF;
+    --positive: #55C285;
+    --negative: #F07A7F;
+    --warning: #E3B341;
+    --on-negative: #1B1B18;
+    --on-positive: #131312;
+    --danger-hover: #F59A9E;
+    --pill-positive-bg: #16281D; --pill-positive-ink: #74D49D; --pill-positive-line: #16281D;
+    --pill-negative-bg: #2E1B1C; --pill-negative-ink: #F59A9E; --pill-negative-line: #4A2529;
+    --pill-warning-bg:  #2B2412; --pill-warning-ink:  #F0C640; --pill-warning-line:  #2B2412;
+    --pill-neutral-bg:  #2A2A27; --pill-neutral-ink:  #D0D0C9;
+    --overlay: rgba(0, 0, 0, .6);
+    --select-seta: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23B3B3AC' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    --btn-close-filter: invert(1) grayscale(1) brightness(1.8);
+    --ident-ink: 45% 84%;
+    --ident-bg: 26% 24%;
+    --thumb-bg: 22% 22%;
+    --tema-lua: none;
+    --tema-sol: block;
+    --auth-divisa: var(--border);
+    --vitrine-palco: #15596A;
+    --vitrine-palco-faixa: #1A6475;
+    --vitrine-palco-fundo: #0F4A59;
+    --vitrine-foto-filtro: brightness(0.6);
+    --action-active: #CFCFC8;
+    --surface-inverse: #242422;
+    --on-inverse-2: #B3B3AC;
+    --info-line: #46463F;
+    --brand-200: #3A3A35; --brand-300: #B3B3AC; --brand-400: #B3B3AC; --brand-500: #B3B3AC;
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, .45);
+    --shadow-lg: 0 8px 28px rgba(0, 0, 0, .55);
+    --shadow-float: 0 12px 32px rgba(0, 0, 0, .55);
+    --chart-bar: #7D7D76;
+    --chart-bar-hoje: #EDEDE8;
+    --chart-bar-hover: #B3B3AC;
+    --chart-grid: #2A2A27;
+    --chart-text: #B3B3AC;
+    --chart-tooltip: #000000;
+    --map-1: #1B2638; --map-2: #22385E; --map-3: #2D5290; --map-4: #5584D6; --map-5: #B5CEF8;
+    color-scheme: dark;
+  }
 }

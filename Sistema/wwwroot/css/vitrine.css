@@ -13,10 +13,12 @@
   --v-tinta: var(--text);
   --v-tinta-2: var(--muted);
   /* Campo verde-petróleo: branco sobre ele dá 6,0:1 */
-  --v-palco: #1B6C80;
+  /* Alterado (redesign B, parecer R1): os valores de cada tema vêm do tokens.css (--vitrine-*), que
+     também vale sem JS; a paleta da vitrine é redesenhada na Fase 8 */
+  --v-palco: var(--vitrine-palco);
   /* Listra da coluna recomendada (branco 5,5:1) e campo da frase final (branco 7,9:1) */
-  --v-palco-faixa: #1F7387;
-  --v-palco-fundo: #15596A;
+  --v-palco-faixa: var(--vitrine-palco-faixa);
+  --v-palco-fundo: var(--vitrine-palco-fundo);
   --v-sobre-palco: #FFFFFF;
   /* Grade: margens de 16 a 32px, um vão único, seções de 80 a 160px */
   --v-margem: clamp(1rem, 2.2vw, 2rem);
@@ -35,12 +37,7 @@
   --v-ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Tema escuro: palco mais fundo (branco 7,9:1) e as listras acompanham */
-[data-theme="dark"] .vitrine {
-  --v-palco: #15596A;
-  --v-palco-faixa: #1A6475;
-  --v-palco-fundo: #0F4A59;
-}
+/* Alterado (parecer R1): o palco mais fundo do tema escuro (branco 7,9:1) foi para os tokens --vitrine-* do tokens.css */
 
 /* ---------- Base da página ---------- */
 /* Corpo em 17px na tinta cheia, sobre o chão cinza-esverdeado */
@@ -392,7 +389,8 @@ html:not(.vitrine-js) [data-repor] button { visibility: hidden; }
 }
 .v-foto-pequena { width: 78%; justify-self: end; }
 /* No escuro as fotos escurecem: o texto claro que cruza a foto continua legível */
-[data-theme="dark"] .v-foto img { filter: brightness(0.6); }
+/* Alterado (parecer R1): o filtro vem do token --vitrine-foto-filtro (none no claro, brightness(0.6) no escuro) */
+.v-foto img { filter: var(--vitrine-foto-filtro); }
 
 @media (min-width: 992px) {
   .v-historia-grade {

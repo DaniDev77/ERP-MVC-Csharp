@@ -1,16 +1,20 @@
 /* =========================================================================
-   layout.css · Casca do app (sidebar + topbar + folha) e casca de login
-   Redesign "moldura e folha": sidebar e topbar dividem a mesma moldura em L,
-   sem linha entre elas; a página fica numa folha branca recuada 8px da direita
-   e de baixo, com raio 16 e borda de 1px, sem sombra.
-   Breakpoint do drawer: 992px (o mesmo do site.js).
+   layout.css · Casca do app e casca de login
+   Alterado (direção D "Balcão", D3 em parte):
+   - desktop (≥ 1100px): sem barra de topo. A lateral de 248px fica no mesmo
+     chão de pedra do conteúdo (sem moldura, sem borda de 8px e sem folha):
+     marca, busca, menu com contadores e, no rodapé, a conta e o tema.
+     O trabalho fica em painéis brancos, num nível só.
+   - abaixo de 1100px: barra de 56px no topo (marca, busca e conta, que abrem
+     a gaveta) e abas por perfil fixas no rodapé, ao alcance do polegar (RD2).
+     Os controles passam a 44px.
+   Breakpoint da gaveta: 1100px (o mesmo do site.js).
    ========================================================================= */
 
 /* ===================== Casca principal ===================== */
 .app { min-height: 100vh; }
 
-/* ---------- Sidebar fixa sobre a moldura ---------- */
-/* Mesma cor da moldura e sem borda: a sidebar e a topbar formam um L só */
+/* ---------- Lateral fixa no chão de pedra ---------- */
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
@@ -18,168 +22,137 @@
   width: var(--sidebar-w);
   display: flex;
   flex-direction: column;
+  gap: 14px;
+  padding: 18px 12px 12px;
   background: var(--frame);
-  border-right: 0;
-  transition: transform var(--t-base) var(--ease), background-color var(--t-base) var(--ease);
+  transition: transform var(--t-base) var(--ease), visibility 0s linear 0s;
 }
 
-/* Marca: logo de 28px e nome do produto, na altura da topbar */
+/* Linha da marca (e do botão de fechar a gaveta no celular) */
+.sidebar-topo { display: flex; align-items: center; flex: none; gap: var(--s-2); }
 .sidebar-marca {
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 56px;
-  padding: 0 var(--s-4);
-  flex: none;
+  flex: 1;
+  min-width: 0;
+  padding: 0 6px;
+  border-radius: var(--r-control);
   color: var(--text);
 }
 .sidebar-marca:hover { color: var(--text); }
-/* Logo: quadrado verde-petróleo chapado com a gôndola de três barras */
-.logo {
-  display: inline-grid;
-  place-items: center;
-  width: 28px; height: 28px;
-  border-radius: var(--r-control);
-  background: var(--accent-fill);
-  color: #fff;
-  flex: none;
+
+/* Busca "Ir para…" no alto da lateral, fora do .sidebar-nav (o site.js indexa todo link dentro dele) */
+/* Alterado (direção D): campo em pílula de 38px no branco do painel */
+.sidebar-busca { position: relative; flex: none; }
+.sidebar-busca .form-control {
+  min-height: 38px;
+  padding-top: 4px; padding-bottom: 4px; padding-right: 36px;
+  border-color: var(--border);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-ui);
+  background: var(--surface);
 }
-.logo svg { width: 18px; height: 18px; }
-.marca-texto { display: flex; flex-direction: column; line-height: 1.15; }
-/* Nome do produto em 15/600 e a linha de escopo em 12px cinza */
-.marca-nome { font-family: var(--font-sans); font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
-.marca-sub { font-size: var(--fs-xs); color: var(--muted); font-weight: 400; }
+.sidebar-busca .form-control:hover { border-color: var(--control); }
+.sidebar-busca > svg { width: 16px; height: 16px; color: var(--muted); }
+/* Resultados da busca ocupam a largura do campo e passam por cima do menu */
+.sidebar-busca .menu-acoes-lista { left: 0; right: auto; width: 100%; z-index: 60; }
+.sidebar-busca kbd {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--muted);
+  font: 500 12px/18px var(--font-mono);
+}
 
 .sidebar-nav {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-height: 0;
   overflow-y: auto;
-  padding: var(--s-1) var(--s-2) var(--s-4);
+  margin: 0 -4px;
+  padding: 0 4px 4px;
   scrollbar-width: thin;
 }
-/* Grupos em caixa normal, 12px cinza (sai o rótulo em maiúsculas espaçadas) */
-.nav-grupo {
-  margin: var(--s-5) 10px 6px;
-  font-size: var(--fs-xs);
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--faint);
-}
-/* Item de menu: 34px, ícone de 16px cinza, rótulo 14/400 */
+/* Grupos em 12px cinza */
+.nav-grupo { padding: 14px 10px 4px; font-size: var(--fs-xs); font-weight: 400; color: var(--muted); }
+/* Alterado (direção D): item de 36px (44 abaixo de 1100px), raio 10, 14px cinza; o ativo é a pílula --active em tinta */
 .nav-item-x {
   position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 34px;
+  min-height: 36px;
   padding: 0 10px;
-  margin-bottom: 1px;
   border-radius: var(--r-control);
+  font-size: var(--fs-ui);
   font-weight: 400;
   color: var(--muted);
   transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
 }
-.nav-item-x .nav-icon { width: 16px; height: 16px; flex: none; color: var(--faint); transition: color var(--t-fast) var(--ease); }
-.nav-item-x:hover { background: var(--active); color: var(--text); }
-.nav-item-x:hover .nav-icon { color: var(--text); }
-/* Item ativo: pílula cinza e rótulo em tinta (sem cor de marca nem filete à esquerda) */
+.nav-item-x svg, .nav-item-x .nav-icon { width: 18px; height: 18px; flex: none; }
+.nav-item-x:hover { background: var(--hover); color: var(--text); }
 .nav-item-x.ativo { background: var(--active); color: var(--text); font-weight: 500; }
-.nav-item-x.ativo .nav-icon { color: var(--text); }
 .nav-item-x.ativo::before { content: none; }
+/* O número fica no fim do link (contrato do HF-008 e da busca do menu) */
 .nav-item-x .contador { margin-left: auto; }
-/* Estoque baixo: só o ícone em vermelho; o contador vermelho diz quantos */
-.nav-item-x.alerta { color: var(--muted); }
-.nav-item-x.alerta .nav-icon { color: var(--negative); }
-.nav-item-x.alerta.ativo { color: var(--text); }
+/* Estoque baixo: o contador vermelho pálido diz quantos; o ícone fica no vermelho de estado */
+.nav-item-x.alerta svg { color: var(--negative); }
 
-/* Pé da sidebar: a ação mais frequente como botão, fora do <nav> (a busca não indexa) */
-.sidebar-rodape { padding: var(--s-3) var(--s-2) var(--s-4); flex: none; }
-.sidebar-acao { width: 100%; justify-content: flex-start; }
-/* Card antigo da sidebar (mantido só por compatibilidade, não é mais usado) */
-.sidebar-card { padding: var(--s-3); border-radius: var(--r-card); background: var(--surface); border: 1px solid var(--border); color: var(--text); }
-.sidebar-card strong { display: block; font-size: var(--fs-base); font-weight: 600; }
-.sidebar-card > span { display: block; font-size: var(--fs-xs); color: var(--muted); margin-top: 2px; }
-.sidebar-card a { display: inline-flex; align-items: center; gap: 6px; margin-top: var(--s-2); font-size: var(--fs-sm); font-weight: 500; }
-.sidebar-card a svg { width: 14px; height: 14px; }
+/* Rodapé da lateral, fora da área que rola: conta e tema, numa régua de 1px.
+   Fora do .sidebar-nav e sem overflow aqui: o menu da conta abre para cima sem ser cortado */
+.sidebar-rodape { flex: none; padding-top: var(--s-3); border-top: 1px solid var(--border); }
+.sidebar-conta { display: flex; align-items: center; gap: var(--s-1); min-width: 0; }
+.sidebar-conta .menu-acoes { display: block; flex: 1; min-width: 0; }
+.sidebar-conta .user-btn { width: 100%; }
+/* Visitante: Entrar e Criar conta lado a lado */
+.sidebar-conta > .btn { flex: 1; }
 
-/* ---------- Área à direita da sidebar ---------- */
-/* Recuo de 8px à direita e embaixo para a folha "flutuar" sobre a moldura */
+/* ---------- Área à direita da lateral ---------- */
+/* Alterado (direção D): sem a borda de 8px nem a folha; o conteúdo fica no mesmo chão da lateral */
 .main-area {
   margin-left: var(--sidebar-w);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 0 var(--sheet-inset) var(--sheet-inset) 0;
+  min-width: 0;
 }
 
-/* ---------- Topbar de 48px na moldura, sem linha ---------- */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 1030;
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
-  height: var(--topbar-h);
-  padding: 0 var(--s-2) 0 var(--s-6);
-  background: var(--frame);
-  border-bottom: 0;
-  transition: background-color var(--t-base) var(--ease);
-}
-/* Ao rolar (site.js põe .rolou) a topbar continua na moldura; nada muda além disso */
-.topbar.rolou { border-bottom: 0; }
+/* ---------- Barra do topo: só abaixo de 1100px ---------- */
+/* O elemento fica no DOM no desktop para o site.js (.rolou) */
+.topbar { display: none; }
 
-/* Hambúrguer só no tablet/celular (seletor duplo para vencer o display do .icon-btn) */
-.icon-btn.topbar-menu { display: none; }
-/* Busca centralizada de 32px com a dica do atalho "/" */
-.topbar-busca { flex: 1; max-width: 520px; margin: 0 auto; }
-.topbar-busca .form-control { min-height: 32px; padding-top: 4px; padding-bottom: 4px; background: var(--surface); border-color: var(--control); }
-.topbar-busca .form-control:hover { border-color: var(--input-line); }
-/* Resultados da busca rápida ocupam a largura do campo */
-.topbar-busca .menu-acoes-lista { left: 0; right: auto; width: 100%; }
-.topbar-busca kbd {
-  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-  padding: 1px 6px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-xs);
-  background: var(--raised);
-  color: var(--muted);
-  font-size: 11px;
-  font-family: var(--font-sans);
-}
-.topbar-direita { display: flex; align-items: center; gap: var(--s-1); margin-left: auto; }
-/* Saudação discreta: some para não competir com o nome no botão do usuário */
-.topbar-saudacao { display: none; }
-.topbar-saudacao span { display: block; font-size: var(--fs-xs); color: var(--muted); }
-.topbar-saudacao strong { font-size: var(--fs-sm); font-weight: 500; }
-
-/* Botão de ícone (tema, menu): 32px, sem borda, fundo só no hover */
+/* Botão de ícone (tema, busca, menu): redondo de 40px, sem borda, fundo só no hover */
 .icon-btn {
   display: inline-grid;
   place-items: center;
-  width: 32px; height: 32px;
-  border-radius: var(--r-control);
+  flex: none;
+  width: 40px; height: 40px;
+  border-radius: var(--r-pill);
   border: 0;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
   transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
 }
-.icon-btn:hover { background: var(--active); color: var(--text); }
-.icon-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-.icon-btn svg { width: 18px; height: 18px; }
-/* Tema: mostra a lua no claro e o sol no escuro */
-.icone-sol { display: none; }
-[data-theme="dark"] .icone-sol { display: block; }
-[data-theme="dark"] .icone-lua { display: none; }
+.icon-btn:hover { background: var(--hover); color: var(--text); }
+.icon-btn svg { width: 20px; height: 20px; }
+/* Tema: qual ícone aparece vem dos tokens de cada tema (parecer R1; vale também sem JS) */
+.icone-lua { display: var(--tema-lua); }
+.icone-sol { display: var(--tema-sol); }
 
-/* Botão do usuário (avatar + nome + função) que abre o menu: sem borda, fundo no hover */
+/* Botão da conta (avatar + nome + função) que abre o menu da conta: sem borda, fundo no hover */
 .user-btn {
   display: flex;
   align-items: center;
-  gap: var(--s-2);
-  height: 36px;
-  padding: 2px 8px 2px 2px;
+  gap: 10px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 8px;
   border: 0;
   border-radius: var(--r-control);
   background: transparent;
@@ -187,53 +160,41 @@
   cursor: pointer;
   transition: background-color var(--t-fast) var(--ease);
 }
-.user-btn:hover { background: var(--active); }
-.user-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-.user-btn .avatar { width: 28px; height: 28px; font-size: 11px; }
-.user-btn-texto { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; text-align: left; }
-.user-btn-texto strong { font-size: var(--fs-sm); font-weight: 500; }
-.user-btn-texto span { font-size: 11px; color: var(--muted); }
-.user-btn > svg { width: 14px; height: 14px; color: var(--faint); }
-
-/* ---------- Folha de trabalho ---------- */
-/* A folha branca: raio 16, borda de 1px, sem sombra; segura o conteúdo e o rodapé */
-.sheet {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sheet);
-}
+.user-btn:hover { background: var(--hover); }
+.user-btn .avatar { width: 32px; height: 32px; font-size: 12px; }
+.user-btn-texto { display: flex; flex-direction: column; align-items: flex-start; flex: 1; min-width: 0; line-height: 1.2; text-align: left; }
+.user-btn-texto strong, .user-btn-texto span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-btn-texto strong { font-size: var(--fs-ui); font-weight: 500; }
+.user-btn-texto span { font-size: var(--fs-xs); color: var(--muted); }
+.user-btn > svg { width: 14px; height: 14px; color: var(--muted); flex: none; }
 
 /* ---------- Conteúdo ---------- */
-/* Conteúdo fluido com 32px de lado e 24px no topo; sem animação de entrada */
+/* Alterado (direção D): 28px em cima e 32px dos lados, até 1320px; respeita a área segura do aparelho */
 .content {
   flex: 1;
   width: 100%;
-  max-width: calc(var(--content-max) + 64px);
-  margin: 0 auto;
-  padding: var(--s-6) var(--s-8) var(--s-10);
+  max-width: calc(var(--content-max) + 2 * var(--pad));
+  padding-block: 28px 56px;
+  padding-left: max(var(--pad), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--pad), env(safe-area-inset-right, 0px));
 }
 .content:focus { outline: none; }
 
-/* Rodapé dentro da folha: uma régua fina e texto cinza */
+/* Rodapé discreto no chão, com uma régua fina */
 .app-footer {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: var(--s-2);
-  max-width: calc(var(--content-max) + 64px);
+  max-width: calc(var(--content-max) + 2 * var(--pad));
   width: 100%;
-  margin: 0 auto;
-  padding: var(--s-4) var(--s-8);
+  padding: var(--s-4) var(--pad);
   border-top: 1px solid var(--rule);
   font-size: var(--fs-xs);
   color: var(--muted);
 }
 
-/* Fundo escuro atrás do drawer (criado pelo site.js); sem desfoque */
+/* Fundo escuro atrás da gaveta (criado pelo site.js); sem desfoque */
 .drawer-fundo {
   position: fixed;
   inset: 0;
@@ -243,30 +204,116 @@
 }
 @keyframes fundo-entra { from { opacity: 0; } to { opacity: 1; } }
 
-/* ---------- Tablet e celular: a moldura some e a sidebar vira drawer ---------- */
-@media (max-width: 991.98px) {
-  /* O drawer flutua sobre a página: fundo da folha e sombra */
-  .sidebar { transform: translateX(-100%); box-shadow: none; background: var(--surface); width: min(300px, 86vw); }
-  body.menu-aberto .sidebar { transform: none; box-shadow: var(--shadow-lg); }
-  body.menu-aberto { overflow: hidden; }
-  .main-area { margin-left: 0; padding: 0; }
-  /* Topbar de 48px na moldura com o menu, a busca e a conta */
-  .topbar { padding: 0 var(--s-3); gap: var(--s-2); }
-  .icon-btn.topbar-menu { display: inline-grid; width: 40px; height: 40px; }
-  /* A folha vira a tela inteira */
-  .sheet { border-radius: 0; border-left: 0; border-right: 0; border-bottom: 0; }
-  .content { padding: var(--s-5) var(--s-4) var(--s-10); }
-  .app-footer { padding: var(--s-4); }
-  .sidebar-fechar { display: inline-grid !important; margin-left: auto; width: 40px; height: 40px; }
-}
+/* O botão de fechar só existe na gaveta (regra antes da media query para ela poder vencer) */
 .sidebar-fechar { display: none !important; }
-@media (max-width: 767.98px) {
-  .topbar-busca, .topbar-saudacao, .user-btn-texto, .user-btn > svg { display: none; }
-  .user-btn { padding: 4px; height: 40px; }
-  .icon-btn { width: 40px; height: 40px; }
+
+/* ---------- Abas do rodapé: só abaixo de 1100px e só para quem entrou (RD2) ---------- */
+/* Novo (direção D): classe própria (.abas-rodape), e não .abas, que é a dos filtros de status (RD2).
+   Fora do #menu e do .sidebar-nav: a busca do menu não indexa as abas */
+.abas-rodape { display: none; }
+
+/* ---------- Tablet e celular: barra de 56px, gaveta e abas no rodapé ---------- */
+@media (max-width: 1099.98px) {
+  /* Elementos fixos ao rolar param abaixo da barra de 56px; controles com 44px */
+  :root { --sticky-top: var(--topbar-h); --control-h: 44px; }
+  /* Novo (direção D, RD2): com as abas, o conteúdo, a barra do PDV e os toasts sobem a altura delas e a área segura */
+  body.tem-abas { --rodape-fixo: calc(var(--abas-h) + env(safe-area-inset-bottom, 0px)); }
+
+  /* A lateral vira gaveta sobre a página. Fechada, sai também do Tab (visibility), não só da tela */
+  .sidebar {
+    width: min(320px, 88vw);
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    transform: translateX(-100%);
+    visibility: hidden;
+    box-shadow: none;
+    transition: transform var(--t-base) var(--ease), visibility 0s linear var(--t-base);
+  }
+  body.menu-aberto .sidebar { transform: none; visibility: visible; box-shadow: var(--shadow-float); transition: transform var(--t-base) var(--ease), visibility 0s linear 0s; }
+  body.menu-aberto { overflow: hidden; }
+  .sidebar-fechar { display: inline-grid !important; }
+  .nav-item-x { min-height: 44px; }
+  /* Sem teclado físico provável: some a dica do atalho "/" */
+  .sidebar-busca kbd { display: none; }
+  .sidebar-busca .form-control { min-height: 44px; font-size: 16px; }
+
+  .main-area { margin-left: 0; padding-bottom: var(--rodape-fixo); }
+
+  /* Novo (direção D): barra de 56px com marca, busca e conta (os dois botões abrem a gaveta, RD3 e RD4) */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    gap: var(--s-1);
+    height: var(--topbar-h);
+    padding-left: max(14px, env(safe-area-inset-left, 0px));
+    padding-right: max(8px, env(safe-area-inset-right, 0px));
+    background: var(--frame);
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--t-fast) var(--ease);
+  }
+  /* A linha de baixo aparece depois de rolar (site.js põe .rolou) */
+  .topbar.rolou { border-bottom-color: var(--border); }
+  .topbar-marca { display: flex; align-items: center; gap: 8px; margin-right: auto; min-width: 0; padding: 4px; border-radius: var(--r-control); color: var(--text); }
+  .topbar-marca:hover { color: var(--text); }
+  .topbar-marca .logo, .topbar-marca .logo svg { width: 30px; height: 30px; }
+  .topbar-marca .marca-sub { display: none; }
+  .topbar .icon-btn { width: 44px; height: 44px; }
+  .topbar-conta { display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+  .topbar-conta:hover { background: var(--hover); }
+
+  .content { padding-block: 20px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .app-footer { padding: var(--s-4) max(16px, env(safe-area-inset-left, 0px)); }
+
+  /* Novo (direção D, RD2): abas fixas no rodapé, uma coluna por aba, com a área segura do aparelho */
+  .abas-rodape {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 1030;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    background: var(--frame);
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  /* Cada aba: ícone numa pílula de 56×30 e o rótulo embaixo; alvo de 62px de altura */
+  .aba-rodape {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: var(--abas-h);
+    padding: 6px 2px;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+  }
+  .aba-rodape:hover { color: var(--text); }
+  .aba-icone { position: relative; display: grid; place-items: center; width: 56px; height: 30px; border-radius: var(--r-pill); transition: background-color var(--t-fast) var(--ease); }
+  .aba-icone svg { width: 20px; height: 20px; }
+  .aba-rotulo { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* Aba ativa: pílula --active atrás do ícone e rótulo em tinta (a cor não é o único sinal) */
+  .aba-rodape.ativo, .aba-rodape[aria-current="page"], .aba-rodape[aria-expanded="true"] { color: var(--text); }
+  .aba-rodape.ativo .aba-icone, .aba-rodape[aria-current="page"] .aba-icone, .aba-rodape[aria-expanded="true"] .aba-icone { background: var(--active); }
+  /* O contador amarelo fica no canto do ícone (o número real está no aria-label da aba) */
+  .aba-icone .contador { position: absolute; top: -3px; right: 2px; }
+  /* Foco da aba: o contorno fica por dentro, para não ser cortado na borda da tela */
+  .aba-rodape:focus-visible { outline-offset: -4px; border-radius: var(--r-control); }
 }
 
 /* ===================== Casca de autenticação (tela dividida) ===================== */
+/* Fase 7 (Identity): só recebe os tokens da direção D por enquanto */
 .auth {
   min-height: 100vh;
   display: grid;
@@ -274,7 +321,7 @@
   background: var(--surface);
 }
 
-/* Painel da esquerda: a moldura em campo chapado, com a marca, a ilustração e a proposta */
+/* Painel da esquerda: o chão em campo chapado, com a marca, a ilustração e a proposta */
 .auth-arte {
   position: relative;
   overflow: hidden;
@@ -283,22 +330,24 @@
   padding: var(--s-8) var(--s-12);
   color: var(--text);
   background: var(--frame);
+  /* A régua entre os lados só aparece no escuro, pelo token --auth-divisa (parecer R1) */
+  border-right: 1px solid var(--auth-divisa);
 }
 .auth-arte > * { position: relative; z-index: 1; }
-.auth-arte .sidebar-marca { padding: 0; height: auto; color: var(--text); }
+.auth-arte .sidebar-marca { padding: 0; height: auto; color: var(--text); flex: none; }
 .auth-arte .marca-sub { color: var(--muted); }
 .auth-arte-meio { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: var(--s-8); padding: var(--s-8) 0; }
 .auth-arte img { width: 100%; max-width: 480px; height: auto; }
-/* Proposta em 28/600, duas linhas no máximo */
-.auth-arte h2 { color: var(--text); font-size: 28px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.2; max-width: 460px; }
+/* Proposta em 28px, duas linhas no máximo */
+.auth-arte h2 { color: var(--text); font-size: 28px; font-weight: 500; letter-spacing: -0.015em; line-height: 1.2; max-width: 460px; }
 .auth-arte p { color: var(--muted); font-size: var(--fs-md); max-width: 460px; margin-top: var(--s-3); }
 .auth-beneficios { list-style: none; padding: 0; margin: var(--s-6) 0 0; display: grid; gap: var(--s-3); }
 .auth-beneficios li { display: flex; align-items: center; gap: var(--s-3); font-weight: 400; color: var(--text); }
-/* Marcador de benefício: o "ok" no verde-petróleo, sem círculo em volta */
-.auth-beneficios svg { width: 18px; height: 18px; flex: none; color: var(--accent); }
+/* Marcador de benefício: o "ok" no verde de resolvido, sem círculo em volta */
+.auth-beneficios svg { width: 18px; height: 18px; flex: none; color: var(--positive); }
 .auth-arte-rodape { font-size: var(--fs-xs); color: var(--muted); }
 
-/* Lado direito: o formulário centralizado na folha */
+/* Lado direito: o formulário centralizado no painel */
 .auth-lado {
   display: flex;
   flex-direction: column;
@@ -306,7 +355,7 @@
   background: var(--surface);
 }
 .auth-lado-topo { display: flex; justify-content: flex-end; align-items: center; gap: var(--s-2); }
-.auth-lado-topo .sidebar-marca { display: none; padding: 0; height: auto; margin-right: auto; }
+.auth-lado-topo .sidebar-marca { display: none; padding: 0; height: auto; margin-right: auto; flex: none; }
 .auth-form-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: var(--s-8) 0; }
 .auth-form-box { width: 100%; max-width: 380px; }
 /* A bolha de ícone acima do título saiu do design das telas de acesso
@@ -318,26 +367,23 @@
 .auth-form { display: grid; gap: var(--s-4); }
 .auth-linha { display: flex; justify-content: space-between; align-items: center; gap: var(--s-3); }
 .auth-footer { margin-top: var(--s-6); text-align: center; color: var(--muted); }
-.auth-footer a { font-weight: 500; }
+.auth-footer a { font-weight: 500; text-decoration: underline; text-decoration-color: var(--control); text-underline-offset: 3px; }
 .auth-separador { display: flex; align-items: center; gap: var(--s-3); margin: var(--s-6) 0; color: var(--muted); font-size: var(--fs-xs); }
 .auth-separador::before, .auth-separador::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .auth-lado-rodape { text-align: center; font-size: var(--fs-xs); color: var(--muted); }
 .auth-ilustra { display: block; width: 180px; max-width: 60%; margin: 0 auto var(--s-6); }
 
-/* No escuro a moldura fica mais escura que a folha: uma régua separa os dois lados */
-[data-theme="dark"] .auth-arte { border-right: 1px solid var(--border); }
-
 @media (max-width: 991.98px) {
   .auth { grid-template-columns: 1fr; }
   .auth-arte { display: none; }
-  /* No celular: moldura no fundo e o formulário numa folha com borda, sem sombra */
+  /* No celular: o chão no fundo e o formulário num painel com borda, sem sombra */
   .auth-lado { padding: var(--s-4); background: var(--frame); }
   .auth-lado-topo .sidebar-marca { display: flex; }
   .auth-form-box {
     padding: var(--s-6) var(--s-5);
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--r-sheet);
+    border-radius: var(--r-card);
     box-shadow: none;
   }
   .auth-form-box h1 { font-size: 22px; }

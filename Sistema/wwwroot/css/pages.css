@@ -1,6 +1,7 @@
 /* =========================================================================
    pages.css · Estilos específicos de cada tela
    Home (visão da loja), PDV de venda/compra, produtos, perfil, desempenho e erros
+   Fase 2 do redesign B: fila de Pedidos, cupons de Meus pedidos, localização (completa e compacta) e Perfil
    Redesign "moldura e folha": sai o hero; KPIs numa faixa única dividida por
    linhas; o gráfico em 2/3 ao lado da reposição; o carrinho do PDV lido como cupom.
    ========================================================================= */
@@ -133,11 +134,18 @@ html:not(.js) .grafico-skeleton { display: none; }
 .pdv-busca { width: 260px; }
 .pdv-busca .form-control { min-height: 32px; padding-top: 4px; padding-bottom: 4px; }
 
+/* Novo (redesign B, Fase 2): o catálogo fica direto na folha (sem card); título, contagem e busca numa linha */
+.pdv-catalogo { min-width: 0; }
+.pdv-catalogo-topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--s-4); }
+.pdv-catalogo-titulo { margin: 0; font-size: var(--fs-md); font-weight: 500; }
+.pdv-catalogo-sub { margin: 2px 0 0; font-size: var(--fs-sm); color: var(--muted); }
+
+/* Alterado (redesign B, Fase 2): sem recuo interno, porque a grade já não fica dentro de um card */
 .pdv-grade {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
   gap: var(--s-3);
-  padding: var(--s-4) var(--s-5) var(--s-5);
+  padding: 0;
 }
 /* Card de produto plano: borda de 1px e raio 8; no hover só a borda escurece */
 .pdv-produto {
@@ -168,12 +176,17 @@ html:not(.js) .grafico-skeleton { display: none; }
 .pdv-preco { display: block; font-family: var(--font-sans); font-size: var(--fs-md); font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
 .pdv-estoque { font-size: var(--fs-xs); color: var(--muted); }
 .pdv-estoque.baixo { color: var(--warning); font-weight: 500; }
+/* Novo (redesign B, Fase 2): preço, régua de estoque e o número em texto empilhados à esquerda do botão de adicionar */
+.pdv-produto-valores { flex: 1; min-width: 0; }
+.pdv-estoque-linha { display: grid; gap: 4px; margin-top: 6px; }
+.pdv-estoque-linha .regua { width: 100%; min-width: 0; }
 /* Botão de adicionar: 36px; no hover vira o botão principal */
 .pdv-add { --btn-h: 36px; border-radius: var(--r-control); }
 .pdv-add:not(:disabled):hover { background: var(--primary-fill); border-color: var(--primary-fill); color: var(--on-primary-fill); }
 
-/* Cupom fixo ao rolar, abaixo da topbar */
-.pdv-carrinho { position: sticky; top: calc(var(--topbar-h) + var(--s-4)); display: flex; flex-direction: column; max-height: calc(100vh - var(--topbar-h) - var(--s-8)); }
+/* Cupom fixo ao rolar */
+/* Alterado (redesign B): sem topbar no desktop, para abaixo da borda fixa de 8px (--sticky-top troca para 48px abaixo de 1100px) */
+.pdv-carrinho { position: sticky; top: calc(var(--sticky-top) + var(--s-4)); display: flex; flex-direction: column; max-height: calc(100vh - var(--sticky-top) - var(--s-8)); }
 .pdv-cliente { padding: var(--s-4) var(--s-5); border-bottom: 1px solid var(--rule); background: var(--raised); }
 .pdv-linhas { flex: 1; overflow-y: auto; padding: var(--s-1) 0; min-height: 120px; }
 
@@ -248,6 +261,11 @@ html:not(.js) .pedido-linha { grid-template-columns: minmax(0, 1fr) auto; grid-t
 .pdv-total strong { font-family: var(--font-sans); font-size: var(--fs-kpi); font-weight: 500; letter-spacing: -0.01em; color: var(--text); font-variant-numeric: tabular-nums; }
 .pdv-nota { display: flex; gap: 6px; margin: var(--s-3) 0 0; font-size: var(--fs-xs); color: var(--muted); }
 .pdv-nota svg { width: 14px; height: 14px; flex: none; margin-top: 2px; }
+/* Alterado (redesign B, Fase 2): no PDV o pé vira o do .cupom, com régua tracejada antes do total e o valor em 600
+   (dinheiro). Escopo em .pdv para a demonstração da vitrine ficar como está até a Fase 8 */
+.pdv .pdv-resumo { border-top: 0; }
+.pdv .pdv-total { border-top: 1px dashed var(--control); }
+.pdv .pdv-total strong { font-weight: 600; }
 
 @media (max-width: 1199.98px) {
   .pdv { grid-template-columns: minmax(0, 1fr) 340px; }
@@ -281,13 +299,170 @@ html:not(.js) .pedido-linha { grid-template-columns: minmax(0, 1fr) auto; grid-t
   .pdv-linhas { overflow: visible; }
 }
 @media (max-width: 575.98px) {
-  .pdv-catalogo .ui-card-header { flex-wrap: wrap; padding: var(--s-4); }
+  /* Alterado (redesign B, Fase 2): o cabeçalho do catálogo agora é .pdv-catalogo-topo, e a grade não tem recuo */
   .pdv-busca { width: 100%; }
-  .pdv-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); padding: var(--s-3); }
+  .pdv-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); padding: 0; }
   .pdv-produto-img .thumb-card { font-size: 22px; }
   .pedido-linha { padding: var(--s-3) var(--s-4); }
   .pdv-cliente, .pdv-resumo { padding: var(--s-4); }
 }
+
+/* ===================== PDV na direção D ===================== */
+/* Novo (direção D, RD11 e RD16): todas as regras ficam escopadas em .pdv, porque a vitrine (_Vitrine) reaproveita as
+   classes .pdv-* fora dele e só muda na Fase 8. Catálogo e venda de 360px lado a lado a partir de 880px */
+.pdv { grid-template-columns: minmax(0, 1fr); gap: var(--gap); padding-bottom: 0; }
+@media (min-width: 880px) { .pdv { grid-template-columns: minmax(0, 1fr) 360px; } }
+
+/* Catálogo: título, contagem e busca em pílula numa linha */
+.pdv .pdv-catalogo-topo { margin-bottom: 12px; }
+.pdv .pdv-busca { width: 300px; max-width: 100%; }
+.pdv .pdv-busca .form-control { min-height: var(--control-h); padding-top: 0; padding-bottom: 0; border-radius: var(--r-pill); }
+.pdv .pdv-grade { grid-template-columns: repeat(auto-fill, minmax(164px, 1fr)); gap: 10px; padding: 0; }
+
+/* Cartão denso: nome em até duas linhas, preço, régua e estoque; sem miniatura */
+.pdv .pdv-produto {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 132px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  overflow: visible;
+  transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.pdv .pdv-produto[hidden] { display: none; }
+.pdv .pdv-produto-corpo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; flex: none; padding: 0; }
+.pdv .pdv-produto-nome { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: var(--fs-ui); font-weight: 500; line-height: 1.3; }
+.pdv .pdv-produto-desc { font-size: var(--fs-xs); }
+/* "N no carrinho" em fluxo, abaixo do nome (antes ficava sobre a miniatura) */
+.pdv .pdv-no-carrinho { position: static; justify-self: start; background: var(--accent-soft); }
+.pdv .pdv-produto-rodape { align-items: flex-end; gap: 10px; margin-top: auto; padding-top: 0; }
+.pdv .pdv-preco { font-size: var(--fs-md); font-weight: 600; }
+.pdv .pdv-estoque { font-size: var(--fs-sm); }
+/* Estoque no mínimo: texto vermelho (a régua também fica vermelha) */
+.pdv .pdv-estoque.baixo { color: var(--negative); font-weight: 500; }
+.pdv .pdv-add { border-radius: var(--r-pill); }
+/* Produto que já está na venda: borda em tinta (sem cor de marca) */
+.pdv .pdv-produto.no-carrinho { border-color: var(--text); box-shadow: inset 0 0 0 .5px var(--text); }
+/* Chegou ao estoque: o botão desliga e o cartão desce um degrau */
+.pdv .pdv-produto:has(.pdv-add:disabled) { background: var(--raised); }
+
+/* Direção D (RD11): o cartão inteiro soma +1 esticando o botão existente. Só com JS (sem JS o botão não faz nada e
+   fica escondido), com o cartão como contêiner e ::before para não brigar com o spinner (.btn.is-loading::after) */
+html.js .pdv .pdv-add::before { content: ""; position: absolute; inset: 0; border-radius: 12px; }
+html.js .pdv .pdv-add:disabled::before { cursor: not-allowed; }
+/* Corrigido (revisão D1/D2, achado 1): o .btn:active (translateY) movia o botão no meio do clique, o ::before esticado
+   saía de baixo do ponteiro e o clique caía no cartão (nada somava). No PDV o botão não afunda; o cartão já reage */
+html.js .pdv .pdv-add:active { transform: none; }
+html.js .pdv .pdv-produto:not(:has(.pdv-add:disabled)):hover { border-color: var(--text); }
+html.js .pdv .pdv-produto:active { transform: scale(.985); }
+/* O foco do botão vira o contorno do cartão inteiro (onde houver :has; sem ele, o contorno fica no botão) */
+@supports selector(:has(*)) {
+  .pdv .pdv-produto:has(.pdv-add:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+  html.js .pdv .pdv-add:focus-visible { outline: none; }
+}
+/* Controle novo dentro do cartão precisa de position: relative; z-index: 1 para ficar acima da área esticada */
+
+/* Venda (ou resumo do pedido): painel com o cabeçalho "Venda atual · N de 8 produtos" */
+.pdv .pdv-carrinho {
+  position: sticky;
+  top: calc(var(--sticky-top) + var(--s-4));
+  max-height: calc(100vh - var(--sticky-top) - var(--rodape-fixo) - var(--s-8));
+}
+.pdv .pdv-carrinho-topo { flex-wrap: wrap; gap: 4px 12px; padding: 16px 20px 12px; border-bottom: 0; }
+.pdv .pdv-limite { margin-left: auto; font-size: var(--fs-sm); color: var(--muted); }
+.pdv .pdv-folha-fechar { margin: -6px -8px -6px 0; }
+.pdv .pdv-cliente { padding: 0 20px 14px; background: transparent; border-bottom: 0; }
+/* Linhas: sem miniatura; nome e preço à esquerda, quantidade embaixo, valor e remover à direita */
+.pdv .pdv-linha-thumb { display: none; }
+.pdv .pedido-linha { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "info fim" "qtd fim"; padding: 10px 20px; border-bottom: 0; border-top: 1px solid var(--rule); }
+.pdv .pdv-linha-info strong { white-space: normal; overflow: visible; overflow-wrap: anywhere; font-size: var(--fs-ui); line-height: 1.3; }
+.pdv .pdv-linha-info > span { font-size: var(--fs-sm); }
+.pdv .pdv-subtotal { font-size: var(--fs-base); font-weight: 600; }
+/* Quantidade em pílula; +/− de 36px (44px abaixo de 1100px) */
+.pdv .qtd-stepper { border-color: var(--control); border-radius: var(--r-pill); }
+.pdv .qtd-btn { width: 36px; height: 34px; border-radius: var(--r-pill); color: var(--text); }
+.pdv .qtd-btn:hover:not(:disabled) { background: var(--hover); }
+.pdv .qtd-input.form-control { width: 40px; height: 34px; min-height: 34px; font-weight: 600; }
+/* O contorno de foco fica por dentro: o .qtd-stepper corta o que passa da borda */
+.pdv .qtd-input.form-control:focus { outline: 2px solid var(--focus); outline-offset: -2px; box-shadow: none; }
+.pdv .carrinho-vazio { align-items: flex-start; text-align: left; padding: 8px 20px 18px; }
+/* Pé: "Total · N itens" e o total na etiqueta de preço; botão de 48px */
+.pdv .pdv-resumo { padding: 16px 20px 18px; border-top: 1px solid var(--border); }
+.pdv .pdv-total { align-items: center; gap: 12px; margin-bottom: 12px; padding-top: 0; border-top: 0; }
+.pdv .pdv-total > span { font-size: var(--fs-ui); font-weight: 400; color: var(--muted); }
+.pdv .pdv-total > span span { color: inherit; font-weight: inherit; }
+/* A etiqueta tem tinta sobre amarelo nos dois temas (o .pdv-total strong antigo pintaria de --text, claro no escuro) */
+.pdv .pdv-total strong.etiqueta-preco { font-size: var(--fs-3xl); font-weight: 600; letter-spacing: -0.01em; color: var(--on-tag); }
+.pdv .pdv-total strong.etiqueta-preco.zerado { color: var(--faint); }
+
+/* Barra do celular: escondida a partir de 880px (a venda está ao lado) e quando há erro do servidor no carrinho */
+@media (min-width: 880px) {
+  .pdv .pdv-barra, .pdv .pdv-barra:not([hidden]) { display: none; }
+}
+.pdv.pdv-com-erro .pdv-barra:not([hidden]) { display: none; }
+/* Fundo atrás da folha da venda (criado pelo site.js) */
+.folha-fundo { position: fixed; inset: 0; z-index: 1045; background: var(--overlay); animation: fundo-entra var(--t-base) var(--ease); }
+body.folha-venda-aberta { overflow: hidden; }
+
+@media (max-width: 1099.98px) {
+  .pdv .qtd-btn { width: 44px; height: 42px; }
+  .pdv .qtd-input.form-control { height: 42px; min-height: 42px; font-size: 16px; }
+}
+
+@media (max-width: 879.98px) {
+  /* Sem JS, a venda fica no fluxo, depois do catálogo, com os selects (HF-001) */
+  .pdv .pdv-carrinho { position: static; max-height: none; }
+  .pdv .pdv-linhas { overflow: visible; }
+  /* Com JS, a venda fica fechada até a barra abrir a folha; com erro do servidor dentro dela, fica no fluxo */
+  html.js .pdv:not(.pdv-com-erro) .pdv-carrinho:not(.folha-aberta) { display: none; }
+  html.js .pdv:not(.pdv-com-erro) { padding-bottom: 80px; }
+  /* Folha da venda: o mesmo #carrinho, preso ao rodapé, acima das abas e do fundo */
+  .pdv .pdv-carrinho.folha-aberta {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 1050;
+    display: flex;
+    max-height: 88vh;
+    overflow-y: auto;
+    border: 0;
+    border-radius: 20px 20px 0 0;
+    box-shadow: var(--shadow-float);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    animation: folha-sobe 200ms var(--ease);
+  }
+  .pdv .pdv-carrinho.folha-aberta:focus { outline: none; }
+  .pdv .pdv-carrinho.folha-aberta .pdv-carrinho-topo { position: sticky; top: 0; z-index: 1; background: var(--surface); border-radius: 20px 20px 0 0; }
+  .pdv .pdv-carrinho.folha-aberta .pdv-linhas { flex: none; overflow: visible; }
+  /* Barra fixa acima das abas: quantos itens, o total na etiqueta e "Ver a venda" */
+  .pdv .pdv-barra:not([hidden]) {
+    position: fixed;
+    left: 12px; right: 12px;
+    bottom: calc(12px + var(--rodape-fixo));
+    z-index: 1020;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 8px 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-float);
+    text-align: left;
+    cursor: pointer;
+  }
+  .pdv .pdv-barra:hover { color: var(--text); }
+  .pdv .pdv-barra-info { margin-right: auto; }
+  .pdv .pdv-barra-info span { font-size: var(--fs-ui); opacity: 1; color: var(--muted); }
+  .pdv .pdv-barra-acao { pointer-events: none; }
+  .pdv .pdv-busca { width: 100%; }
+}
+@keyframes folha-sobe { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 
 /* ===================== Configurações da conta (Identity Manage) ===================== */
 /* Páginas do Manage que não foram redesenhadas (2FA, dados pessoais) ganham respiro dentro do card */
@@ -320,14 +495,12 @@ html:not(.js) .pedido-linha { grid-template-columns: minmax(0, 1fr) auto; grid-t
 }
 
 /* ===================== Desempenho ===================== */
-/* Período em abas sublinhadas à esquerda e as datas em cinza à direita, sobre a mesma linha */
-.periodo-barra { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--gap); border-bottom: 1px solid var(--border); }
-.periodo-barra .segmented { border-bottom: 0; }
-.periodo-datas { height: 40px; padding: 0; background: transparent; border: 0; color: var(--muted); font-size: var(--fs-sm); font-weight: 400; font-variant-numeric: tabular-nums; }
+/* Alterado (redesign B): período e tipo em trilho segmentado à esquerda e as datas em cinza à direita, sem régua embaixo */
+.periodo-barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--gap); }
+.periodo-datas { height: 36px; padding: 0; background: transparent; border: 0; color: var(--muted); font-size: var(--fs-sm); font-weight: 400; font-variant-numeric: tabular-nums; }
 .periodo-datas svg { width: 14px; height: 14px; }
 @media (max-width: 575.98px) {
-  .periodo-barra { border-bottom: 0; }
-  .periodo-barra .segmented { width: 100%; border-bottom: 1px solid var(--border); }
+  .periodo-barra .segmented { width: 100%; }
   .periodo-datas { height: auto; }
 }
 
@@ -353,14 +526,147 @@ html:not(.js) .pedido-linha { grid-template-columns: minmax(0, 1fr) auto; grid-t
 .barra-brand span { background: var(--accent); }
 @media (max-width: 575.98px) { .ranking li { padding: var(--s-3) var(--s-4); } .ranking .avatar { display: none; } }
 
+/* ===================== Pedidos (fila do ADM) ===================== */
+/* Alterado (direção D, HF-001 e HF-006): barra de filtros com os status em pílulas e o período em trilho (RD13);
+   no celular cada um ocupa uma linha que rola de lado dentro de si, sem rolagem na página */
+.fila-barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: var(--gap); }
+.fila-barra .fila-abas { flex: 0 1 auto; min-width: 0; }
+.fila-periodo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-width: 0; max-width: 100%; }
+
+/* A fila fica num painel branco: cada pedido em duas metades (quem e decisão | itens e total), régua de 1px entre eles */
+.fila { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); margin: 0; padding: 0; }
+.fila > .pedido {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 14px 40px;
+  padding: 18px 20px;
+  /* B5: a âncora #pedido-N do erro do Confirmar não fica escondida sob a barra do topo (56px abaixo de 1100px) */
+  scroll-margin-top: calc(var(--sticky-top) + 12px);
+}
+.fila > .pedido + .pedido { border-top: 1px solid var(--rule); }
+.pedido-lado { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-content: start; min-width: 0; }
+.pedido-quem { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: start; gap: 12px; }
+.pedido-quem > .avatar { width: 36px; height: 36px; font-size: 13px; }
+.pedido-quem-texto { min-width: 0; }
+.pedido-nome { margin: 0; font-size: 16px; font-weight: 500; line-height: 1.35; overflow-wrap: anywhere; }
+.pedido-sub { margin: 2px 0 0; font-size: var(--fs-sm); color: var(--muted); font-variant-numeric: tabular-nums; }
+.fila-sem-local { color: var(--faint); }
+.pedido-estado { margin: 6px 0 0; }
+/* "aguardando há X" (RD12): relógio e texto cinza; a etiqueta amarela fica para a aba Todos */
+.espera { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-sm); color: var(--muted); font-variant-numeric: tabular-nums; }
+.espera svg { width: 15px; height: 15px; flex: none; }
+.pedido-conta { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }
+/* Ações só em Pendente, alinhadas ao texto (48px = avatar + espaço). Confirmar e o details de recusa lado a lado;
+   aberto, o painel ocupa a linha (components.css) */
+.fila-acoes { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; margin-left: 48px; }
+.fila-acoes > form { flex: none; }
+/* Direção D (RD9): com o Recusar aberto, o Confirmar sai de cena (display:none, nem foco nem espaço). Só o form filho
+   direto da .fila-acoes (o Confirmar); o form do Recusar está dentro do details. Sem :has(), os dois ficam visíveis (R6) */
+.fila-acoes:has(> details.confirmar[open]) > form { display: none; }
+/* Quem decidiu e quando; o motivo (HF-006) em bloco, inteiro e quebrando linha */
+.decisao { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-left: 48px; font-size: var(--fs-sm); color: var(--muted); }
+.decisao p { margin: 0; }
+.decisao .motivo { max-width: 72ch; }
+/* Abaixo de 1200px uma coluna: quem, itens e total, e por fim as ações ou a decisão */
+@media (max-width: 1199.98px) {
+  .fila > .pedido { grid-template-columns: minmax(0, 1fr); }
+  .pedido-lado { display: contents; }
+  .pedido-quem { order: 1; }
+  .pedido-conta { order: 2; margin-left: 48px; max-width: 560px; }
+  .fila-acoes, .decisao { order: 3; }
+}
+/* Celular: sem avatar e sem recuo; Confirmar e Recusar dividem a linha, com 44px de altura */
+@media (max-width: 639.98px) {
+  .fila > .pedido { padding: 16px; }
+  .pedido-quem { grid-template-columns: minmax(0, 1fr); }
+  .pedido-quem > .avatar { display: none; }
+  .pedido-conta, .fila-acoes, .decisao { margin-left: 0; }
+  .fila-acoes > form, .fila-acoes > .confirmar { flex: 1 1 0; }
+  .fila-acoes > form .btn { width: 100%; }
+  .fila-periodo { width: 100%; }
+}
+
+/* ===================== Meus pedidos (recibos do cliente) ===================== */
+/* Alterado (direção D): uma coluna de recibos de até 760px, cada um num painel branco */
+.recibos { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; max-width: 760px; margin: 0; padding: 0; }
+.recibos-vazio { max-width: 760px; }
+.recibo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 18px 20px; scroll-margin-top: calc(var(--sticky-top) + 12px); }
+.recibo-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.recibo-cab-texto { min-width: 0; }
+.recibo-titulo { margin: 0; font-size: var(--fs-md); font-weight: 500; line-height: 1.3; }
+.recibo-sub { margin: 4px 0 0; font-size: var(--fs-sm); color: var(--muted); }
+/* Fechado, o "Cancelar o pedido" fica do tamanho do texto; aberto, o painel ocupa a largura (RD10) */
+.recibo > .cancelar { justify-self: start; }
+.recibo > .cancelar[open] { justify-self: stretch; }
+@media (max-width: 639.98px) {
+  .recibo { padding: 16px; }
+  .recibo-cab { flex-wrap: wrap; }
+  .recibo > .cancelar { justify-self: stretch; }
+}
+
+/* ===================== Localização (HF-002) ===================== */
+/* Novo (redesign B, Fase 2): os campos numa grade própria (UF, cidade e Salvar), um por linha no celular.
+   Os dois selects continuam no mesmo form e o .invalid-feedback logo depois do select */
+/* minmax(0, …) também no celular: a opção longa de erro que o site.js põe no select não alarga a página */
+.loc-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-3); align-items: end; min-width: 0; }
+@media (min-width: 640px) { .loc-form { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) auto; } }
+.loc-campo { min-width: 0; }
+.loc-campo .form-select { min-width: 0; max-width: 100%; }
+/* No lugar do antigo col-sm-3 d-grid: o Salvar ocupa a linha no celular e a largura do próprio texto a partir de 640px */
+.loc-enviar { display: grid; }
+.loc-recusar { margin-top: var(--s-3); }
+/* Completo (Perfil): a linha do que foi informado fica em tinta, acima da finalidade */
+.config-head .loc-estado { color: var(--text); }
+.config-head .loc-estado strong { font-weight: 500; }
+
+/* Compacto (Fazer compra, parecer R8): faixa de duas linhas acima do PDV, com a finalidade antes dos campos */
+/* Alterado (direção D): painel branco sobre o chão (o --raised quase some sem a folha) */
+.loc-faixa {
+  margin-bottom: var(--gap);
+  padding: var(--s-4) var(--s-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+}
+.loc-faixa-texto h2 { display: flex; align-items: center; gap: var(--s-2); margin: 0; font-size: var(--fs-base); font-weight: 500; }
+.loc-faixa-texto h2 svg { width: 16px; height: 16px; flex: none; color: var(--faint); }
+.loc-faixa-texto h2 .opcional { color: var(--muted); font-weight: 400; }
+.loc-faixa-texto p { margin: 4px 0 0; max-width: 110ch; font-size: var(--fs-sm); color: var(--muted); }
+.loc-faixa-texto a { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; }
+.loc-faixa-campos { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-3) var(--s-4); margin-top: var(--s-3); }
+.loc-faixa-campos .loc-form { flex: 1 1 560px; max-width: 720px; }
+.loc-faixa-campos .loc-recusar { margin-top: 0; }
+@media (max-width: 575.98px) { .loc-faixa { padding: var(--s-4); } .loc-faixa-campos .loc-recusar { width: 100%; } }
+
 /* ===================== Perfil ===================== */
-.perfil-card { overflow: hidden; }
-/* Capa do perfil: faixa baixa na cor da moldura (sem marinho) */
-.perfil-capa { height: 72px; background: var(--frame); position: relative; border-bottom: 1px solid var(--rule); }
-.perfil-identidade { display: flex; align-items: flex-end; flex-wrap: wrap; gap: var(--s-4); padding: 0 var(--s-5) var(--s-5); margin-top: -40px; position: relative; }
-.perfil-nome { padding-bottom: 4px; min-width: 0; }
-.perfil-nome h2 { font-size: var(--fs-xl); font-weight: 600; }
-@media (max-width: 575.98px) { .perfil-identidade { padding: 0 var(--s-4) var(--s-4); } }
+/* Alterado (redesign B, Fase 2): sai a capa com gradiente; o cabeçalho do objeto fica direto na folha */
+.perfil-topo { padding: 0 0 var(--s-5); border-radius: 0; }
+/* Corrigido (revisão Fase 2, achado 2): e-mail longo quebra em vez de criar rolagem lateral em 390px */
+.perfil-topo .object-header-meta span { min-width: 0; overflow-wrap: anywhere; }
+.perfil-aviso { margin: var(--s-5) 0 0; }
+
+/* Novo (redesign B, Fase 2): configurações em duas colunas (padrão B). Título e descrição em 1/3 e o painel
+   --raised com raio 16 e sem borda em 2/3; régua de 1px entre as seções; empilha abaixo de 1100px (casca) */
+/* Alterado (direção D): a régua entre as seções usa --border, visível sobre o chão */
+.config-secao { padding: var(--s-6) 0; border-top: 1px solid var(--border); }
+.config-secao:first-child { border-top: 0; }
+.config-head h2 { margin: 0; font-size: var(--fs-md); font-weight: 500; }
+.config-head p { margin: 4px 0 0; max-width: 60ch; font-size: var(--fs-sm); color: var(--muted); }
+/* Alterado (direção D): o painel da seção é o painel branco da D (borda de 1px, raio 14) */
+.config-painel { min-width: 0; margin-top: var(--s-4); padding: var(--s-5); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); }
+@media (min-width: 1100px) {
+  .config-secao { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--s-8); }
+  .config-painel { margin-top: 0; }
+}
+/* Poço chave-valor dentro do painel: sem recuo lateral e com a régua visível sobre o --raised */
+.config-painel > .detail-grid { margin: calc(-1 * var(--s-3)) 0; }
+.config-painel .detail-grid > div { padding-inline: 0; border-top-color: var(--rule); }
+.config-links { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+@media (max-width: 575.98px) {
+  .config-painel { padding: var(--s-4); }
+  .config-links .btn { flex: 1 1 100%; }
+}
 
 /* Telas de acesso: link "voltar" acima do título */
 .auth-form-box .voltar { margin-bottom: var(--s-5); }
