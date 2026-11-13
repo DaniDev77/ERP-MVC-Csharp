@@ -1,7 +1,5 @@
 ﻿@using System.Globalization
 @model Sistema.Models.InicioViewModel
-@* Lê a chave Sistema:MostrarVitrine do appsettings.json, que liga ou desliga o site de vendas para visitantes *@
-@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
     ViewData["Title"] = "Início";
@@ -11,23 +9,32 @@
     var primeiroNome = (Model.NomeUsuario ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
     var hora = DateTime.Now.Hour;
     var saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
-    // Site de vendas (vitrine) para visitantes só quando Sistema:MostrarVitrine for true; sem a chave, fica a tela de boas-vindas
-    var mostrarVitrine = Configuration.GetValue("Sistema:MostrarVitrine", false);
+    // Alterado (lote B10, RV10): quem lê a chave Sistema:MostrarVitrine agora é o controller, que
+    // também decide se consulta o catálogo. A view só usa o que veio no modelo
+    var mostrarVitrine = Model.MostrarVitrine;
     // Visitante usa a casca da vitrine ou a casca das telas de acesso (painel da marca + formulário)
     if (!Model.Logado)
     {
         Layout = mostrarVitrine ? "_LayoutVitrine" : "_LayoutAuth";
         // Título e descrição da vitrine: o _LayoutVitrine usa no <title>, na meta description e no Open Graph
+        // Alterado (home pública v2): a home do visitante voltou a ter três papéis — apresentação da
+        // loja, catálogo e divulgação do Sistema —, então o título deixa de ser só "Produtos à venda"
+        // (que agora é o segundo bloco da página, não a página inteira) e a descrição cita os três.
+        // A prévia de link usa estes dois textos junto com a og:image do _LayoutVitrine
         if (mostrarVitrine)
         {
-            ViewData["Title"] = "Controle de vendas e estoque para lojas";
-            ViewData["Descricao"] = "Registre vendas no balcão, veja o estoque baixar sozinho e saiba o que repor antes de faltar. Peça uma demonstração do Sistema.";
+            ViewData["Title"] = "Uma loja de balcão";
+            ViewData["Descricao"] = "Os produtos à venda na loja, com preço — e o sistema que registra a venda no balcão, o pedido do cliente e o estoque. Entre na sua conta para comprar.";
         }
     }
 }
 
-@* Vitrine ligada: o site de vendas inteiro fica no partial Views/Home/_Vitrine.cshtml (contatos e preços editáveis no topo dele).
-   Vitrine desligada: o ramo seguinte é a tela de boas-vindas de sempre, sem nenhuma mudança *@
+@* Alterado (Fase 8): o comentário antigo falava de "preços editáveis no topo" do partial, que era a tabela
+   de planos do software — ela saiu.
+   Vitrine ligada: a home pública inteira (catálogo da loja) fica no partial Views/Home/_Vitrine.cshtml,
+   que lê Model.Vitrine e Model.VitrineTotal; no topo dele só o contato do rodapé é editável.
+   Vitrine desligada: o ramo seguinte é a tela de boas-vindas, que é a porta de entrada quando não há
+   catálogo público *@
 @if (!Model.Logado && mostrarVitrine)
 {
     <partial name="_Vitrine" />
@@ -44,7 +51,10 @@ else if (!Model.Logado)
     </div>
     <div class="alert alert-brand mt-4">
         @Html.Raw(Icones.Get("info"))
-        <div><span class="alert-texto">Conta nova começa sem função: um administrador libera venda ou compra para você.</span></div>
+        @* Alterado (Fase 8, RV13): esta tela passou a ser o que substitui o catálogo público quando a
+           vitrine está desligada, e quem chega aqui vem da loja. A frase fica igual à da vitrine:
+           duas telas, uma frase. Antes: "um administrador libera venda ou compra para você" *@
+        <div><span class="alert-texto">Conta nova começa sem função: um administrador da loja libera a compra para você.</span></div>
     </div>
 }
 else if (Model.Pendente)
