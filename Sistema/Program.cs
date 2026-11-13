@@ -60,6 +60,10 @@ builder.Services.AddScoped<VendaService>();
 builder.Services.AddSingleton<MunicipioService>();
 builder.Services.AddScoped<BuscaCompradorService>();
 builder.Services.AddScoped<UsuarioLogadoService>();
+// Novo (lote B10): cache em memória do catálogo público da vitrine (registro explícito, não por efeito
+// colateral de outro serviço — RV4) e o serviço que monta esse catálogo (RV5)
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<VitrineService>();
 
 
 
