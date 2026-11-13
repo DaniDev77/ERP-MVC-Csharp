@@ -10,14 +10,31 @@ using Sistema.Services;
 
 namespace Sistema.Controllers
 {
-    public class HomeController(ApplicationDbContext context, UsuarioLogadoService usuarioLogado, IAuthorizationService authorization) : Controller
+    // Alterado (lote B10, HF-015): entram a configuração (chave Sistema:MostrarVitrine) e o
+    // VitrineService, que monta o catálogo público da home do visitante
+    public class HomeController(ApplicationDbContext context, UsuarioLogadoService usuarioLogado, IAuthorizationService authorization, IConfiguration configuration, VitrineService vitrine) : Controller
     {
         // Painel inicial: números do mês conforme a função de quem está logado
+        // Novo (lote B10, RV2): a mesma URL "/" serve o catálogo público e o painel de quem entrou.
+        // NoStore impede que um cache intermediário guarde a resposta de um usuário e a sirva a outro
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<IActionResult> Index()
         {
             var modelo = new InicioViewModel { Logado = User.Identity?.IsAuthenticated == true };
+            // Novo (lote B10, RV10): a chave é lida ANTES do retorno antecipado; senão a view do
+            // visitante receberia false e a vitrine nunca apareceria
+            modelo.MostrarVitrine = configuration.GetValue("Sistema:MostrarVitrine", false);
             if (!modelo.Logado)
+            {
+                // Novo (lote B10): o catálogo só é consultado com a vitrine ligada
+                if (modelo.MostrarVitrine)
+                {
+                    var catalogo = await vitrine.ObterAsync();
+                    modelo.Vitrine = catalogo.Itens;
+                    modelo.VitrineTotal = catalogo.Total;
+                }
                 return View(modelo);
+            }
 
             var hoje = DateTime.Today;
             var inicioMes = new DateTime(hoje.Year, hoje.Month, 1);

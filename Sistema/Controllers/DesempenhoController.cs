@@ -99,28 +99,32 @@ public class DesempenhoController(ApplicationDbContext context, UsuarioLogadoSer
         ver = ver?.ToLowerInvariant() switch { "regiao" => "regiao", "cidade" => "cidade", _ => "uf" };
         var (inicio, fim) = Periodos.Calcular(periodo);
 
-        // Cada operação vira (UF, código, cidade, total). O agrupamento é feito no banco
-        var linhas = new List<Agrupado>();
-        if (tipo is "compras" or "todos")
+        // Cada operação vira (UF, código, cidade, total). O agrupamento é feito no banco.
+        // Alterado (B8): as duas consultas rodam em toda requisição, marcando a origem (EhVenda),
+        // para o mapa mostrar compras e vendas por UF em qualquer filtro
+        var todas = new List<Agrupado>();
+        todas.AddRange(await context.Compras
+            .Where(c => c.DataHora >= inicio && c.DataHora < fim)
+            // Alterado (HF-007): sem fallback para a localização atual do comprador (que reatribuía compras antigas à cidade nova)
+            .Select(c => new { c.Uf, Codigo = c.CodigoMunicipio, c.Cidade, c.Total })
+            .GroupBy(x => new { x.Uf, x.Codigo, x.Cidade })
+            .Select(g => new Agrupado(g.Key.Uf, g.Key.Codigo, g.Key.Cidade, g.Count(), g.Sum(x => x.Total), false))
+            .ToListAsync());
+        todas.AddRange(await context.Vendas
+            .Where(v => v.DataHora >= inicio && v.DataHora < fim)
+            // Alterado (HF-007): sem fallback para a localização atual do comprador
+            .Select(v => new { v.Uf, Codigo = v.CodigoMunicipio, v.Cidade, v.Total })
+            .GroupBy(x => new { x.Uf, x.Codigo, x.Cidade })
+            .Select(g => new Agrupado(g.Key.Uf, g.Key.Codigo, g.Key.Cidade, g.Count(), g.Sum(x => x.Total), true))
+            .ToListAsync());
+
+        // Alterado (B8): tudo o que já existia (KPIs e rankings) continua seguindo só o tipo filtrado
+        var linhas = tipo switch
         {
-            linhas.AddRange(await context.Compras
-                .Where(c => c.DataHora >= inicio && c.DataHora < fim)
-                // Alterado (HF-007): sem fallback para a localização atual do comprador (que reatribuía compras antigas à cidade nova)
-                .Select(c => new { c.Uf, Codigo = c.CodigoMunicipio, c.Cidade, c.Total })
-                .GroupBy(x => new { x.Uf, x.Codigo, x.Cidade })
-                .Select(g => new Agrupado(g.Key.Uf, g.Key.Codigo, g.Key.Cidade, g.Count(), g.Sum(x => x.Total)))
-                .ToListAsync());
-        }
-        if (tipo is "vendas" or "todos")
-        {
-            linhas.AddRange(await context.Vendas
-                .Where(v => v.DataHora >= inicio && v.DataHora < fim)
-                // Alterado (HF-007): sem fallback para a localização atual do comprador
-                .Select(v => new { v.Uf, Codigo = v.CodigoMunicipio, v.Cidade, v.Total })
-                .GroupBy(x => new { x.Uf, x.Codigo, x.Cidade })
-                .Select(g => new Agrupado(g.Key.Uf, g.Key.Codigo, g.Key.Cidade, g.Count(), g.Sum(x => x.Total)))
-                .ToListAsync());
-        }
+            "compras" => todas.Where(l => !l.EhVenda).ToList(),
+            "vendas" => todas.Where(l => l.EhVenda).ToList(),
+            _ => todas
+        };
 
         // Alterado (HF-007): UF fora da lista do IBGE também conta como sem localização (assim RegiaoDaUf nunca dá nulo)
         var comLocal = linhas.Where(l => MunicipioService.UfValida(l.Uf)).ToList();
@@ -178,12 +182,23 @@ public class DesempenhoController(ApplicationDbContext context, UsuarioLogadoSer
                 })
                 .OrderByDescending(l => l.Valor)
                 .Take(20)
-                .ToList()
+                .ToList(),
+            // Novo (B8): os dois movimentos por UF, Brasil todo, só do período — para o mapa mostrar venda e compra juntas
+            MovimentoPorUf = todas
+                .Where(l => MunicipioService.UfValida(l.Uf))
+                .GroupBy(l => l.Uf!)
+                .ToDictionary(g => g.Key, g => new MovimentoUf
+                {
+                    QtdCompras = g.Where(l => !l.EhVenda).Sum(l => l.Quantidade),
+                    ValorCompras = g.Where(l => !l.EhVenda).Sum(l => l.Valor),
+                    QtdVendas = g.Where(l => l.EhVenda).Sum(l => l.Quantidade),
+                    ValorVendas = g.Where(l => l.EhVenda).Sum(l => l.Valor)
+                })
         };
 
         return View(modelo);
     }
 
-    // Resultado do GROUP BY de compras/vendas por localidade
-    private sealed record Agrupado(string? Uf, int? Codigo, string? Cidade, int Quantidade, decimal Valor);
+    // Resultado do GROUP BY de compras/vendas por localidade. Alterado (B8): EhVenda marca a origem (compra ou venda)
+    private sealed record Agrupado(string? Uf, int? Codigo, string? Cidade, int Quantidade, decimal Valor, bool EhVenda);
 }
