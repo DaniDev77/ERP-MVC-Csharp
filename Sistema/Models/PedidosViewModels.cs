@@ -85,6 +85,23 @@ namespace Sistema.Models
 
         // Cidades da UF selecionada; sem UF, da Regiao; sem as duas, do Brasil todo (até 20), do maior valor para o menor
         public List<LinhaLocalidade> PorCidade { get; set; } = new();
+
+        // Novo (B8, mapa do dono): compras e vendas do período separadas por UF, sempre do Brasil todo.
+        // Chave = sigla da UF (só UFs válidas do IBGE, só com movimento). Vazio, nunca nulo.
+        // Alimenta o mapa (tooltip/nome acessível); não substitui PorUf, que segue tipo e região
+        public IReadOnlyDictionary<string, MovimentoUf> MovimentoPorUf { get; set; } = new Dictionary<string, MovimentoUf>();
+    }
+
+    // Novo (B8, mapa do dono): os dois movimentos de uma UF no período, para o mapa mostrar venda e compra juntas
+    public class MovimentoUf
+    {
+        public int QtdCompras { get; set; }
+
+        public decimal ValorCompras { get; set; }
+
+        public int QtdVendas { get; set; }
+
+        public decimal ValorVendas { get; set; }
     }
 
     // Uma linha do painel por localidade
