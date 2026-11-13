@@ -1,6 +1,8 @@
-@* Casca do site de vendas (vitrine), usada só por visitantes quando Sistema:MostrarVitrine = true.
+@* Casca da home pública (o catálogo da loja), usada só por visitantes quando Sistema:MostrarVitrine = true.
    Sem sidebar nem topbar do app: cabeçalho, conteúdo e rodapé vêm do Views/Home/_Vitrine.cshtml.
-   Aqui ficam o <head> (SEO e Open Graph), o toast e os scripts, na ordem: _Toast, Scripts da view, site.js, vitrine.js *@
+   Aqui ficam o <head> (SEO e Open Graph), o toast e os scripts.
+   Alterado (Fase 8): a ordem dos scripts passa a ser _Toast, Scripts da view e site.js. O vitrine.js saiu
+   (ver o fim deste arquivo): a home pública não tem mais JavaScript próprio *@
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     // Endereço público: a chave Sistema:UrlPublica; vazia = esquema e host da própria requisição (Context.Request)
@@ -11,8 +13,16 @@
     }
     // Canonical e og:url sempre na raiz do site, sem caminho nem query
     var urlRaiz = urlPublica + "/";
-    // Imagem de prévia (WhatsApp e redes): arquivo local com endereço absoluto
-    var urlImagemOg = urlPublica + Url.Content("~/img/og-sistema.jpg");
+    // Alterado (home pública v2): a variável urlImagemOg VOLTA. A RV11 tinha tirado as metas og:image
+    // porque o arquivo ~/img/og-sistema.jpg não existia (404 em toda prévia). Agora existe um arquivo
+    // de verdade — wwwroot/img/vitrine/og-home.jpg, 1200×630, 99 KB, montado a partir da foto do
+    // balcão com a marca por cima (ver wwwroot/img/vitrine/README.md).
+    // Por que isso importa mesmo com noindex: a meta robots tira a página dos BUSCADORES, mas não
+    // impede a prévia de link do WhatsApp e do Telegram, que é por onde uma loja divulga.
+    // O cartão mostra a foto e a marca e NENHUM preço ou produto, de propósito: a prévia não pode
+    // publicar o catálogo num grupo de mensagens.
+    // Endereço absoluto: Open Graph não aceita caminho relativo
+    var urlImagemOg = urlPublica + "/img/vitrine/og-home.jpg";
     var titulo = (ViewData["Title"] as string) ?? "Controle de vendas e estoque para lojas";
     var descricao = (ViewData["Descricao"] as string) ?? "";
 }
@@ -21,13 +31,20 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
-    @* viewport-fit=cover: a barra fixa de chamada do celular respeita a área segura (env(safe-area-inset-bottom)) *@
+    @* Alterado (Fase 8): o viewport-fit=cover existia pela barra fixa de chamada do celular, que saiu.
+       Fica porque continua correto para telas com recorte (a pilha de toasts usa a área segura) *@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <title>@titulo · Sistema</title>
     <meta name="description" content="@descricao" />
     <link rel="canonical" href="@urlRaiz" />
-    @* Open Graph e cartão do X: título, descrição e imagem da prévia do link *@
+    @* Novo (lote B10, RV12) — decisão do dono em 2026-11-13: o catálogo público com preço fica fora dos
+       buscadores. O par desta meta é o wwwroot/robots.txt; para liberar depois, tire as duas juntas *@
+    <meta name="robots" content="noindex, nofollow" />
+    @* Open Graph: título, descrição, endereço e IMAGEM da prévia do link.
+       Alterado (home pública v2): voltam as 5 metas og:image* e o twitter:card, que a RV11 tinha
+       tirado só porque o arquivo não existia. Agora existe, com tamanho e tipo declarados — sem
+       width/height o WhatsApp às vezes baixa a imagem duas vezes ou desiste do cartão grande *@
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:site_name" content="Sistema" />
@@ -38,7 +55,8 @@
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Tela de venda do Sistema: cupom com produtos e total, ao lado do título Vendeu no balcão, o estoque já baixou." />
+    <meta property="og:image:alt" content="Foto antiga do balcão de um armazém brasileiro, ao lado do nome Sistema" />
+    @* Com imagem de 1200×630 o cartão grande é o certo; sem a meta, o padrão seria o cartão pequeno *@
     <meta name="twitter:card" content="summary_large_image" />
     @* Aplica o tema salvo antes de pintar (arquivo próprio: a CSP não aceita script inline) *@
     <script src="~/js/theme-init.js" asp-append-version="true"></script>
@@ -65,8 +83,11 @@
 
     @* O Index define a seção Scripts para todos os perfis; ela precisa ser renderizada (para visitante sai vazia) *@
     @await RenderSectionAsync("Scripts", required: false)
-    @* site.js: tema, toasts e o resto da interface; vitrine.js depois dele (usa window.SistemaToast) *@
+    @* site.js: tema, toasts, a busca da lista e o resto da interface.
+       Alterado (Fase 8): saiu o <script src="~/js/vitrine.js">. O arquivo nunca existiu em wwwroot/js, então
+       toda visita à home gerava um 404; e a home nova não tem o que ele controlava (demonstração do PDV,
+       menu de seções, repor estoque, formulário da frase, barra fixa e entrada das seções ao rolar).
+       O que a tela precisa — o botão de tema e o filtro da lista — já está no site.js *@
     <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/vitrine.js" asp-append-version="true"></script>
 </body>
 </html>
