@@ -1,32 +1,62 @@
 @model Sistema.Models.LocalidadesViewModel
 @using System.Globalization
+@using Sistema.Services
+@* Reescrita (Fase 4, HF-007 e HF-014): região → estado → cidade com o mapa SVG do Brasil (_MapaBrasil).
+   Plano aprovado em docs/redesign/plano-mapa-localidades.md (seções 1-3, 5, 7, 8 + adendo A1-A8) e
+   ressalvas RM5-RM11 de docs/redesign/parecer-mapa-localidades.md. Navegação 100% por links GET (sem JS);
+   ordem, limite de 20 cidades, somas e Percentual vêm do servidor; a largura das barras e a faixa do mapa
+   são só apresentação (HF-007). *@
 @{
-    ViewData["Title"] = "Compras por localidade";
+    // Título, descrição e rodapés seguem o tipo de operação (correção do QA no HF-007)
+    var (titulo, descricao, rodapeValor, palavraEstados) = Model.Tipo switch
+    {
+        "vendas" => ("Vendas por localidade", "Para onde vão as vendas, por região, estado e cidade, no período escolhido.", "vendas registradas", "vendas"),
+        "todos" => ("Movimento por localidade", "De onde vêm as compras e para onde vão as vendas, por região, estado e cidade, no período escolhido.", "compras confirmadas e vendas", "movimento"),
+        _ => ("Compras por localidade", "De onde vêm as compras, por região, estado e cidade, no período escolhido.", "compras confirmadas", "compras")
+    };
+    ViewData["Title"] = titulo;
     var pt = new CultureInfo("pt-BR");
     var inv = CultureInfo.InvariantCulture;
     var tipos = new (string Valor, string Texto)[] { ("compras", "Compras"), ("vendas", "Vendas"), ("todos", "Compras + vendas") };
+    // Seletor de visão (HF-007): qual bloco fica em destaque; só apresentação, decidida pelo servidor em Model.Ver
+    var visoes = new (string Valor, string Texto)[] { ("regiao", "Região"), ("uf", "Estado"), ("cidade", "Cidade") };
+    var maiorRegiao = Model.PorRegiao.Count > 0 ? Model.PorRegiao.Max(l => l.Valor) : 0m;
     var maiorUf = Model.PorUf.Count > 0 ? Model.PorUf.Max(l => l.Valor) : 0m;
     var maiorCidade = Model.PorCidade.Count > 0 ? Model.PorCidade.Max(l => l.Valor) : 0m;
     var pctSemLocal = Model.ValorTotal == 0 ? 0 : Model.ValorSemLocal / Model.ValorTotal * 100;
+    // Lookup do ranking de regiões pela chave: a lista em destaque fica na ordem fixa do IBGE (HF-007)
+    var porRegiao = Model.PorRegiao.ToDictionary(l => l.Regiao);
+    // Trilha: com ?uf=SP sem região, a região vem de RegiaoDaUf (HF-007)
+    var regiaoTrilha = Model.Regiao ?? MunicipioService.RegiaoDaUf(Model.Uf);
+    // KPI "Estados com ...": segue a região ("Corrigido em" do HF-007) — o rodapé diz o total certo
+    var rodapeEstados = Model.Regiao == null
+        ? "de 27 unidades da federação"
+        : $"de {MunicipioService.Regioes.First(r => r.Chave == Model.Regiao).Ufs.Count} da região {MunicipioService.NomeRegiao(Model.Regiao)}";
+    // R12: fora do destaque, cada lista mostra só as 5 primeiras linhas do servidor, sem reordenar
+    var listaUf = Model.Ver == "uf" ? Model.PorUf : Model.PorUf.Take(5).ToList();
+    var listaCidade = Model.Ver == "cidade" ? Model.PorCidade : Model.PorCidade.Take(5).ToList();
+    // Recorte do card de cidades: UF > região > Brasil (a mesma regra da action)
+    var recorteCidades = Model.Uf != null ? MunicipioService.NomeUf(Model.Uf)
+        : Model.Regiao != null ? MunicipioService.NomeRegiao(Model.Regiao) : null;
 }
 
-@* Novo (back-end, HF-003): índice de compras por UF e cidade. Gráfico de barras com os componentes existentes;
-   o mapa do Brasil fica para o front-end (os dados por UF já estão em Model.PorUf). Visual provisório *@
-<partial name="_PageHeader" model='new PageHeader {
-    Titulo = "Compras por localidade", Descricao = "De onde vêm as compras, por estado e cidade, no período escolhido.", Icone = "local" }' />
+<partial name="_PageHeader" model='new PageHeader { Titulo = titulo, Descricao = descricao, Icone = "local" }' />
 
 <div class="periodo-barra">
+    @* Alterado (HF-007): os links de período e de tipo passam a levar também regiao e ver *@
     <nav class="segmented" aria-label="Período">
         @foreach (var (valor, texto) in Periodos.Opcoes)
         {
-            <a class="@(Model.Periodo == valor ? "ativo" : "")" asp-action="Localidades" asp-route-periodo="@valor" asp-route-tipo="@Model.Tipo" asp-route-uf="@Model.Uf"
+            <a class="@(Model.Periodo == valor ? "ativo" : "")" asp-action="Localidades" asp-route-periodo="@valor" asp-route-tipo="@Model.Tipo"
+               asp-route-regiao="@Model.Regiao" asp-route-uf="@Model.Uf" asp-route-ver="@Model.Ver"
                aria-current="@(Model.Periodo == valor ? "page" : null)">@texto</a>
         }
     </nav>
     <nav class="segmented" aria-label="Tipo de operação">
         @foreach (var (valor, texto) in tipos)
         {
-            <a class="@(Model.Tipo == valor ? "ativo" : "")" asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@valor" asp-route-uf="@Model.Uf"
+            <a class="@(Model.Tipo == valor ? "ativo" : "")" asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@valor"
+               asp-route-regiao="@Model.Regiao" asp-route-uf="@Model.Uf" asp-route-ver="@Model.Ver"
                aria-current="@(Model.Tipo == valor ? "page" : null)">@texto</a>
         }
     </nav>
@@ -36,103 +66,232 @@
     </span>
 </div>
 
-<section class="kpi-grid kpi-grid-3" aria-label="Totais do período">
-    <partial name="_KpiCard" model='new KpiCard {
-        Rotulo = "Valor no período", Valor = Model.ValorTotal.ToString("C2", pt), Icone = "moeda", Tom = "brand",
-        Selo = $"{Model.QtdTotal} {(Model.QtdTotal == 1 ? "operação" : "operações")}", Rodape = "compras confirmadas e/ou vendas" }' />
-    <partial name="_KpiCard" model='new KpiCard {
-        Rotulo = "Estados com compras", Valor = Model.PorUf.Count.ToString(), Icone = "local", Tom = "info", Rodape = "de 27 unidades da federação" }' />
-    <partial name="_KpiCard" model='new KpiCard {
-        Rotulo = "Sem localização", Valor = Model.ValorSemLocal.ToString("C2", pt), Icone = "info", Tom = "slate",
-        Selo = $"{Model.QtdSemLocal}", Rodape = $"{pctSemLocal.ToString("0", pt)}% do valor: cliente não informou" }' />
-</section>
-
-<div class="row g-4">
-    <div class="col-lg-6">
-        <section class="ui-card h-100" aria-labelledby="titulo-uf">
-            <div class="ui-card-header">
-                <div>
-                    <h2 class="ui-card-title" id="titulo-uf">Por estado</h2>
-                    <p class="ui-card-sub">Escolha um estado para ver as cidades</p>
-                </div>
-                @if (Model.Uf != null)
-                {
-                    <a class="btn btn-ghost btn-sm" asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@Model.Tipo">Brasil todo</a>
-                }
-            </div>
-            @if (Model.PorUf.Count == 0)
-            {
-                <partial name="_EmptyState" model='new EmptyState {
-                    Imagem = "~/img/vazio-busca.svg", Titulo = "Sem dados de localização",
-                    Texto = "Nenhuma operação deste período tem estado informado.", Compacto = true }' />
-            }
-            else
-            {
-                <ol class="ranking" id="rankingUf">
-                    @foreach (var l in Model.PorUf)
-                    {
-                        var largura = maiorUf == 0 ? 0 : (double)(l.Valor / maiorUf) * 100;
-                        <li class="@(Model.Uf == l.Uf ? "ativo" : "")">
-                            <span class="ranking-pos">@l.Uf</span>
-                            <div class="ranking-info">
-                                <div class="ranking-linha">
-                                    <a asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@Model.Tipo" asp-route-uf="@l.Uf"
-                                       aria-current="@(Model.Uf == l.Uf ? "true" : null)"><strong>@l.Nome</strong></a>
-                                    <span class="num ranking-valor">@l.Valor.ToString("C2", pt)</span>
-                                </div>
-                                <div class="barra barra-brand" role="img" aria-label="@l.Percentual.ToString("0.#", pt)% do valor com localização">
-                                    <span style="width: @largura.ToString("0.#", inv)%"></span>
-                                </div>
-                                <span class="cell-sub">@l.Quantidade @(l.Quantidade == 1 ? "operação" : "operações") · @l.Percentual.ToString("0.#", pt)%</span>
-                            </div>
-                        </li>
-                    }
-                </ol>
-            }
-        </section>
-    </div>
-    <div class="col-lg-6">
-        <section class="ui-card h-100" aria-labelledby="titulo-cidade">
-            <div class="ui-card-header">
-                <div>
-                    <h2 class="ui-card-title" id="titulo-cidade">Por cidade @(Model.Uf != null ? "· " + MunicipioServiceNome(Model.Uf) : "")</h2>
-                    <p class="ui-card-sub">As 20 cidades com maior valor</p>
-                </div>
-            </div>
-            @if (Model.PorCidade.Count == 0)
-            {
-                <partial name="_EmptyState" model='new EmptyState {
-                    Imagem = "~/img/vazio-busca.svg", Titulo = "Nenhuma cidade", Texto = "Não há cidades com operações neste filtro.", Compacto = true }' />
-            }
-            else
-            {
-                <ol class="ranking" id="rankingCidade">
-                    @{ var posicao = 0; }
-                    @foreach (var l in Model.PorCidade)
-                    {
-                        posicao++;
-                        var largura = maiorCidade == 0 ? 0 : (double)(l.Valor / maiorCidade) * 100;
-                        <li>
-                            <span class="ranking-pos @(posicao <= 3 ? "top" + posicao : "")">@posicao</span>
-                            <div class="ranking-info">
-                                <div class="ranking-linha">
-                                    <strong>@l.Nome - @l.Uf</strong>
-                                    <span class="num ranking-valor">@l.Valor.ToString("C2", pt)</span>
-                                </div>
-                                <div class="barra barra-brand" role="img" aria-label="@l.Percentual.ToString("0.#", pt)% do valor com localização">
-                                    <span style="width: @largura.ToString("0.#", inv)%"></span>
-                                </div>
-                                <span class="cell-sub">@l.Quantidade @(l.Quantidade == 1 ? "operação" : "operações") · @l.Percentual.ToString("0.#", pt)%</span>
-                            </div>
-                        </li>
-                    }
-                </ol>
-            }
-        </section>
-    </div>
+@* Novo (HF-007): filtro de região (5 regiões do IBGE + Brasil todo) e seletor de visão (ver=) *@
+<div class="lcl-filtros">
+    <nav class="abas" aria-label="Região">
+        @{ var brasilAtivo = Model.Regiao == null && Model.Uf == null; }
+        <a class="@(brasilAtivo ? "ativo" : "")" asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@Model.Tipo"
+           asp-route-ver="@Model.Ver" aria-current="@(brasilAtivo ? "page" : null)">Brasil todo</a>
+        @foreach (var r in MunicipioService.Regioes)
+        {
+            @* O link de região vai sem uf, de propósito: trocar de região solta o estado (HF-007) *@
+            <a class="@(Model.Regiao == r.Chave ? "ativo" : "")" asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@Model.Tipo"
+               asp-route-regiao="@r.Chave" asp-route-ver="@Model.Ver" aria-current="@(Model.Regiao == r.Chave ? "page" : null)">@r.Nome</a>
+        }
+    </nav>
+    <nav class="segmented" aria-label="Nível de detalhe">
+        @foreach (var (valor, texto) in visoes)
+        {
+            <a class="@(Model.Ver == valor ? "ativo" : "")" asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@Model.Tipo"
+               asp-route-regiao="@Model.Regiao" asp-route-uf="@Model.Uf" asp-route-ver="@valor"
+               aria-current="@(Model.Ver == valor ? "page" : null)">@texto</a>
+        }
+    </nav>
 </div>
 
-@functions {
-    // Nome da UF para o título do card de cidades
-    private static string MunicipioServiceNome(string uf) => Sistema.Services.MunicipioService.NomeUf(uf);
+@* Novo (HF-007): trilha do recorte ativo; "Brasil" limpa regiao e uf mantendo periodo, tipo e ver *@
+@if (Model.Regiao != null || Model.Uf != null)
+{
+    <nav class="lcl-trilha" aria-label="Recorte ativo">
+        <a asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@Model.Tipo" asp-route-ver="@Model.Ver">Brasil</a>
+        @if (regiaoTrilha != null)
+        {
+            <span aria-hidden="true">›</span>
+            @if (Model.Uf != null)
+            {
+                <a asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@Model.Tipo"
+                   asp-route-regiao="@regiaoTrilha" asp-route-ver="@Model.Ver">@MunicipioService.NomeRegiao(regiaoTrilha)</a>
+            }
+            else
+            {
+                <span class="lcl-trilha-atual" aria-current="true">@MunicipioService.NomeRegiao(regiaoTrilha)</span>
+            }
+        }
+        @if (Model.Uf != null)
+        {
+            <span aria-hidden="true">›</span>
+            <span class="lcl-trilha-atual" aria-current="true">@MunicipioService.NomeUf(Model.Uf)</span>
+        }
+    </nav>
 }
+
+<section class="kpi-grid kpi-grid-3" aria-label="Totais do período">
+    @* Alterado (HF-007): rótulos e rodapés dos KPIs seguem o tipo; os totais são sempre do Brasil todo *@
+    <partial name="_KpiCard" model='new KpiCard {
+        Rotulo = "Valor no período", Valor = Model.ValorTotal.ToString("C2", pt), Icone = "moeda", Tom = "brand",
+        Selo = $"{Model.QtdTotal} {(Model.QtdTotal == 1 ? "operação" : "operações")}", Rodape = rodapeValor }' />
+    @* Exceção documentada no HF-007: este KPI é PorUf.Count e segue a região; o rodapé diz "de N da região" *@
+    <partial name="_KpiCard" model='new KpiCard {
+        Rotulo = $"Estados com {palavraEstados}", Valor = Model.PorUf.Count.ToString(), Icone = "local", Tom = "info", Rodape = rodapeEstados }' />
+    @* Alterado (HF-007): o número inclui operações antigas e localizações apagadas, não só "não informou" *@
+    <partial name="_KpiCard" model='new KpiCard {
+        Rotulo = "Sem localização", Valor = Model.ValorSemLocal.ToString("C2", pt), Icone = "info", Tom = "slate",
+        Selo = $"{Model.QtdSemLocal}", Rodape = $"{pctSemLocal.ToString("0", pt)}% do valor: sem cidade registrada na operação" }' />
+</section>
+
+@* Novo (HF-007/HF-014): mapa + cartões. O cartão da visão ativa (destaque) fica ao lado do mapa no desktop *@
+<div class="lcl-conteudo">
+    @* Corrigido (achado 6 da revisão da Fase 4): o cartão do mapa era o único sem título visível — o nome
+       só existia no aria-label. Agora o título é o nome acessível do cartão (aria-labelledby) *@
+    <section class="ui-card lcl-mapa" aria-labelledby="titulo-mapa">
+        <div class="ui-card-header">
+            <div>
+                <h2 class="ui-card-title" id="titulo-mapa">Mapa do Brasil</h2>
+                <p class="ui-card-sub">Escolha um estado para filtrar</p>
+            </div>
+        </div>
+        <partial name="_MapaBrasil" model="Model" />
+    </section>
+
+    @* Corrigido (achado 5 da revisão da Fase 4, WCAG 2.4.3): os três cartões saem no HTML na mesma ordem em
+       que aparecem na tela — o da visão ativa (destaque) primeiro —, em vez de serem reordenados por CSS,
+       que deixava a ordem do Tab diferente da ordem visual. O OrderBy é estável, então quem não é destaque
+       mantém a ordem região → estado → cidade. A grade (pages.css) só distribui o que vem do HTML *@
+    @foreach (var bloco in new[] { "regiao", "uf", "cidade" }.OrderBy(v => v == Model.Ver ? 0 : 1))
+    {
+        if (bloco == "regiao")
+        {
+    @* Por região: sempre as 5, na ordem fixa do IBGE; região sem linha = sem movimento (HF-007) *@
+    <section class="ui-card @(Model.Ver == "regiao" ? "destaque" : "")" aria-labelledby="titulo-regiao">
+        <div class="ui-card-header">
+            <div>
+                <h2 class="ui-card-title" id="titulo-regiao">Por região</h2>
+                <p class="ui-card-sub">Percentuais sobre o valor com localização do Brasil todo</p>
+            </div>
+        </div>
+        <ol class="ranking" id="rankingRegiao">
+            @foreach (var r in MunicipioService.Regioes)
+            {
+                porRegiao.TryGetValue(r.Chave, out var l);
+                var largura = l == null || maiorRegiao == 0 ? 0 : (double)(l.Valor / maiorRegiao) * 100;
+                <li class="@(Model.Regiao == r.Chave ? "ativo" : "")">
+                    <div class="ranking-info">
+                        <div class="ranking-linha">
+                            @* O link de região vai sem uf (HF-007), mantendo periodo, tipo e ver *@
+                            <a asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@Model.Tipo"
+                               asp-route-regiao="@r.Chave" asp-route-ver="@Model.Ver"
+                               aria-current="@(Model.Regiao == r.Chave ? "page" : null)"><strong>@r.Nome</strong></a>
+                            @if (l != null)
+                            {
+                                <span class="num ranking-valor">@l.Valor.ToString("C2", pt)</span>
+                            }
+                        </div>
+                        @if (l != null)
+                        {
+                            <div class="barra barra-brand" role="img" aria-label="@l.Percentual.ToString("0.#", pt)% do valor com localização do Brasil">
+                                <span style="width: @largura.ToString("0.#", inv)%"></span>
+                            </div>
+                            <span class="cell-sub">@l.Quantidade @(l.Quantidade == 1 ? "operação" : "operações") · @l.Percentual.ToString("0.#", pt)% do Brasil</span>
+                        }
+                        else
+                        {
+                            <span class="cell-sub lcl-sem-mov">Sem movimento no período</span>
+                        }
+                    </div>
+                </li>
+            }
+        </ol>
+    </section>
+        }
+        else if (bloco == "uf")
+        {
+    <section class="ui-card @(Model.Ver == "uf" ? "destaque" : "")" aria-labelledby="titulo-uf">
+        <div class="ui-card-header">
+            <div>
+                <h2 class="ui-card-title" id="titulo-uf">Por estado</h2>
+                <p class="ui-card-sub">Escolha um estado para ver as cidades</p>
+            </div>
+            @* Alterado (HF-007): "Brasil todo" aparece com região OU UF filtrada e limpa as duas *@
+            @if (Model.Regiao != null || Model.Uf != null)
+            {
+                <a class="btn btn-ghost btn-sm" asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@Model.Tipo"
+                   asp-route-ver="@Model.Ver">Brasil todo</a>
+            }
+        </div>
+        @if (Model.PorUf.Count == 0)
+        {
+            <partial name="_EmptyState" model='new EmptyState {
+                Imagem = "~/img/vazio-busca.svg", Titulo = "Sem dados de localização",
+                Texto = $"Nenhuma operação de {palavraEstados} deste filtro tem estado informado.", Compacto = true }' />
+        }
+        else
+        {
+            <ol class="ranking" id="rankingUf">
+                @foreach (var l in listaUf)
+                {
+                    var largura = maiorUf == 0 ? 0 : (double)(l.Valor / maiorUf) * 100;
+                    <li class="@(Model.Uf == l.Uf ? "ativo" : "")">
+                        <span class="ranking-pos">@l.Uf</span>
+                        <div class="ranking-info">
+                            <div class="ranking-linha">
+                                @* Alterado (HF-007): o link de UF leva também regiao e ver, para não soltar a região *@
+                                <a asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@Model.Tipo"
+                                   asp-route-regiao="@Model.Regiao" asp-route-uf="@l.Uf" asp-route-ver="@Model.Ver"
+                                   aria-current="@(Model.Uf == l.Uf ? "page" : null)"><strong>@l.Nome</strong></a>
+                                <span class="num ranking-valor">@l.Valor.ToString("C2", pt)</span>
+                            </div>
+                            <div class="barra barra-brand" role="img" aria-label="@l.Percentual.ToString("0.#", pt)% do valor com localização do Brasil">
+                                <span style="width: @largura.ToString("0.#", inv)%"></span>
+                            </div>
+                            <span class="cell-sub">@l.Quantidade @(l.Quantidade == 1 ? "operação" : "operações") · @l.Percentual.ToString("0.#", pt)% do Brasil</span>
+                        </div>
+                    </li>
+                }
+            </ol>
+            @* R12: fora do destaque, só as 5 primeiras; "Ver todos" muda o destaque mantendo os outros 4 parâmetros *@
+            @if (Model.Ver != "uf" && Model.PorUf.Count > 5)
+            {
+                <a class="btn btn-ghost btn-sm lcl-ver-todos" asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@Model.Tipo"
+                   asp-route-regiao="@Model.Regiao" asp-route-uf="@Model.Uf" asp-route-ver="uf">Ver todos os estados (@Model.PorUf.Count)</a>
+            }
+        }
+    </section>
+        }
+        else
+        {
+    <section class="ui-card @(Model.Ver == "cidade" ? "destaque" : "")" aria-labelledby="titulo-cidade">
+        <div class="ui-card-header">
+            <div>
+                <h2 class="ui-card-title" id="titulo-cidade">Por cidade @(recorteCidades != null ? "· " + recorteCidades : "")</h2>
+                <p class="ui-card-sub">As 20 cidades com maior valor @(recorteCidades == null ? "do Brasil" : "")</p>
+            </div>
+        </div>
+        @if (Model.PorCidade.Count == 0)
+        {
+            <partial name="_EmptyState" model='new EmptyState {
+                Imagem = "~/img/vazio-busca.svg", Titulo = "Nenhuma cidade", Texto = "Não há cidades com operações neste filtro.", Compacto = true }' />
+        }
+        else
+        {
+            <ol class="ranking" id="rankingCidade">
+                @{ var posicao = 0; }
+                @foreach (var l in listaCidade)
+                {
+                    posicao++;
+                    var largura = maiorCidade == 0 ? 0 : (double)(l.Valor / maiorCidade) * 100;
+                    <li>
+                        <span class="ranking-pos @(posicao <= 3 ? "top" + posicao : "")">@posicao</span>
+                        <div class="ranking-info">
+                            <div class="ranking-linha">
+                                <strong>@l.Nome - @l.Uf</strong>
+                                <span class="num ranking-valor">@l.Valor.ToString("C2", pt)</span>
+                            </div>
+                            <div class="barra barra-brand" role="img" aria-label="@l.Percentual.ToString("0.#", pt)% do valor com localização do Brasil">
+                                <span style="width: @largura.ToString("0.#", inv)%"></span>
+                            </div>
+                            <span class="cell-sub">@l.Quantidade @(l.Quantidade == 1 ? "operação" : "operações") · @l.Percentual.ToString("0.#", pt)% do Brasil</span>
+                        </div>
+                    </li>
+                }
+            </ol>
+            @* R12: em cidades o rótulo diz o limite, porque o servidor corta a lista em 20 *@
+            @if (Model.Ver != "cidade" && Model.PorCidade.Count > 5)
+            {
+                <a class="btn btn-ghost btn-sm lcl-ver-todos" asp-action="Localidades" asp-route-periodo="@Model.Periodo" asp-route-tipo="@Model.Tipo"
+                   asp-route-regiao="@Model.Regiao" asp-route-uf="@Model.Uf" asp-route-ver="cidade">Ver as 20 maiores</a>
+            }
+        }
+    </section>
+        }
+    }
+</div>
