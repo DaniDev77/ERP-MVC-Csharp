@@ -670,3 +670,104 @@ body.folha-venda-aberta { overflow: hidden; }
 
 /* Telas de acesso: link "voltar" acima do título */
 .auth-form-box .voltar { margin-bottom: var(--s-5); }
+
+/* ===================== Localidades (Fase 4, HF-007 e HF-014) =====================
+   Novo: filtros de região e visão, trilha do recorte, grade com cartão em destaque e
+   o mapa SVG do Brasil (_MapaBrasil.cshtml), conforme o plano do mapa e as RM5-RM11. */
+
+/* Novo (Fase 4): barra com o filtro de região (.abas) e o seletor de visão (.segmented) */
+.lcl-filtros { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-3); margin-top: var(--s-4); }
+
+/* Novo (Fase 4): trilha do recorte ativo (Brasil › Região › Estado) */
+.lcl-trilha { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); margin-top: var(--s-4); font-size: var(--fs-sm); color: var(--muted); }
+.lcl-trilha a { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; }
+.lcl-trilha-atual { color: var(--text); font-weight: 500; }
+
+/* Novo (Fase 4): grade do conteúdo. No celular, tudo empilha: mapa, depois o cartão da visão ativa
+   (.destaque), depois os outros. No desktop (>= 1200px), o mapa fica ao lado do destaque na primeira linha */
+/* Corrigido (achado 5 da revisão da Fase 4, WCAG 2.4.3): a ordem visual saía de order/grid-row e não
+   batia com a ordem do Tab. Agora quem ordena é o HTML (o cartão em destaque vem logo depois do mapa,
+   em Localidades.cshtml), e a grade só distribui: linha 1 = mapa + destaque; os outros dois fluem abaixo */
+.lcl-conteudo { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); margin-top: var(--gap); }
+.lcl-conteudo > * { min-width: 0; }
+@media (min-width: 1200px) {
+  .lcl-conteudo { grid-template-columns: minmax(300px, 440px) minmax(0, 1fr); align-items: start; }
+}
+
+/* Região sem movimento no ranking fixo do IBGE: texto esmaecido, sem barra */
+.lcl-sem-mov { color: var(--faint); }
+
+/* "Ver todos" das listas encurtadas (R12) */
+.lcl-ver-todos { margin: var(--s-2) var(--s-4) var(--s-3); }
+
+/* ---------- Mapa do Brasil (RM5-RM11) ---------- */
+/* Corrigido (achado 6 da revisão da Fase 4): a legenda encostava na borda do cartão. O respiro fica na
+   figura (o .ui-card-header tem o seu próprio) e usa --s-5, o espaçamento da casa */
+.lcl-mapa .mapa-brasil { margin: 0; padding: 0 var(--s-5) var(--s-5); }
+.mapa-svg { display: block; width: 100%; height: auto; max-width: 520px; margin-inline: auto; }
+
+/* Divisas com espessura fixa na tela (vector-effect), cores por token nos dois temas (RD16) */
+.mapa-uf path { fill: var(--mapa-0); stroke: var(--mapa-divisa); stroke-width: 1; vector-effect: non-scaling-stroke; transition: fill var(--t-fast) var(--ease); }
+@media (prefers-reduced-motion: reduce) { .mapa-uf path { transition: none; } }
+.mapa-f1 path { fill: var(--mapa-1); }
+.mapa-f2 path { fill: var(--mapa-2); }
+.mapa-f3 path { fill: var(--mapa-3); }
+.mapa-f4 path { fill: var(--mapa-4); }
+.mapa-f5 path { fill: var(--mapa-5); }
+/* Corrigido (achado 4 da revisão da Fase 4): --chart-grid ficava a ~1,1:1 das faixas 0 e 1 e o mapa virava
+   uma mancha sem fronteiras. A divisa agora troca de tom nas faixas escuras, como a sigla já fazia */
+.mapa-f4 path, .mapa-f5 path { stroke: var(--mapa-divisa-alto); }
+
+/* Sigla: a cor troca por faixa (RD16, contrastes medidos no tokens.css). Em unidades do viewBox (~39 de largura),
+   1.15 = ~15px com o mapa a 520px. pointer-events none: o clique atravessa para o path do <a> */
+.mapa-uf text { font-family: inherit; font-size: 1.15px; font-weight: 600; letter-spacing: .04px; text-anchor: middle; fill: var(--chart-text); pointer-events: none; }
+.mapa-f1 text, .mapa-f2 text, .mapa-f3 text { fill: var(--mapa-ink); }
+.mapa-f4 text, .mapa-f5 text { fill: var(--mapa-ink-alto); }
+
+/* RM10: a UF fora da região recebe mapa-f0 + fora; as DUAS classes no seletor vencem a regra de faixa,
+   e a hachura (textura do <pattern> do partial) nunca se confunde com o "sem movimento" liso */
+/* Corrigido (achado 1 da revisão da Fase 4, RM10): o fill com o <pattern> passou para um <style> dentro do
+   próprio _MapaBrasil.cshtml (em folha externa, url(#mapaFora) resolve contra a folha, e o paint server pode
+   não ser achado). Aqui ficam o tom de reserva e a divisa tracejada, que distingue "fora da região" de
+   "sem movimento" mesmo que a hachura não pinte */
+.mapa-uf.fora path { fill: var(--mapa-fora); stroke: var(--mapa-fora-risco); stroke-dasharray: 3 2; }
+.mapa-uf.fora text { fill: var(--chart-text); }
+.mapa-fora-fundo { fill: var(--mapa-fora); }
+.mapa-fora-risco { stroke: var(--mapa-fora-risco); stroke-width: 900; }
+
+/* Hover: divisa realçada (o tooltip é o <title> nativo do SVG) */
+.mapa-uf:hover path { stroke: var(--chart-bar-hover); stroke-width: 1.5; }
+
+/* UF ativa (aria-current): contorno em tinta, distinto do foco pela cor */
+.mapa-uf.ativo path { stroke: var(--accent-ink); stroke-width: 2.25; stroke-dasharray: none; }
+/* Corrigido (achado 3 da revisão da Fase 4): --accent-ink tem o mesmo hex de --mapa-5, então clicar no estado
+   de maior movimento não dava retorno visual. Nas faixas 4 e 5 o contorno vira a cor da superfície
+   (21:1 na faixa 5), e continua distinto do anel de foco pela cor (RM8) */
+.mapa-f4.ativo path, .mapa-f5.ativo path { stroke: var(--surface); }
+
+/* RM11: foco por stroke + halo duplo (outline não acompanha path). Critério de conclusão:
+   Tab pelos 27 estados nos dois temas, sem foco invisível ou ambíguo */
+.mapa-uf:focus { outline: none; }
+/* Corrigido (achado 2 da revisão da Fase 4, RM11): o halo por filter não era desenhado (os comprimentos do
+   drop-shadow estão no espaço do path, dentro do scale(0.0001), e a região do filtro ainda recortaria o anel
+   nas UFs pequenas), e o anel em --focus dava 2,66:1 na faixa 5. O halo saiu e o anel passa a trocar de cor
+   nas faixas escuras, como a sigla e a divisa. Falta o teste de Tab pelos 27 estados no navegador (RM11) */
+.mapa-uf:focus-visible path { stroke: var(--focus); stroke-width: 3.5; stroke-dasharray: none; }
+.mapa-f4:focus-visible path, .mapa-f5:focus-visible path { stroke: var(--mapa-foco-alto); }
+
+/* Legenda com texto, e não só cor (R11/RM7) */
+.mapa-legenda { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); margin-top: var(--s-3); font-size: var(--fs-sm); color: var(--muted); }
+.mapa-legenda-tipo { font-weight: 500; color: var(--text); }
+.mapa-legenda-item { display: inline-flex; align-items: center; gap: var(--s-2); }
+.mapa-legenda-rampa { display: inline-flex; gap: 2px; }
+.mapa-leg { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--mapa-divisa); }
+.mapa-leg-0 { background: var(--mapa-0); }
+.mapa-leg-1 { background: var(--mapa-1); }
+.mapa-leg-2 { background: var(--mapa-2); }
+.mapa-leg-3 { background: var(--mapa-3); }
+.mapa-leg-4 { background: var(--mapa-4); }
+.mapa-leg-5 { background: var(--mapa-5); }
+/* O mesmo desenho da hachura do mapa, em CSS, para a legenda */
+/* Corrigido (achado 1 da revisão da Fase 4): a legenda repetia o par de tokens invisível. Agora o risco usa
+   --mapa-fora-risco e a borda é tracejada, o mesmo desenho do mapa */
+.mapa-leg-fora { background: repeating-linear-gradient(45deg, var(--mapa-fora), var(--mapa-fora) 3px, var(--mapa-fora-risco) 3px, var(--mapa-fora-risco) 4px); border-style: dashed; border-color: var(--mapa-fora-risco); }

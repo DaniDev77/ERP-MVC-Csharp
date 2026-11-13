@@ -99,11 +99,24 @@
   --tema-sol: none;
   /* Linha entre o painel e o formulário nas telas de acesso (só aparece no escuro) */
   --auth-divisa: transparent;
-  /* Vitrine (até a Fase 8): campo do "palco" e filtro das fotos */
-  --vitrine-palco: #1B6C80;
-  --vitrine-palco-faixa: #1F7387;
-  --vitrine-palco-fundo: #15596A;
+  /* Vitrine (home pública, v2): o "palco" — a metade fixa da tela com a foto de acervo — e o que
+     passa por cima dela. Alterado: os 4 tokens estavam ÓRFÃOS desde a Fase 8 (o palco verde-petróleo
+     tinha saído com o herói antigo) e voltam a ter consumidor, com valores novos: o palco deixa de ser
+     azul-petróleo e passa a ser o campo de tinta da direção D — a cor da página continua sendo só a
+     etiqueta amarela. Com isso eles saem da lista de limpeza da Fase 7.
+     Os 3 últimos são novos e ficam neste mesmo bloco, nos três blocos de tema */
+  --vitrine-palco: #1B1B18;
+  --vitrine-palco-faixa: rgba(10, 10, 9, .62);
+  --vitrine-palco-fundo: #262622;
   --vitrine-foto-filtro: none;
+  --vitrine-sobre-palco: #F4F4F1;
+  --vitrine-sobre-palco-2: #BDBDB6;
+  --vitrine-cupom: #FFFFFF;
+  /* Miniatura do produto na lista pública: a matiz do nome fica quase sem saturação, porque nesta
+     página a ÚNICA cor é a etiqueta amarela do preço — três quadradinhos coloridos roubavam o posto.
+     Mesmo par de saturação/luminosidade do --ident-ink e do --thumb-bg, só que neutro */
+  --vitrine-thumb-ink: 12% 30%;
+  --vitrine-thumb-bg: 10% 91%;
 
   /* ---------- Apelidos dos nomes antigos (mantidos até a limpeza da Fase 7) ---------- */
   --bg: var(--frame);
@@ -215,9 +228,23 @@
   --chart-text: #575751;
   --chart-tooltip: #1B1B18;
 
-  /* ---------- Mapa de UFs (Fase 4): rampa sequencial de 5 faixas ---------- */
-  /* A rampa em tinta da direção D entra na Fase 4, com o contraste revalidado (RD16) */
-  --map-1: #E3ECF9; --map-2: #A9C4EE; --map-3: #6B97DE; --map-4: #2F6CC7; --map-5: #143F86;
+  /* ---------- Mapa do Brasil (Fase 4, RD16): rampa em tinta de 5 faixas ----------
+     Alterado (Fase 4): a rampa azul da direção B saiu (os --map-* não eram usados em nenhum CSS) e entrou a
+     rampa em tinta da D. Contraste da sigla sobre cada faixa, medido (WCAG): f0 6,7 · f1 13,4 · f2 10,3 ·
+     f3 6,8 · f4 5,1 · f5 17,3 · fora 6,4 — todos ≥ 4,5:1. A cor do texto troca por faixa no pages.css */
+  --mapa-0: #F6F6F3;                       /* sem movimento no período */
+  --mapa-1: #E3E3DD; --mapa-2: #C8C8C0; --mapa-3: #A3A399; --mapa-4: #6E6E66; --mapa-5: #1B1B18;
+  --mapa-ink: #1B1B18;                     /* sigla sobre as faixas 1 a 3 */
+  --mapa-ink-alto: #FFFFFF;                /* sigla sobre as faixas 4 e 5 */
+  --mapa-fora: #F1F1EC;                    /* fundo da hachura "fora da região" (RM10) */
+  /* Corrigido (achados 1, 2 e 4 da revisão da Fase 4): o risco da hachura e as divisas tinham contraste de
+     ~1,1:1 com o fundo delas. Medido agora: risco 3,8:1 sobre --mapa-fora; divisa 4,0:1 na faixa 0 e
+     3,4:1 na faixa 1; divisa-alto 4,3:1 na faixa 4 e 14,4:1 na faixa 5; foco-alto 3,4:1 na faixa 4 e
+     11,4:1 na faixa 5 */
+  --mapa-fora-risco: #7A7A74;              /* risco da hachura "fora da região" */
+  --mapa-divisa: #7A7A74;                  /* divisa das faixas 0 a 3 */
+  --mapa-divisa-alto: #ECEBE6;             /* divisa das faixas 4 e 5 (fundo escuro) */
+  --mapa-foco-alto: #BBD3FF;               /* anel de foco nas faixas 4 e 5 */
 
   color-scheme: light;
 }
@@ -275,10 +302,17 @@
   --tema-lua: none;
   --tema-sol: block;
   --auth-divisa: var(--border);
-  --vitrine-palco: #15596A;
-  --vitrine-palco-faixa: #1A6475;
-  --vitrine-palco-fundo: #0F4A59;
-  --vitrine-foto-filtro: brightness(0.6);
+  /* Vitrine v2 no escuro: o palco fica MAIS escuro que o chão da página (#131312), para a capa e o
+     rodapé lerem como campo próprio; o filtro segura a foto clara, que sem ele estoura a tela */
+  --vitrine-palco: #0B0B0A;
+  --vitrine-palco-faixa: rgba(0, 0, 0, .66);
+  --vitrine-palco-fundo: #1C1C1A;
+  --vitrine-foto-filtro: brightness(0.68);
+  --vitrine-sobre-palco: #EDEDE8;
+  --vitrine-sobre-palco-2: #B3B3AC;
+  --vitrine-cupom: #1C1C1A;
+  --vitrine-thumb-ink: 14% 80%;
+  --vitrine-thumb-bg: 8% 20%;
   --action-active: #CFCFC8;
   --surface-inverse: #242422;
   --on-inverse-2: #B3B3AC;
@@ -293,7 +327,20 @@
   --chart-grid: #2A2A27;
   --chart-text: #B3B3AC;
   --chart-tooltip: #000000;
-  --map-1: #1B2638; --map-2: #22385E; --map-3: #2D5290; --map-4: #5584D6; --map-5: #B5CEF8;
+  /* Alterado (Fase 4, RD16): rampa do mapa em tinta clara sobre fundo escuro. Contraste da sigla, medido:
+     f0 7,6 · f1 11,3 · f2 8,2 · f3 5,2 · f4 6,1 · f5 14,7 · fora 7,2 — todos ≥ 4,5:1 */
+  --mapa-0: #222220;
+  --mapa-1: #30302C; --mapa-2: #45453F; --mapa-3: #62625A; --mapa-4: #9A9A91; --mapa-5: #EDEDE8;
+  --mapa-ink: #EDEDE8;
+  --mapa-ink-alto: #1B1B18;
+  --mapa-fora: #262624;
+  /* Corrigido (achados 1, 2 e 4 da revisão da Fase 4). Medido no escuro: risco 3,5:1 sobre --mapa-fora;
+     divisa 3,7:1 na faixa 0 e 3,1:1 na faixa 1; divisa-alto 6,1:1 na faixa 4 e 14,7:1 na faixa 5;
+     foco-alto 3,6:1 na faixa 4 e 8,7:1 na faixa 5 */
+  --mapa-fora-risco: #7A7A74;
+  --mapa-divisa: #7A7A74;
+  --mapa-divisa-alto: #1B1B18;
+  --mapa-foco-alto: #0B3A96;
   color-scheme: dark;
 }
 
@@ -347,10 +394,16 @@
     --tema-lua: none;
     --tema-sol: block;
     --auth-divisa: var(--border);
-    --vitrine-palco: #15596A;
-    --vitrine-palco-faixa: #1A6475;
-    --vitrine-palco-fundo: #0F4A59;
-    --vitrine-foto-filtro: brightness(0.6);
+    /* Vitrine v2 no escuro (mesmos valores do bloco [data-theme="dark"], para quem não tem JS) */
+    --vitrine-palco: #0B0B0A;
+    --vitrine-palco-faixa: rgba(0, 0, 0, .66);
+    --vitrine-palco-fundo: #1C1C1A;
+    --vitrine-foto-filtro: brightness(0.68);
+    --vitrine-sobre-palco: #EDEDE8;
+    --vitrine-sobre-palco-2: #B3B3AC;
+    --vitrine-cupom: #1C1C1A;
+    --vitrine-thumb-ink: 14% 80%;
+    --vitrine-thumb-bg: 8% 20%;
     --action-active: #CFCFC8;
     --surface-inverse: #242422;
     --on-inverse-2: #B3B3AC;
@@ -365,7 +418,19 @@
     --chart-grid: #2A2A27;
     --chart-text: #B3B3AC;
     --chart-tooltip: #000000;
-    --map-1: #1B2638; --map-2: #22385E; --map-3: #2D5290; --map-4: #5584D6; --map-5: #B5CEF8;
+    /* Alterado (Fase 4, RD16): rampa do mapa, cópia exata do bloco [data-theme="dark"] acima (R1/RD6) */
+    --mapa-0: #222220;
+    --mapa-1: #30302C; --mapa-2: #45453F; --mapa-3: #62625A; --mapa-4: #9A9A91; --mapa-5: #EDEDE8;
+    --mapa-ink: #EDEDE8;
+    --mapa-ink-alto: #1B1B18;
+    --mapa-fora: #262624;
+  /* Corrigido (achados 1, 2 e 4 da revisão da Fase 4). Medido no escuro: risco 3,5:1 sobre --mapa-fora;
+     divisa 3,7:1 na faixa 0 e 3,1:1 na faixa 1; divisa-alto 6,1:1 na faixa 4 e 14,7:1 na faixa 5;
+     foco-alto 3,6:1 na faixa 4 e 8,7:1 na faixa 5 */
+  --mapa-fora-risco: #7A7A74;
+  --mapa-divisa: #7A7A74;
+  --mapa-divisa-alto: #1B1B18;
+  --mapa-foco-alto: #0B3A96;
     color-scheme: dark;
   }
 }
